@@ -46,7 +46,8 @@ let package = Package(
             exclude: [
                 "Info.plist",
                 "ANKI-HUB-iOS-Widget.entitlements",
-            ]
+            ],
+            sources: [".", "../Shared"]
         ),
     ]
 )

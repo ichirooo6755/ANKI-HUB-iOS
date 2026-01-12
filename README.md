@@ -137,6 +137,25 @@
 - **解決策**:
   - `words.isEmpty` 時の設定UIを `ScrollView` 化し、全要素にアクセスできるようにした。
 
+### 2026-01-12: ToDoが端末間で同期されない / loadAll後に画面に反映されない
+- **症状**:
+  - ToDoを追加/編集/完了しても、別端末へ同期されない。
+  - `loadAll` 後にUserDefaultsは更新されているのに、ToDo画面が更新されず古い表示のままになることがある。
+- **原因**:
+  - Supabase同期（`SyncManager.performSyncAll/performLoadAll`）の対象に `anki_hub_todo_items_v1` が含まれていなかった。
+  - `loadAll` によりUserDefaultsが更新されても、ToDo画面側がその更新を購読していなかった。
+- **解決策**:
+  - `SyncManager` にToDo（`todo`）のupsert/fetchを追加して同期対象に含めた。
+  - `loadAll` でToDoを反映した際に通知を投げ、`TodoManager` が再ロードするようにして画面更新を安定化。
+
+### 2026-01-12: InputModeで「間違えた単語だけ」を復習したい
+- **症状**:
+  - InputModeで直近に間違えた単語だけを集中的に回したい。
+- **原因**:
+  - InputMode側に「直近ミス」のデータソース（`anki_hub_recent_mistakes_v1`）を参照する導線が無かった。
+- **解決策**:
+  - InputModeに「間違えた単語だけ」トグルを追加し、`anki_hub_recent_mistakes_v1` から教科別にwordIdを抽出してフィルタするようにした。
+
 ### 2026-01-12: タイマーがオーバータイムになると進行中画面に戻れない / 学習時間のカウントが不安定
 - **症状**:
   - タイマーが0到達してオーバータイムになった後、画面遷移やバックグラウンド復帰を挟むと「進行中のタイマー」に戻れないことがある。

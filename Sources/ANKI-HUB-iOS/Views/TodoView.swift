@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 /// ToDoアイテム
 struct TodoItem: Identifiable, Codable {
@@ -31,8 +32,24 @@ class TodoManager: ObservableObject {
 
     private let key = "anki_hub_todo_items_v1"
 
+    private var cancellables: Set<AnyCancellable> = []
+
     init() {
         loadItems()
+
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.loadItems()
+            }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: Notification.Name("anki_hub_todo_items_updated"))
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.loadItems()
+            }
+            .store(in: &cancellables)
     }
 
     func loadItems() {

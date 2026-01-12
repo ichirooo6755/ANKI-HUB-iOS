@@ -186,13 +186,13 @@ struct StudyWidget: Widget {
 struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
     var body: some Widget {
         StudyWidget()
-        #if os(iOS) && canImport(ActivityKit)
+        #if canImport(ActivityKit)
             StudyLiveActivity()
         #endif
     }
 }
 
-#if os(iOS) && canImport(ActivityKit)
+#if canImport(ActivityKit)
     struct StudyLiveActivity: Widget {
         var body: some WidgetConfiguration {
             ActivityConfiguration(for: FocusTimerAttributes.self) { context in

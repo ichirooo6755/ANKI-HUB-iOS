@@ -81,6 +81,8 @@ class SyncManager: ObservableObject {
         case rankUp = "rank_up"
         case examScores = "exam_scores"
         case retention = "retention"
+        case todo = "todo"
+        case inputMode = "input_mode"
     }
 
     // MARK: - Sync Operations
@@ -241,11 +243,32 @@ class SyncManager: ObservableObject {
                 accessToken: accessToken)
         }
 
-        // 7) Retention target days
+        // 7) Todo
+        if let data = UserDefaults.standard.data(forKey: "anki_hub_todo_items_v1"),
+            let any = try? JSONSerialization.jsonObject(with: data, options: [])
+        {
+            try await SupabaseStudyService.shared.upsert(
+                userId: userId, appId: AppID.todo.rawValue, data: any,
+                accessToken: accessToken)
+        }
+
+        // 8) Input Mode
+        if let data = UserDefaults.standard.data(forKey: "anki_hub_input_mode_v1"),
+            let any = try? JSONSerialization.jsonObject(with: data, options: [])
+        {
+            try await SupabaseStudyService.shared.upsert(
+                userId: userId, appId: AppID.inputMode.rawValue, data: any,
+                accessToken: accessToken)
+        }
+
+        // 9) Retention target days
         let storedDays = UserDefaults.standard.integer(forKey: "anki_hub_retention_target_days_v1")
         let fallbackDays = storedDays == 0 ? 7 : storedDays
         let kobunInputModeUseAll = UserDefaults.standard.bool(
             forKey: "anki_hub_kobun_inputmode_use_all_v1")
+        let day2LimitSeconds = UserDefaults.standard.double(forKey: "anki_hub_inputmode_day2_limit_v1")
+        let day2UnknownOnly = UserDefaults.standard.bool(forKey: "anki_hub_inputmode_day2_unknown_only_v1")
+        let inputModeMistakesOnly = UserDefaults.standard.bool(forKey: "anki_hub_inputmode_mistakes_only_v1")
         let storedTimestamp = UserDefaults.standard.double(forKey: "anki_hub_target_date_timestamp_v2")
 
         // Prefer v2 timestamp. If missing, derive from v1 days.
@@ -268,6 +291,9 @@ class SyncManager: ObservableObject {
         let retentionAny: [String: Any] = [
             "targetDays": targetDays,
             "kobunInputModeUseAll": kobunInputModeUseAll,
+            "day2LimitSeconds": day2LimitSeconds,
+            "day2UnknownOnly": day2UnknownOnly,
+            "inputModeMistakesOnly": inputModeMistakesOnly,
             "targetDateTimestamp": targetDateTimestamp,
         ]
         try await SupabaseStudyService.shared.upsert(
@@ -421,13 +447,45 @@ class SyncManager: ObservableObject {
                 UserDefaults.standard.set(data, forKey: "anki_hub_exam_scores_v1")
             }
 
-            // 7) Retention target days
+            // 7) Todo
+            if let any = try await SupabaseStudyService.shared.fetch(
+                userId: userId, appId: AppID.todo.rawValue, accessToken: accessToken),
+                JSONSerialization.isValidJSONObject(any),
+                let data = try? JSONSerialization.data(withJSONObject: any, options: [])
+            {
+                UserDefaults.standard.set(data, forKey: "anki_hub_todo_items_v1")
+                NotificationCenter.default.post(name: Notification.Name("anki_hub_todo_items_updated"), object: nil)
+            }
+
+            // 8) Input Mode
+            if let any = try await SupabaseStudyService.shared.fetch(
+                userId: userId, appId: AppID.inputMode.rawValue, accessToken: accessToken),
+                JSONSerialization.isValidJSONObject(any),
+                let data = try? JSONSerialization.data(withJSONObject: any, options: [])
+            {
+                UserDefaults.standard.set(data, forKey: "anki_hub_input_mode_v1")
+                InputModeManager.shared.loadData()
+            }
+
+            // 9) Retention target days
             if let any = try await SupabaseStudyService.shared.fetch(
                 userId: userId, appId: AppID.retention.rawValue, accessToken: accessToken)
                 as? [String: Any]
             {
                 if let useAll = any["kobunInputModeUseAll"] as? Bool {
                     UserDefaults.standard.set(useAll, forKey: "anki_hub_kobun_inputmode_use_all_v1")
+                }
+
+                if let limit = any["day2LimitSeconds"] as? Double, limit != 0 {
+                    UserDefaults.standard.set(limit, forKey: "anki_hub_inputmode_day2_limit_v1")
+                }
+
+                if let unknownOnly = any["day2UnknownOnly"] as? Bool {
+                    UserDefaults.standard.set(unknownOnly, forKey: "anki_hub_inputmode_day2_unknown_only_v1")
+                }
+
+                if let mistakesOnly = any["inputModeMistakesOnly"] as? Bool {
+                    UserDefaults.standard.set(mistakesOnly, forKey: "anki_hub_inputmode_mistakes_only_v1")
                 }
 
                 if let ts = any["targetDateTimestamp"] as? Double, ts != 0 {

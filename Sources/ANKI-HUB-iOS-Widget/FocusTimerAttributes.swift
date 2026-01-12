@@ -1,6 +1,6 @@
 import Foundation
 
-#if os(iOS) && canImport(ActivityKit)
+#if canImport(ActivityKit)
     import ActivityKit
 
     public struct FocusTimerAttributes: ActivityAttributes {

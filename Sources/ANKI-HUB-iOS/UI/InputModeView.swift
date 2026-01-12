@@ -10,6 +10,7 @@ struct InputModeView: View {
         false
     @AppStorage("anki_hub_inputmode_day2_limit_v1") private var day2TimeLimitSetting: Double = 3.0
     @AppStorage("anki_hub_inputmode_day2_unknown_only_v1") private var day2UnknownOnly: Bool = true
+    @AppStorage("anki_hub_inputmode_mistakes_only_v1") private var inputModeMistakesOnly: Bool = false
 
     @State private var selectedSubject: Subject = .kobun
     @State private var selectedBlockIndex: Int = 0
@@ -31,6 +32,15 @@ struct InputModeView: View {
     @State private var timeRemaining: CGFloat = 1.0
     @State private var timer: Timer?
     @State private var limitSeconds: Double = 3.0
+
+    private struct RecentMistake: Codable {
+        let subject: String
+        let wordId: String
+        let term: String
+        let answer: String
+        let chosen: String?
+        let date: Date
+    }
 
     var body: some View {
         ZStack {
@@ -60,11 +70,19 @@ struct InputModeView: View {
                             .bold()
 
                         let allWords = vocabData.getVocabulary(for: selectedSubject)
-                        let cappedWords: [Vocabulary] = {
-                            if selectedSubject == .kobun {
-                                return kobunInputModeUseAll ? allWords : Array(allWords.prefix(350))
+                        let filteredWords: [Vocabulary] = {
+                            if inputModeMistakesOnly {
+                                let ids = recentMistakeIds(for: selectedSubject)
+                                return allWords.filter { ids.contains($0.id) }
                             }
                             return allWords
+                        }()
+
+                        let cappedWords: [Vocabulary] = {
+                            if selectedSubject == .kobun {
+                                return kobunInputModeUseAll ? filteredWords : Array(filteredWords.prefix(350))
+                            }
+                            return filteredWords
                         }()
                         let totalBlocks = max(1, Int(ceil(Double(cappedWords.count) / 50.0)))
                         Picker("チャプター", selection: $selectedBlockIndex) {
@@ -83,6 +101,11 @@ struct InputModeView: View {
                             }
                         }
                         .pickerStyle(.segmented)
+                        .padding(.horizontal)
+
+                        Toggle(isOn: $inputModeMistakesOnly) {
+                            Text("間違えた単語だけ")
+                        }
                         .padding(.horizontal)
 
                         // Day 2 Timer Setting
@@ -318,6 +341,10 @@ struct InputModeView: View {
         .onChange(of: selectedBlockIndex) { _, _ in
             loadWords()
         }
+        .onChange(of: inputModeMistakesOnly) { _, _ in
+            selectedBlockIndex = 0
+            loadWords()
+        }
         .applyAppTheme()
     }
 
@@ -327,11 +354,19 @@ struct InputModeView: View {
         showDay3Answer = false
         sessionStartTime = Date()
         let allWordsRaw = vocabData.getVocabulary(for: selectedSubject)
-        let allWords: [Vocabulary] = {
-            if selectedSubject == .kobun {
-                return kobunInputModeUseAll ? allWordsRaw : Array(allWordsRaw.prefix(350))
+        let filteredWords: [Vocabulary] = {
+            if inputModeMistakesOnly {
+                let ids = recentMistakeIds(for: selectedSubject)
+                return allWordsRaw.filter { ids.contains($0.id) }
             }
             return allWordsRaw
+        }()
+
+        let allWords: [Vocabulary] = {
+            if selectedSubject == .kobun {
+                return kobunInputModeUseAll ? filteredWords : Array(filteredWords.prefix(350))
+            }
+            return filteredWords
         }()
         let start = max(0, selectedBlockIndex * 50)
         let end = min(start + 50, allWords.count)
@@ -347,6 +382,28 @@ struct InputModeView: View {
         if manager.currentDay == 2 {
             startTimer()
         }
+    }
+
+    private func recentMistakeIds(for subject: Subject) -> Set<String> {
+        let listKey = "anki_hub_recent_mistakes_v1"
+
+        let primaryDefaults = UserDefaults.standard
+        let appGroupDefaults = UserDefaults(suiteName: "group.com.ankihub.ios")
+
+        let candidates: [UserDefaults?] = [primaryDefaults, appGroupDefaults]
+        for defaults in candidates {
+            guard let defaults else { continue }
+            guard let data = defaults.data(forKey: listKey) else { continue }
+            guard let list = try? JSONDecoder().decode([RecentMistake].self, from: data) else { continue }
+            let ids = list
+                .filter { $0.subject == subject.rawValue }
+                .map { $0.wordId }
+            if !ids.isEmpty {
+                return Set(ids)
+            }
+        }
+
+        return []
     }
 
     private func startTimer() {
