@@ -1,0 +1,32 @@
+{
+  "object": {
+    "version": "1",
+    "minimumXcodeGenVersion": "2.35.0",
+    "projectVersion": 1
+  },
+  "name": "ANKI-HUB-iOS",
+  "targets": {
+    "ANKI-HUB-iOS": {
+      "type": "application",
+      "platform": "iOS",
+      "deploymentTarget": "17.0",
+      "sources": [
+        {
+          "path": "Sources/ANKI-HUB-iOS"
+        }
+      ],
+      "settings": {
+        "PRODUCT_BUNDLE_IDENTIFIER": "com.ankihub.ios",
+        "PRODUCT_NAME": "sugwrAnki",
+        "INFOPLIST_FILE": "Sources/ANKI-HUB-iOS/Info.plist",
+        "DEVELOPMENT_TEAM": "",
+        "CODE_SIGN_STYLE": "Automatic",
+        "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
+        "MARKETING_VERSION": "2.0.0",
+        "CURRENT_PROJECT_VERSION": "1",
+        "SWIFT_VERSION": "5.9"
+      },
+      "dependencies": []
+    }
+  }
+}

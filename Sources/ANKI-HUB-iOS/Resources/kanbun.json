@@ -1,0 +1,1002 @@
+[
+  {
+    "id": "k1",
+    "word": "故人",
+    "meaning": "旧友，親友",
+    "hint": null,
+    "reading": "こじん",
+    "explanation": "「故（ふる）き人」の意。"
+  },
+  {
+    "id": "k2",
+    "word": "徒ニ",
+    "meaning": "無駄に",
+    "hint": null,
+    "reading": "いたづらニ",
+    "explanation": "「徒ら（いたづら）」は役に立たないこと。"
+  },
+  {
+    "id": "k3",
+    "word": "義",
+    "meaning": "人としての正しい道",
+    "hint": null,
+    "reading": "ぎ",
+    "explanation": "仁・義・礼・智・信の五常の一つ。"
+  },
+  {
+    "id": "k4",
+    "word": "故ニ",
+    "meaning": "だから",
+    "hint": null,
+    "reading": "ゆえニ",
+    "explanation": "理由・結果を導く接続語。"
+  },
+  {
+    "id": "k5",
+    "word": "士",
+    "meaning": "学徳のある者、師弟",
+    "hint": null,
+    "reading": "し",
+    "explanation": "立派な男子や役人。"
+  },
+  {
+    "id": "k6",
+    "word": "小子",
+    "meaning": "おまえ、おまえたち",
+    "hint": null,
+    "reading": "せうし",
+    "explanation": "目下の者や生徒への呼びかけ。"
+  },
+  {
+    "id": "k7",
+    "word": "人間",
+    "meaning": "世の中",
+    "hint": null,
+    "reading": "じんかん",
+    "explanation": "「ひと」ではなく「世間」の意味。"
+  },
+  {
+    "id": "k8",
+    "word": "之ク",
+    "meaning": "行く",
+    "hint": null,
+    "reading": "ゆク",
+    "explanation": "場所へ向かう。"
+  },
+  {
+    "id": "k9",
+    "word": "百姓",
+    "meaning": "庶民、人々",
+    "hint": null,
+    "reading": "ひやくせい",
+    "explanation": "多くの姓を持つ人々＝人民。"
+  },
+  {
+    "id": "k10",
+    "word": "夫子",
+    "meaning": "賢者、先生などへの敬称",
+    "hint": null,
+    "reading": "ふうし",
+    "explanation": "孔子を指すことも多い。"
+  },
+  {
+    "id": "k11",
+    "word": "夜来",
+    "meaning": "昨夜",
+    "hint": null,
+    "reading": "やらい",
+    "explanation": "夜の間、昨夜から。"
+  },
+  {
+    "id": "k12",
+    "word": "過グ",
+    "meaning": "通り過ぎる",
+    "hint": null,
+    "reading": "すグ",
+    "explanation": "通過する。"
+  },
+  {
+    "id": "k13",
+    "word": "或イハ",
+    "meaning": "あるもの（時）は、あるいは",
+    "hint": null,
+    "reading": "あるイハ",
+    "explanation": "選択や並列。"
+  },
+  {
+    "id": "k14",
+    "word": "為り人",
+    "meaning": "人柄",
+    "hint": null,
+    "reading": "ひとトなり",
+    "explanation": "生まれつきの性質。"
+  },
+  {
+    "id": "k15",
+    "word": "一旦",
+    "meaning": "ある朝、ある日",
+    "hint": null,
+    "reading": "いつたん",
+    "explanation": "ひとたび。"
+  },
+  {
+    "id": "k16",
+    "word": "雁信",
+    "meaning": "手紙",
+    "hint": null,
+    "reading": "がんしん",
+    "explanation": "雁が手紙を運ぶ故事より。"
+  },
+  {
+    "id": "k17",
+    "word": "奇",
+    "meaning": "珍しい、優れている",
+    "hint": null,
+    "reading": "きトス",
+    "explanation": "普通ではない。"
+  },
+  {
+    "id": "k18",
+    "word": "客舍",
+    "meaning": "旅館，宿",
+    "hint": null,
+    "reading": "かくしゃ",
+    "explanation": "旅人の宿。"
+  },
+  {
+    "id": "k19",
+    "word": "故ヨリ",
+    "meaning": "もともと",
+    "hint": null,
+    "reading": "もとヨリ",
+    "explanation": "以前から。"
+  },
+  {
+    "id": "k20",
+    "word": "徐ニ",
+    "meaning": "落ち着いて，ゆっくりと",
+    "hint": null,
+    "reading": "おもむろニ",
+    "explanation": "静かに行動するさま。"
+  },
+  {
+    "id": "k21",
+    "word": "傷ム",
+    "meaning": "悲しむ、傷つく",
+    "hint": null,
+    "reading": "いたム",
+    "explanation": "心を痛める。"
+  },
+  {
+    "id": "k22",
+    "word": "丈夫",
+    "meaning": "すぐれた立派な人間",
+    "hint": null,
+    "reading": "じょうふ",
+    "explanation": "「ますらお」とも読む。"
+  },
+  {
+    "id": "k23",
+    "word": "則チ",
+    "meaning": "～ならば、すぐに",
+    "hint": null,
+    "reading": "すなはチ",
+    "explanation": "接続語。"
+  },
+  {
+    "id": "k24",
+    "word": "直",
+    "meaning": "〜だけ",
+    "hint": null,
+    "reading": "ただ",
+    "explanation": "限定。"
+  },
+  {
+    "id": "k25",
+    "word": "難シ",
+    "meaning": "難しい",
+    "hint": null,
+    "reading": "かたシ",
+    "explanation": "困難だ。"
+  },
+  {
+    "id": "k26",
+    "word": "方ニ",
+    "meaning": "ちょうど",
+    "hint": null,
+    "reading": "まさニ",
+    "explanation": "今まさに。"
+  },
+  {
+    "id": "k27",
+    "word": "甚ダ",
+    "meaning": "とても",
+    "hint": null,
+    "reading": "はなはダ",
+    "explanation": "程度が甚だしい。"
+  },
+  {
+    "id": "k28",
+    "word": "易フ",
+    "meaning": "とりかえる",
+    "hint": null,
+    "reading": "かフ",
+    "explanation": "交換する。"
+  },
+  {
+    "id": "k29",
+    "word": "何則",
+    "meaning": "なぜならば",
+    "hint": null,
+    "reading": "なんトナレバ",
+    "explanation": "理由を説明する。"
+  },
+  {
+    "id": "k30",
+    "word": "寡人",
+    "meaning": "王が自分を指していう",
+    "hint": null,
+    "reading": "かじん",
+    "explanation": "「徳の少ない私」という謙称。"
+  },
+  {
+    "id": "k31",
+    "word": "何如",
+    "meaning": "どのようであるか",
+    "hint": null,
+    "reading": "いかん",
+    "explanation": "状態や是非を問う。"
+  },
+  {
+    "id": "k32",
+    "word": "一日",
+    "meaning": "ある日",
+    "hint": null,
+    "reading": "いちじつ",
+    "explanation": "ある一日。"
+  },
+  {
+    "id": "k33",
+    "word": "過ツ",
+    "meaning": "誤ちを犯す",
+    "hint": null,
+    "reading": "あやまツ",
+    "explanation": "失敗する。"
+  },
+  {
+    "id": "k34",
+    "word": "蓋シ",
+    "meaning": "思うに",
+    "hint": null,
+    "reading": "けだシ",
+    "explanation": "推量。"
+  },
+  {
+    "id": "k35",
+    "word": "客",
+    "meaning": "旅人",
+    "hint": null,
+    "reading": "かく",
+    "explanation": "訪問者。"
+  },
+  {
+    "id": "k36",
+    "word": "偶",
+    "meaning": "思いがけなく",
+    "hint": null,
+    "reading": "たまたま",
+    "explanation": "偶然。"
+  },
+  {
+    "id": "k37",
+    "word": "見ハル",
+    "meaning": "現れる",
+    "hint": null,
+    "reading": "あらハル",
+    "explanation": "姿を見せる。"
+  },
+  {
+    "id": "k38",
+    "word": "師",
+    "meaning": "先生",
+    "hint": null,
+    "reading": "し",
+    "explanation": "手本となる人。軍隊。"
+  },
+  {
+    "id": "k39",
+    "word": "信",
+    "meaning": "まこと",
+    "hint": null,
+    "reading": "しん",
+    "explanation": "真実、誠実。"
+  },
+  {
+    "id": "k40",
+    "word": "卒ニ",
+    "meaning": "結局",
+    "hint": null,
+    "reading": "つひニ",
+    "explanation": "最終的に。"
+  },
+  {
+    "id": "k41",
+    "word": "如シ是",
+    "meaning": "このとおり",
+    "hint": null,
+    "reading": "かくノごとシ",
+    "explanation": "指示語を含む。"
+  },
+  {
+    "id": "k42",
+    "word": "能ク",
+    "meaning": "することができる",
+    "hint": null,
+    "reading": "よく",
+    "explanation": "能力がある。"
+  },
+  {
+    "id": "k43",
+    "word": "遊ブ",
+    "meaning": "旅に出る",
+    "hint": null,
+    "reading": "あそブ",
+    "explanation": "遊学する。"
+  },
+  {
+    "id": "k44",
+    "word": "弑ス",
+    "meaning": "身分が上の者を殺す",
+    "hint": null,
+    "reading": "しいス",
+    "explanation": "臣が君を殺すなど。"
+  },
+  {
+    "id": "k45",
+    "word": "寡シ",
+    "meaning": "少ない",
+    "hint": null,
+    "reading": "すくなシ",
+    "explanation": "数が少ない。"
+  },
+  {
+    "id": "k46",
+    "word": "宜ナリ",
+    "meaning": "もっともだ",
+    "hint": null,
+    "reading": "むベナリ",
+    "explanation": "当然だ。"
+  },
+  {
+    "id": "k47",
+    "word": "見ル",
+    "meaning": "会う",
+    "hint": null,
+    "reading": "みル",
+    "explanation": "対面する。"
+  },
+  {
+    "id": "k48",
+    "word": "事フ",
+    "meaning": "仕える",
+    "hint": null,
+    "reading": "つかフ",
+    "explanation": "奉仕する。"
+  },
+  {
+    "id": "k49",
+    "word": "乃ち",
+    "meaning": "そこで",
+    "hint": null,
+    "reading": "すなはチ",
+    "explanation": "順接。"
+  },
+  {
+    "id": "k50",
+    "word": "夫レ",
+    "meaning": "そもそも",
+    "hint": null,
+    "reading": "それ",
+    "explanation": "発語。"
+  },
+  {
+    "id": "k51",
+    "word": "与ス",
+    "meaning": "賛成する、仲間になる",
+    "hint": null,
+    "reading": "くみス",
+    "explanation": "味方する。"
+  },
+  {
+    "id": "k52",
+    "word": "与ル",
+    "meaning": "関わる",
+    "hint": null,
+    "reading": "あずかル",
+    "explanation": "関係する。"
+  },
+  {
+    "id": "k53",
+    "word": "俱ニ",
+    "meaning": "共に",
+    "hint": null,
+    "reading": "ともニ",
+    "explanation": "一緒に。"
+  },
+  {
+    "id": "k54",
+    "word": "君子",
+    "meaning": "人徳のすぐれた立派な人",
+    "hint": null,
+    "reading": "くんし",
+    "explanation": "学徳のある人。"
+  },
+  {
+    "id": "k55",
+    "word": "後生",
+    "meaning": "自分よりあとに生まれた者",
+    "hint": null,
+    "reading": "こうせい",
+    "explanation": "若者、後輩。"
+  },
+  {
+    "id": "k56",
+    "word": "市井",
+    "meaning": "まち、世の中",
+    "hint": null,
+    "reading": "しせい",
+    "explanation": "人が集まる場所。"
+  },
+  {
+    "id": "k57",
+    "word": "私ニ",
+    "meaning": "こっそり",
+    "hint": null,
+    "reading": "ひそかニ",
+    "explanation": "公ではなく個人的に。"
+  },
+  {
+    "id": "k58",
+    "word": "字",
+    "meaning": "人の呼び名",
+    "hint": null,
+    "reading": "あざな",
+    "explanation": "成人後に本名の他につける名。"
+  },
+  {
+    "id": "k59",
+    "word": "所以",
+    "meaning": "理由，手段，方法",
+    "hint": null,
+    "reading": "ゆえん",
+    "explanation": "わけ。"
+  },
+  {
+    "id": "k60",
+    "word": "尽く",
+    "meaning": "全部",
+    "hint": null,
+    "reading": "ことごとク",
+    "explanation": "すべて。"
+  },
+  {
+    "id": "k61",
+    "word": "相",
+    "meaning": "大臣",
+    "hint": null,
+    "reading": "しょう",
+    "explanation": "王を補佐する人。"
+  },
+  {
+    "id": "k62",
+    "word": "対フ",
+    "meaning": "目上の人にお答えする",
+    "hint": null,
+    "reading": "こたフ",
+    "explanation": "お答えする。"
+  },
+  {
+    "id": "k63",
+    "word": "過ル",
+    "meaning": "通り過ぎる",
+    "hint": null,
+    "reading": "よぎル",
+    "explanation": "立ち寄る、過ぎる。"
+  },
+  {
+    "id": "k64",
+    "word": "何者",
+    "meaning": "なぜならば",
+    "hint": null,
+    "reading": "なんトナレバ",
+    "explanation": "理由を問う。"
+  },
+  {
+    "id": "k65",
+    "word": "於是",
+    "meaning": "そこで、それで",
+    "hint": null,
+    "reading": "ここニおいテ",
+    "explanation": "場面の転換。"
+  },
+  {
+    "id": "k66",
+    "word": "俄ニ",
+    "meaning": "急に",
+    "hint": null,
+    "reading": "にはかニ",
+    "explanation": "突然。"
+  },
+  {
+    "id": "k67",
+    "word": "是ヲ以",
+    "meaning": "こういうわけで",
+    "hint": null,
+    "reading": "ここヲもっテ",
+    "explanation": "理由。"
+  },
+  {
+    "id": "k68",
+    "word": "干戈",
+    "meaning": "戦争",
+    "hint": null,
+    "reading": "かんか",
+    "explanation": "盾と矛。"
+  },
+  {
+    "id": "k69",
+    "word": "見ユ",
+    "meaning": "お目にかかる",
+    "hint": null,
+    "reading": "まみユ",
+    "explanation": "謁見する。"
+  },
+  {
+    "id": "k70",
+    "word": "固ヨリ",
+    "meaning": "もともと",
+    "hint": null,
+    "reading": "もとヨリ",
+    "explanation": "本来。"
+  },
+  {
+    "id": "k71",
+    "word": "左右",
+    "meaning": "側近の臣",
+    "hint": null,
+    "reading": "さゆう",
+    "explanation": "左と右に控える人。"
+  },
+  {
+    "id": "k72",
+    "word": "子",
+    "meaning": "あなた（男性に対して）",
+    "hint": null,
+    "reading": "し",
+    "explanation": "敬称。"
+  },
+  {
+    "id": "k73",
+    "word": "若",
+    "meaning": "あなた",
+    "hint": null,
+    "reading": "なんじ",
+    "explanation": "二人称。"
+  },
+  {
+    "id": "k74",
+    "word": "所謂",
+    "meaning": "世間でいうところの",
+    "hint": null,
+    "reading": "いはゆる",
+    "explanation": "いわゆる。"
+  },
+  {
+    "id": "k75",
+    "word": "嘗テ",
+    "meaning": "以前に",
+    "hint": null,
+    "reading": "かつテ",
+    "explanation": "かつて。"
+  },
+  {
+    "id": "k76",
+    "word": "小人",
+    "meaning": "人徳や身分の低い人",
+    "hint": null,
+    "reading": "しょうじん",
+    "explanation": "つまらない人。"
+  },
+  {
+    "id": "k77",
+    "word": "頗ル",
+    "meaning": "非常に",
+    "hint": null,
+    "reading": "すこぶル",
+    "explanation": "たいそう。"
+  },
+  {
+    "id": "k78",
+    "word": "素ヨリ",
+    "meaning": "もともと",
+    "hint": null,
+    "reading": "もとヨリ",
+    "explanation": "平素から。"
+  },
+  {
+    "id": "k79",
+    "word": "卒カニ",
+    "meaning": "急に",
+    "hint": null,
+    "reading": "にはカニ",
+    "explanation": "突然に。"
+  },
+  {
+    "id": "k80",
+    "word": "他日",
+    "meaning": "他の日、以前",
+    "hint": null,
+    "reading": "たじつ",
+    "explanation": "別の日。"
+  },
+  {
+    "id": "k81",
+    "word": "中ツ",
+    "meaning": "あたる",
+    "hint": null,
+    "reading": "あツ",
+    "explanation": "的中する。"
+  },
+  {
+    "id": "k82",
+    "word": "直チニ",
+    "meaning": "すぐに",
+    "hint": null,
+    "reading": "ただチニ",
+    "explanation": "即座に。"
+  },
+  {
+    "id": "k83",
+    "word": "不肖",
+    "meaning": "愚か、愚か者",
+    "hint": null,
+    "reading": "ふしょう",
+    "explanation": "父や師に似ず愚かなこと。"
+  },
+  {
+    "id": "k84",
+    "word": "凡ソ",
+    "meaning": "だいたい",
+    "hint": null,
+    "reading": "およそ",
+    "explanation": "総じて。"
+  },
+  {
+    "id": "k85",
+    "word": "与フ",
+    "meaning": "与える",
+    "hint": null,
+    "reading": "あたフ",
+    "explanation": "授ける。"
+  },
+  {
+    "id": "k86",
+    "word": "吏",
+    "meaning": "役人",
+    "hint": null,
+    "reading": "り",
+    "explanation": "官吏。"
+  },
+  {
+    "id": "k87",
+    "word": "立ニ",
+    "meaning": "すぐに",
+    "hint": null,
+    "reading": "たちどころニ",
+    "explanation": "その場ですぐに。"
+  },
+  {
+    "id": "k88",
+    "word": "已ム",
+    "meaning": "終わる",
+    "hint": null,
+    "reading": "やム",
+    "explanation": "止まる。"
+  },
+  {
+    "id": "k89",
+    "word": "輒",
+    "meaning": "そのたびごとに",
+    "hint": null,
+    "reading": "すなはチ",
+    "explanation": "たやすく、いつも。"
+  },
+  {
+    "id": "k90",
+    "word": "竟ニ",
+    "meaning": "結局",
+    "hint": null,
+    "reading": "つひニ",
+    "explanation": "とうとう。"
+  },
+  {
+    "id": "k91",
+    "word": "不",
+    "meaning": "〜ない（否定）",
+    "hint": null,
+    "reading": "〜ず",
+    "explanation": "否定を表す再読文字。「不読書」→「書ヲ読マず」"
+  },
+  {
+    "id": "k92",
+    "word": "未",
+    "meaning": "まだ〜ない",
+    "hint": null,
+    "reading": "いまダ〜ず",
+    "explanation": "否定を表す再読文字。「未見」→「いまダ見ず」"
+  },
+  {
+    "id": "k93",
+    "word": "無",
+    "meaning": "〜がない",
+    "hint": null,
+    "reading": "〜なシ",
+    "explanation": "存在の否定。「無人」→「人なシ」"
+  },
+  {
+    "id": "k94",
+    "word": "非",
+    "meaning": "〜ではない",
+    "hint": null,
+    "reading": "〜ニあらズ",
+    "explanation": "判断の否定。「非君子」→「君子ニあらズ」"
+  },
+  {
+    "id": "k95",
+    "word": "莫",
+    "meaning": "〜するな（禁止）",
+    "hint": null,
+    "reading": "〜なかレ",
+    "explanation": "禁止を表す。「莫言」→「言フなかレ」"
+  },
+  {
+    "id": "k96",
+    "word": "勿",
+    "meaning": "〜するな（禁止）",
+    "hint": null,
+    "reading": "〜なかレ",
+    "explanation": "禁止を表す。「勿忘」→「忘ルルなかレ」"
+  },
+  {
+    "id": "k97",
+    "word": "将",
+    "meaning": "まさに〜んとす",
+    "hint": null,
+    "reading": "まさニ〜ントす",
+    "explanation": "これから〜しようとする。「将行」→「まさニ行かんとス」"
+  },
+  {
+    "id": "k98",
+    "word": "当",
+    "meaning": "まさに〜べし",
+    "hint": null,
+    "reading": "まさニ〜ベシ",
+    "explanation": "当然〜すべきだ。「当読」→「まさニ読むベシ」"
+  },
+  {
+    "id": "k99",
+    "word": "須",
+    "meaning": "すべからく〜べし",
+    "hint": null,
+    "reading": "すべからク〜ベシ",
+    "explanation": "ぜひ〜すべきだ。「須学」→「すべからク学ぶベシ」"
+  },
+  {
+    "id": "k100",
+    "word": "宜",
+    "meaning": "よろしく〜べし",
+    "hint": null,
+    "reading": "よろしク〜ベシ",
+    "explanation": "〜するのがよい。「宜早起」→「よろしク早ク起クべシ」"
+  },
+  {
+    "id": "k101",
+    "word": "可",
+    "meaning": "〜べし（可能・当然）",
+    "hint": null,
+    "reading": "〜ベシ",
+    "explanation": "〜できる、〜すべきだ。「可読」→「読むベシ」"
+  },
+  {
+    "id": "k102",
+    "word": "能",
+    "meaning": "〜することができる",
+    "hint": null,
+    "reading": "よク〜ス",
+    "explanation": "能力を表す。「能言」→「よク言フ」"
+  },
+  {
+    "id": "k103",
+    "word": "欲",
+    "meaning": "〜んと欲す",
+    "hint": null,
+    "reading": "〜んトほっス",
+    "explanation": "〜しようと思う。「欲行」→「行かんトほっス」"
+  },
+  {
+    "id": "k104",
+    "word": "被",
+    "meaning": "〜される（受身）",
+    "hint": null,
+    "reading": "〜ル・ラル",
+    "explanation": "受身を表す。「被殺」→「殺さル」"
+  },
+  {
+    "id": "k105",
+    "word": "見",
+    "meaning": "〜される（受身）",
+    "hint": null,
+    "reading": "〜ル・ラル",
+    "explanation": "受身を表す。「見笑」→「笑はル」（笑われる）"
+  },
+  {
+    "id": "k106",
+    "word": "為",
+    "meaning": "〜に…される（受身）",
+    "hint": null,
+    "reading": "〜ニ…ル",
+    "explanation": "動作主を示す受身。「為人所笑」→「人ノ笑フところトなル」"
+  },
+  {
+    "id": "k107",
+    "word": "使",
+    "meaning": "〜をして…しむ（使役）",
+    "hint": null,
+    "reading": "〜ヲシテ…シム",
+    "explanation": "使役を表す。「使人行」→「人ヲシテ行かシム」"
+  },
+  {
+    "id": "k108",
+    "word": "令",
+    "meaning": "〜をして…しむ（使役）",
+    "hint": null,
+    "reading": "〜ヲシテ…シム",
+    "explanation": "使役を表す。「令人来」→「人ヲシテ来たラシム」"
+  },
+  {
+    "id": "k109",
+    "word": "如",
+    "meaning": "〜のごとし（比況）",
+    "hint": null,
+    "reading": "〜ノごとシ",
+    "explanation": "〜のようだ。「如水」→「水ノごとシ」"
+  },
+  {
+    "id": "k110",
+    "word": "若",
+    "meaning": "〜のごとし（比況）",
+    "hint": null,
+    "reading": "〜ノごとシ",
+    "explanation": "〜のようだ。「若風」→「風ノごとシ」"
+  },
+  {
+    "id": "k111",
+    "word": "過グ",
+    "meaning": "通り過ぎる",
+    "hint": null,
+    "reading": "すグ",
+    "explanation": "通過する。場所を通り過ぎる意味。"
+  },
+  {
+    "id": "k112",
+    "word": "過ツ",
+    "meaning": "誤ちを犯す",
+    "hint": null,
+    "reading": "あやまツ",
+    "explanation": "失敗する、間違える意味。"
+  },
+  {
+    "id": "k113",
+    "word": "過ル",
+    "meaning": "立ち寄る",
+    "hint": null,
+    "reading": "よぎル",
+    "explanation": "通りかかる、訪れる意味。"
+  },
+  {
+    "id": "k114",
+    "word": "見ル",
+    "meaning": "見る",
+    "hint": null,
+    "reading": "みル",
+    "explanation": "目で見る、眺める。基本的な意味。"
+  },
+  {
+    "id": "k115",
+    "word": "見ユ",
+    "meaning": "お目にかかる",
+    "hint": null,
+    "reading": "まみユ",
+    "explanation": "謁見する。目上の人に会う意味。"
+  },
+  {
+    "id": "k116",
+    "word": "見ハル",
+    "meaning": "現れる",
+    "hint": null,
+    "reading": "あらハル",
+    "explanation": "姿を見せる、出現する意味。"
+  },
+  {
+    "id": "k117",
+    "word": "故ニ",
+    "meaning": "だから",
+    "hint": null,
+    "reading": "ゆえニ",
+    "explanation": "理由・結果を導く接続語。"
+  },
+  {
+    "id": "k118",
+    "word": "故ヨリ",
+    "meaning": "もともと",
+    "hint": null,
+    "reading": "もとヨリ",
+    "explanation": "以前から、本来の意味。"
+  },
+  {
+    "id": "k119",
+    "word": "与フ",
+    "meaning": "与える",
+    "hint": null,
+    "reading": "あたフ",
+    "explanation": "授ける、渡す意味。"
+  },
+  {
+    "id": "k120",
+    "word": "与ス",
+    "meaning": "賛成する、仲間になる",
+    "hint": null,
+    "reading": "くみス",
+    "explanation": "味方する、協力する意味。"
+  },
+  {
+    "id": "k121",
+    "word": "与ル",
+    "meaning": "関わる",
+    "hint": null,
+    "reading": "あずかル",
+    "explanation": "関係する、参与する意味。"
+  },
+  {
+    "id": "k122",
+    "word": "則チ",
+    "meaning": "〜ならば（条件）",
+    "hint": null,
+    "reading": "すなはチ",
+    "explanation": "条件を表す接続語。"
+  },
+  {
+    "id": "k123",
+    "word": "則チ",
+    "meaning": "すぐに（即座）",
+    "hint": null,
+    "reading": "すなはチ",
+    "explanation": "時間的に直ちの意味。"
+  },
+  {
+    "id": "k124",
+    "word": "若",
+    "meaning": "あなた",
+    "hint": null,
+    "reading": "なんじ",
+    "explanation": "二人称代名詞。"
+  },
+  {
+    "id": "k125",
+    "word": "若シ",
+    "meaning": "もし〜ならば",
+    "hint": null,
+    "reading": "もシ",
+    "explanation": "仮定を表す。「若得」→「もシ得ば」"
+  }
+]
