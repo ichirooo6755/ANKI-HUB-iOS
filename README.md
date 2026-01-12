@@ -222,6 +222,15 @@
   - ウィジェットに `sugwranki://timer/start?minutes=...` の `Link` を追加し、App側で `onOpenURL` 受信→`PomodoroView` を開いて自動開始。
   - `SettingsView` に「ウィジェット: タイマー（分）」を追加し、App GroupのUserDefaults（`anki_hub_widget_timer_minutes_v1`）へ保存してWidget側で参照。
 
+### 2026-01-13: カラープリセット（theme-system.js由来）を全追加
+- **症状**:
+  - Web側（`theme-system.js`）にあるカラープリセットをiOS側で選べず、テーマ一覧に不足がある。
+- **原因**:
+  - iOS側の `ThemeManager.presets` がWeb側のプリセット一覧に追従しておらず、定義が一部のみだった。
+- **解決策**:
+  - `color_presets_list.md` の全ID/色コードを `ThemeManager.presets` に追加し、テーマ選択UIから選択可能にした。
+  - `getThemeName` に表示名マッピングを追加し、一覧で英語IDが露出しないように調整。
+
 ### 2026-01-11: PomodoroView のビルド失敗（accent参照/opaque return type）
 - **症状**:
   - `PomodoroView.swift` のコンパイルで `cannot find 'accent' in scope` / `function declares an opaque return type, but has no return statements...` が出てビルドが失敗する。

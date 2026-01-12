@@ -601,29 +601,89 @@ class ThemeManager: ObservableObject {
         return presets[id]
     }
 
+    private static func makePreset(
+        selection: String,
+        background: String,
+        surface: String,
+        text: String,
+        border: String,
+        mastered: String,
+        almost: String,
+        learning: String,
+        weak: String,
+        new: String,
+        isDarkBase: Bool = false
+    ) -> ThemePalette {
+        if isDarkBase {
+            return ThemePalette(
+                primary: selection,
+                secondary: new,
+                accent: almost,
+                background: background,
+                surface: surface,
+                text: text,
+                border: border,
+                selection: selection,
+                mastered: mastered,
+                almost: almost,
+                learning: learning,
+                weak: weak,
+                new: new,
+                primaryDark: selection,
+                backgroundDark: background,
+                surfaceDark: surface,
+                textDark: text,
+                borderDark: border,
+                selectionDark: selection
+            )
+        }
+
+        return ThemePalette(
+            primary: selection,
+            secondary: new,
+            accent: almost,
+            background: background,
+            surface: surface,
+            text: text,
+            border: border,
+            selection: selection,
+            mastered: mastered,
+            almost: almost,
+            learning: learning,
+            weak: weak,
+            new: new,
+            primaryDark: selection,
+            backgroundDark: "#0f172a",
+            surfaceDark: "#1e293b",
+            textDark: "#f8fafc",
+            borderDark: "#334155",
+            selectionDark: selection
+        )
+    }
+
     private let presets: [String: ThemePalette] = [
         // --- Standard Presets ---
         "default": ThemePalette(
             primary: "#4f46e5", secondary: "#64748b", accent: "#f59e0b", background: "#f9fafb",
             surface: "#ffffff", text: "#1f2937", border: "#e5e7eb", selection: "#4f46e5",
-            mastered: "#10b981", almost: "#fbbf24", learning: "#f97316", weak: "#ef4444",
+            mastered: "#10b981", almost: "#f59e0b", learning: "#f97316", weak: "#ef4444",
             new: "#9ca3af",
             primaryDark: "#6366f1", backgroundDark: "#0f172a", surfaceDark: "#1e293b",
             textDark: "#f8fafc", borderDark: "#334155", selectionDark: "#6366f1"
         ),
         "ocean": ThemePalette(
-            primary: "#0ea5e9", secondary: "#64748b", accent: "#38bdf8", background: "#e0f2fe",
-            surface: "#f0f9ff", text: "#0c4a6e", border: "#bae6fd", selection: "#0284c7",
-            mastered: "#0ea5e9", almost: "#38bdf8", learning: "#7dd3fc", weak: "#0369a1",
+            primary: "#0ea5e9", secondary: "#64748b", accent: "#f59e0b", background: "#f0f9ff",
+            surface: "#ffffff", text: "#0c4a6e", border: "#bae6fd", selection: "#0ea5e9",
+            mastered: "#10b981", almost: "#f59e0b", learning: "#f97316", weak: "#ef4444",
             new: "#94a3b8",
             primaryDark: "#0ea5e9", backgroundDark: "#071f30", surfaceDark: "#0c4a6e",
             textDark: "#e0f2fe", borderDark: "#075985", selectionDark: "#38bdf8"
         ),
         "forest": ThemePalette(
-            primary: "#22c55e", secondary: "#64748b", accent: "#86efac", background: "#dcfce7",
-            surface: "#f0fdf4", text: "#14532d", border: "#bbf7d0", selection: "#16a34a",
-            mastered: "#22c55e", almost: "#86efac", learning: "#16a34a", weak: "#14532d",
-            new: "#9ca3af",
+            primary: "#16a34a", secondary: "#64748b", accent: "#84cc16", background: "#f0fdf4",
+            surface: "#ffffff", text: "#14532d", border: "#bbf7d0", selection: "#16a34a",
+            mastered: "#22c55e", almost: "#84cc16", learning: "#a3e635", weak: "#dc2626",
+            new: "#a8a29e",
             primaryDark: "#22c55e", backgroundDark: "#052e16", surfaceDark: "#14532d",
             textDark: "#dcfce7", borderDark: "#14532d", selectionDark: "#4ade80"
         ),
@@ -636,18 +696,18 @@ class ThemeManager: ObservableObject {
             textDark: "#ffe4e6", borderDark: "#881337", selectionDark: "#fb7185"
         ),
         "night": ThemePalette(
-            primary: "#8b5cf6", secondary: "#64748b", accent: "#a78bfa", background: "#ede9fe",
-            surface: "#f5f3ff", text: "#5b21b6", border: "#ddd6fe", selection: "#7c3aed",
-            mastered: "#8b5cf6", almost: "#a78bfa", learning: "#c4b5fd", weak: "#5b21b6",
-            new: "#6b7280",
-            primaryDark: "#8b5cf6", backgroundDark: "#1c1040", surfaceDark: "#2e1065",
-            textDark: "#ede9fe", borderDark: "#5b21b6", selectionDark: "#8b5cf6"
+            primary: "#7c3aed", secondary: "#64748b", accent: "#a78bfa", background: "#f3e8ff",
+            surface: "#faf5ff", text: "#4c1d95", border: "#c4b5fd", selection: "#7c3aed",
+            mastered: "#818cf8", almost: "#a78bfa", learning: "#6366f1", weak: "#ec4899",
+            new: "#71717a",
+            primaryDark: "#7c3aed", backgroundDark: "#1c1040", surfaceDark: "#2e1065",
+            textDark: "#ede9fe", borderDark: "#5b21b6", selectionDark: "#7c3aed"
         ),
         "sakura": ThemePalette(
-            primary: "#f472b6", secondary: "#64748b", accent: "#fbcfe8", background: "#fdf2f8",
-            surface: "#fff1f2", text: "#831843", border: "#fbcfe8", selection: "#ec4899",
-            mastered: "#f472b6", almost: "#fbcfe8", learning: "#f9a8d4", weak: "#db2777",
-            new: "#9ca3af",
+            primary: "#f472b6", secondary: "#64748b", accent: "#f9a8d4", background: "#fdf2f8",
+            surface: "#ffffff", text: "#831843", border: "#fbcfe8", selection: "#f472b6",
+            mastered: "#ec4899", almost: "#f9a8d4", learning: "#e879f9", weak: "#f43f5e",
+            new: "#d1d5db",
             primaryDark: "#f472b6", backgroundDark: "#500724", surfaceDark: "#831843",
             textDark: "#fdf2f8", borderDark: "#831843", selectionDark: "#f472b6"
         ),
@@ -758,20 +818,877 @@ class ThemeManager: ObservableObject {
             textDark: "#b8d8ec", borderDark: "#3a6070", selectionDark: "#6ab4d4"
         ),
         "neonStreet": ThemePalette(
-            primary: "#e040a0", secondary: "#00ffff", accent: "#00ffff", background: "#fff7fb",
-            surface: "#ffffff", text: "#1f2937", border: "#f0abfc", selection: "#e040a0",
+            primary: "#e040a0", secondary: "#00ffff", accent: "#00ffff", background: "#0a0818",
+            surface: "#1a1020", text: "#f0e0f8", border: "#5a3a7a", selection: "#e040a0",
             mastered: "#ff00ff", almost: "#00ffff", learning: "#ff6ec7", weak: "#8a2be2",
-            new: "#94a3b8",
-            primaryDark: "#e040a0", backgroundDark: "#06040a", surfaceDark: "#0c0810",
-            textDark: "#e8d8f0", borderDark: "#4a2a5a", selectionDark: "#ff40b0"
+            new: "#4a4a6a",
+            primaryDark: "#e040a0", backgroundDark: "#0a0818", surfaceDark: "#1a1020",
+            textDark: "#f0e0f8", borderDark: "#5a3a7a", selectionDark: "#e040a0"
         ),
         "nightView": ThemePalette(
-            primary: "#00a0c0", secondary: "#ff6b9d", accent: "#ffd700", background: "#f1f5f9",
-            surface: "#ffffff", text: "#0f172a", border: "#cbd5e1", selection: "#00a0c0",
+            primary: "#00a0c0", secondary: "#ff6b9d", accent: "#ffd700", background: "#0a0a1a",
+            surface: "#1a1a2a", text: "#e8e8f0", border: "#3a3a5a", selection: "#00a0c0",
             mastered: "#ffd700", almost: "#ff6b9d", learning: "#00bfff", weak: "#1a1a3a",
-            new: "#94a3b8",
-            primaryDark: "#00a0c0", backgroundDark: "#080810", surfaceDark: "#101018",
-            textDark: "#d8d8e8", borderDark: "#2a2a4a", selectionDark: "#40c0e0"
+            new: "#4a4a6a",
+            primaryDark: "#00a0c0", backgroundDark: "#0a0a1a", surfaceDark: "#1a1a2a",
+            textDark: "#e8e8f0", borderDark: "#3a3a5a", selectionDark: "#00a0c0"
+        ),
+
+        "midnight": ThemeManager.makePreset(
+            selection: "#818cf8",
+            background: "#0f172a",
+            surface: "#1e293b",
+            text: "#e2e8f0",
+            border: "#334155",
+            mastered: "#34d399",
+            almost: "#fbbf24",
+            learning: "#fb923c",
+            weak: "#f87171",
+            new: "#475569",
+            isDarkBase: true
+        ),
+
+        "fugaku36": ThemeManager.makePreset(
+            selection: "#D9C179",
+            background: "#010326",
+            surface: "#011140",
+            text: "#F2D1B3",
+            border: "#8C857D",
+            mastered: "#4ADE80",
+            almost: "#D9C179",
+            learning: "#F2D1B3",
+            weak: "#F87171",
+            new: "#94A3B8",
+            isDarkBase: true
+        ),
+        "nature": ThemeManager.makePreset(
+            selection: "#6393A6",
+            background: "#F2CBBD",
+            surface: "#ffffff",
+            text: "#733B36",
+            border: "#BF785E",
+            mastered: "#22C55E",
+            almost: "#6393A6",
+            learning: "#BF785E",
+            weak: "#EF4444",
+            new: "#9CA3AF"
+        ),
+        "travel": ThemeManager.makePreset(
+            selection: "#A0D9D9",
+            background: "#f4f4f5",
+            surface: "#ffffff",
+            text: "#1f2937",
+            border: "#D9C589",
+            mastered: "#45858C",
+            almost: "#D9C589",
+            learning: "#BF9765",
+            weak: "#A62626",
+            new: "#A0D9D9"
+        ),
+        "tunnel": ThemeManager.makePreset(
+            selection: "#F2668B",
+            background: "#011F26",
+            surface: "#025E73",
+            text: "#F2668B",
+            border: "#026873",
+            mastered: "#03A688",
+            almost: "#026873",
+            learning: "#025E73",
+            weak: "#F2668B",
+            new: "#025E73",
+            isDarkBase: true
+        ),
+        "circle": ThemeManager.makePreset(
+            selection: "#184040",
+            background: "#F2F2F2",
+            surface: "#ffffff",
+            text: "#011F26",
+            border: "#A9D9CB",
+            mastered: "#8FD9C4",
+            almost: "#A9D9CB",
+            learning: "#184040",
+            weak: "#F2F2F2",
+            new: "#F2F2F2"
+        ),
+        "fugaku": ThemeManager.makePreset(
+            selection: "#D9BB84",
+            background: "#051931",
+            surface: "#1f2937",
+            text: "#D9BB84",
+            border: "#4A7348",
+            mastered: "#4ADE80",
+            almost: "#D9BB84",
+            learning: "#60A5FA",
+            weak: "#F87171",
+            new: "#475569",
+            isDarkBase: true
+        ),
+        "image1": ThemeManager.makePreset(
+            selection: "#1F67A6",
+            background: "#E9ECF2",
+            surface: "#ffffff",
+            text: "#011640",
+            border: "#7B838C",
+            mastered: "#1F67A6",
+            almost: "#2474A6",
+            learning: "#7B838C",
+            weak: "#011640",
+            new: "#E9ECF2"
+        ),
+        "image5": ThemeManager.makePreset(
+            selection: "#A63333",
+            background: "#F2F0D8",
+            surface: "#ffffff",
+            text: "#0D0D0D",
+            border: "#BFBDB0",
+            mastered: "#A63333",
+            almost: "#BF2626",
+            learning: "#BFBDB0",
+            weak: "#0D0D0D",
+            new: "#F2F0D8"
+        ),
+        "img1136": ThemeManager.makePreset(
+            selection: "#05AFF2",
+            background: "#ffffff",
+            surface: "#ffffff",
+            text: "#048C4D",
+            border: "#809FA6",
+            mastered: "#048C4D",
+            almost: "#F2E394",
+            learning: "#809FA6",
+            weak: "#05AFF2",
+            new: "#05C7F2"
+        ),
+        "img1136_2": ThemeManager.makePreset(
+            selection: "#05C7F2",
+            background: "#022601",
+            surface: "#022601",
+            text: "#05AFF2",
+            border: "#03A64A",
+            mastered: "#048C4D",
+            almost: "#03A64A",
+            learning: "#05C7F2",
+            weak: "#05AFF2",
+            new: "#022601",
+            isDarkBase: true
+        ),
+        "img1834": ThemeManager.makePreset(
+            selection: "#D99C9C",
+            background: "#012340",
+            surface: "#012340",
+            text: "#D9D1C7",
+            border: "#D9D1C7",
+            mastered: "#8CF25C",
+            almost: "#D99C9C",
+            learning: "#D9D1C7",
+            weak: "#A61C28",
+            new: "#012340",
+            isDarkBase: true
+        ),
+        "img2815": ThemeManager.makePreset(
+            selection: "#7EBFD9",
+            background: "#0D0D0D",
+            surface: "#2C3540",
+            text: "#C4E5F2",
+            border: "#2C3540",
+            mastered: "#48592E",
+            almost: "#7EBFD9",
+            learning: "#C4E5F2",
+            weak: "#8C4227",
+            new: "#2C3540",
+            isDarkBase: true
+        ),
+        "img2815_2": ThemeManager.makePreset(
+            selection: "#CEE8F2",
+            background: "#2C3540",
+            surface: "#ffffff",
+            text: "#CEE8F2",
+            border: "#7EBFD9",
+            mastered: "#48592E",
+            almost: "#7EBFD9",
+            learning: "#CEE8F2",
+            weak: "#8C4227",
+            new: "#2C3540"
+        ),
+        "img2815_3": ThemeManager.makePreset(
+            selection: "#C4E5F2",
+            background: "#161D26",
+            surface: "#010D00",
+            text: "#C4E5F2",
+            border: "#434D59",
+            mastered: "#1A2601",
+            almost: "#010D00",
+            learning: "#434D59",
+            weak: "#161D26",
+            new: "#C4E5F2",
+            isDarkBase: true
+        ),
+
+        "greenForest": ThemeManager.makePreset(
+            selection: "#16a34a",
+            background: "#f0fdf4",
+            surface: "#ffffff",
+            text: "#14532d",
+            border: "#86efac",
+            mastered: "#22c55e",
+            almost: "#84cc16",
+            learning: "#eab308",
+            weak: "#ef4444",
+            new: "#6b7280"
+        ),
+        "pinkNoir": ThemeManager.makePreset(
+            selection: "#db2777",
+            background: "#0a0a0a",
+            surface: "#18181b",
+            text: "#fce7f3",
+            border: "#831843",
+            mastered: "#ec4899",
+            almost: "#f472b6",
+            learning: "#a855f7",
+            weak: "#ef4444",
+            new: "#4b5563",
+            isDarkBase: true
+        ),
+        "sunshine": ThemeManager.makePreset(
+            selection: "#eab308",
+            background: "#fefce8",
+            surface: "#ffffff",
+            text: "#713f12",
+            border: "#fde047",
+            mastered: "#22c55e",
+            almost: "#facc15",
+            learning: "#f97316",
+            weak: "#ef4444",
+            new: "#9ca3af"
+        ),
+        "lavenderDream": ThemeManager.makePreset(
+            selection: "#8b5cf6",
+            background: "#f5f3ff",
+            surface: "#ffffff",
+            text: "#4c1d95",
+            border: "#c4b5fd",
+            mastered: "#a78bfa",
+            almost: "#c4b5fd",
+            learning: "#818cf8",
+            weak: "#f87171",
+            new: "#94a3b8"
+        ),
+        "coffeeBreak": ThemeManager.makePreset(
+            selection: "#92400e",
+            background: "#f5f5f4",
+            surface: "#fafaf9",
+            text: "#44403c",
+            border: "#d6d3d1",
+            mastered: "#84cc16",
+            almost: "#d97706",
+            learning: "#b45309",
+            weak: "#dc2626",
+            new: "#78716c"
+        ),
+        "retroGaming": ThemeManager.makePreset(
+            selection: "#10b981",
+            background: "#020617",
+            surface: "#0f172a",
+            text: "#4ade80",
+            border: "#06b6d4",
+            mastered: "#4ade80",
+            almost: "#a3e635",
+            learning: "#facc15",
+            weak: "#f87171",
+            new: "#22d3ee",
+            isDarkBase: true
+        ),
+
+        "spring": ThemeManager.makePreset(
+            selection: "#f472b6",
+            background: "#fff1f2",
+            surface: "#ffffff",
+            text: "#4c0519",
+            border: "#fecaca",
+            mastered: "#86efac",
+            almost: "#fda4af",
+            learning: "#fdba74",
+            weak: "#f87171",
+            new: "#d1d5db"
+        ),
+        "summer": ThemeManager.makePreset(
+            selection: "#0284c7",
+            background: "#f0f9ff",
+            surface: "#ffffff",
+            text: "#0c4a6e",
+            border: "#7dd3fc",
+            mastered: "#22c55e",
+            almost: "#0ea5e9",
+            learning: "#f59e0b",
+            weak: "#ef4444",
+            new: "#94a3b8"
+        ),
+        "autumn": ThemeManager.makePreset(
+            selection: "#c2410c",
+            background: "#fef3c7",
+            surface: "#fffbeb",
+            text: "#78350f",
+            border: "#fed7aa",
+            mastered: "#84cc16",
+            almost: "#f59e0b",
+            learning: "#ea580c",
+            weak: "#dc2626",
+            new: "#a8a29e"
+        ),
+        "winter": ThemeManager.makePreset(
+            selection: "#475569",
+            background: "#f8fafc",
+            surface: "#ffffff",
+            text: "#1e293b",
+            border: "#e2e8f0",
+            mastered: "#64748b",
+            almost: "#94a3b8",
+            learning: "#a1a1aa",
+            weak: "#9ca3af",
+            new: "#e5e7eb"
+        ),
+        "morning": ThemeManager.makePreset(
+            selection: "#fbbf24",
+            background: "#fffbeb",
+            surface: "#ffffff",
+            text: "#422006",
+            border: "#fef3c7",
+            mastered: "#a7f3d0",
+            almost: "#fef08a",
+            learning: "#fed7aa",
+            weak: "#fecaca",
+            new: "#f1f5f9"
+        ),
+        "noon": ThemeManager.makePreset(
+            selection: "#eab308",
+            background: "#fefce8",
+            surface: "#ffffff",
+            text: "#713f12",
+            border: "#fde047",
+            mastered: "#22c55e",
+            almost: "#facc15",
+            learning: "#fb923c",
+            weak: "#ef4444",
+            new: "#9ca3af"
+        ),
+        "dusk": ThemeManager.makePreset(
+            selection: "#ea580c",
+            background: "#fff7ed",
+            surface: "#fffbeb",
+            text: "#7c2d12",
+            border: "#fdba74",
+            mastered: "#fb923c",
+            almost: "#fbbf24",
+            learning: "#f97316",
+            weak: "#dc2626",
+            new: "#a8a29e"
+        ),
+        "clearSky": ThemeManager.makePreset(
+            selection: "#0284c7",
+            background: "#f0f9ff",
+            surface: "#ffffff",
+            text: "#0c4a6e",
+            border: "#bae6fd",
+            mastered: "#22c55e",
+            almost: "#0ea5e9",
+            learning: "#06b6d4",
+            weak: "#ef4444",
+            new: "#94a3b8"
+        ),
+        "cloudy": ThemeManager.makePreset(
+            selection: "#64748b",
+            background: "#f1f5f9",
+            surface: "#ffffff",
+            text: "#334155",
+            border: "#e2e8f0",
+            mastered: "#10b981",
+            almost: "#64748b",
+            learning: "#94a3b8",
+            weak: "#78716c",
+            new: "#d1d5db"
+        ),
+        "rainy": ThemeManager.makePreset(
+            selection: "#475569",
+            background: "#e2e8f0",
+            surface: "#f8fafc",
+            text: "#1e293b",
+            border: "#cbd5e1",
+            mastered: "#14b8a6",
+            almost: "#3b82f6",
+            learning: "#6366f1",
+            weak: "#8b5cf6",
+            new: "#a1a1aa"
+        ),
+        "snow": ThemeManager.makePreset(
+            selection: "#3b82f6",
+            background: "#f9fafb",
+            surface: "#ffffff",
+            text: "#374151",
+            border: "#f1f5f9",
+            mastered: "#d1d5db",
+            almost: "#e2e8f0",
+            learning: "#cbd5e1",
+            weak: "#e5e7eb",
+            new: "#f3f4f6"
+        ),
+        "wind": ThemeManager.makePreset(
+            selection: "#14b8a6",
+            background: "#ecfdf5",
+            surface: "#ffffff",
+            text: "#065f46",
+            border: "#ccfbf1",
+            mastered: "#6ee7b7",
+            almost: "#a7f3d0",
+            learning: "#99f6e4",
+            weak: "#fca5a5",
+            new: "#d1fae5"
+        ),
+        "oceanDepth": ThemeManager.makePreset(
+            selection: "#0284c7",
+            background: "#ecfeff",
+            surface: "#ffffff",
+            text: "#164e63",
+            border: "#bae6fd",
+            mastered: "#22d3ee",
+            almost: "#38bdf8",
+            learning: "#0ea5e9",
+            weak: "#f43f5e",
+            new: "#94a3b8"
+        ),
+        "desert": ThemeManager.makePreset(
+            selection: "#b45309",
+            background: "#fef3c7",
+            surface: "#fffbeb",
+            text: "#78350f",
+            border: "#fde68a",
+            mastered: "#fbbf24",
+            almost: "#f59e0b",
+            learning: "#d97706",
+            weak: "#b91c1c",
+            new: "#d6d3d1"
+        ),
+        "skyGrad": ThemeManager.makePreset(
+            selection: "#0ea5e9",
+            background: "#f0f9ff",
+            surface: "#ffffff",
+            text: "#0369a1",
+            border: "#e0f2fe",
+            mastered: "#7dd3fc",
+            almost: "#93c5fd",
+            learning: "#a5b4fc",
+            weak: "#fda4af",
+            new: "#cbd5e1"
+        ),
+        "moonlight": ThemeManager.makePreset(
+            selection: "#6366f1",
+            background: "#eef2ff",
+            surface: "#ffffff",
+            text: "#312e81",
+            border: "#e0e7ff",
+            mastered: "#c4b5fd",
+            almost: "#a5b4fc",
+            learning: "#818cf8",
+            weak: "#f9a8d4",
+            new: "#d1d5db"
+        ),
+        "fog": ThemeManager.makePreset(
+            selection: "#6b7280",
+            background: "#f4f4f5",
+            surface: "#fafafa",
+            text: "#52525b",
+            border: "#f3f4f6",
+            mastered: "#9ca3af",
+            almost: "#a1a1aa",
+            learning: "#a8a29e",
+            weak: "#9ca3af",
+            new: "#e5e7eb"
+        ),
+        "lightning": ThemeManager.makePreset(
+            selection: "#eab308",
+            background: "#fefce8",
+            surface: "#ffffff",
+            text: "#422006",
+            border: "#fde047",
+            mastered: "#facc15",
+            almost: "#a855f7",
+            learning: "#6366f1",
+            weak: "#ef4444",
+            new: "#94a3b8"
+        ),
+
+        "lastSupper": ThemeManager.makePreset(
+            selection: "#8b5a2b",
+            background: "#f0e8d8",
+            surface: "#faf5e8",
+            text: "#3c2f1f",
+            border: "#bfad8f",
+            mastered: "#8b6f47",
+            almost: "#c9a66b",
+            learning: "#a08050",
+            weak: "#5c3d2e",
+            new: "#d4c4a0"
+        ),
+        "waterLilies": ThemeManager.makePreset(
+            selection: "#4a8a7a",
+            background: "#e8f4f0",
+            surface: "#f5faf8",
+            text: "#2a4a3a",
+            border: "#a0c0d0",
+            mastered: "#7eb37e",
+            almost: "#a8c8e8",
+            learning: "#90b090",
+            weak: "#5a7a5a",
+            new: "#c8d8c8"
+        ),
+        "guernica": ThemeManager.makePreset(
+            selection: "#3a3a3a",
+            background: "#f0f0f0",
+            surface: "#fafafa",
+            text: "#1a1a1a",
+            border: "#a0a0a0",
+            mastered: "#4a4a4a",
+            almost: "#808080",
+            learning: "#606060",
+            weak: "#2a2a2a",
+            new: "#c0c0c0"
+        ),
+        "girlWithPearl": ThemeManager.makePreset(
+            selection: "#2a5a7b",
+            background: "#e8f0f4",
+            surface: "#f5f8fa",
+            text: "#1a3040",
+            border: "#7a9ab0",
+            mastered: "#4a7c9b",
+            almost: "#f4d03f",
+            learning: "#5a8aab",
+            weak: "#2a4a6b",
+            new: "#a0b8c8"
+        ),
+        "nightWatch": ThemeManager.makePreset(
+            selection: "#7a5a1a",
+            background: "#e8e0c8",
+            surface: "#f8f4e8",
+            text: "#2a2010",
+            border: "#b0944a",
+            mastered: "#c9a227",
+            almost: "#8b4513",
+            learning: "#a67c00",
+            weak: "#3c280a",
+            new: "#9a8060"
+        ),
+        "libertyLeading": ThemeManager.makePreset(
+            selection: "#2a4a7a",
+            background: "#e8eaf0",
+            surface: "#f8f8f8",
+            text: "#1a2a3a",
+            border: "#8a9ab0",
+            mastered: "#1a4a8a",
+            almost: "#c43c3a",
+            learning: "#e8d8a8",
+            weak: "#4a2a1a",
+            new: "#8a9aaa"
+        ),
+        "theKiss": ThemeManager.makePreset(
+            selection: "#a67c00",
+            background: "#f8f0d8",
+            surface: "#fffef0",
+            text: "#3a2a10",
+            border: "#d4c080",
+            mastered: "#d4a520",
+            almost: "#c9a66b",
+            learning: "#b8860b",
+            weak: "#6b4423",
+            new: "#e8d8a8"
+        ),
+        "americanGothic": ThemeManager.makePreset(
+            selection: "#4a5a3a",
+            background: "#e8e8e0",
+            surface: "#f8f8f4",
+            text: "#2a2a20",
+            border: "#a0a090",
+            mastered: "#5a6a4a",
+            almost: "#8b7355",
+            learning: "#707860",
+            weak: "#3a3a2a",
+            new: "#b8b8a0"
+        ),
+        "theGleaners": ThemeManager.makePreset(
+            selection: "#7a6030",
+            background: "#f0e8d8",
+            surface: "#faf8f0",
+            text: "#3a3020",
+            border: "#c0b090",
+            mastered: "#c9a66b",
+            almost: "#8b7355",
+            learning: "#a08050",
+            weak: "#5a4a30",
+            new: "#d8c8a8"
+        ),
+        "lasMeninas": ThemeManager.makePreset(
+            selection: "#5a4a30",
+            background: "#ece4d4",
+            surface: "#f8f4ec",
+            text: "#2a2418",
+            border: "#b8a888",
+            mastered: "#8b7355",
+            almost: "#c0a080",
+            learning: "#a08060",
+            weak: "#4a3a2a",
+            new: "#d0c0a0"
+        ),
+        "shepherdess": ThemeManager.makePreset(
+            selection: "#5a7a4a",
+            background: "#e8f0e0",
+            surface: "#f8faf4",
+            text: "#2a3a20",
+            border: "#a8b898",
+            mastered: "#7a9a6a",
+            almost: "#c9a66b",
+            learning: "#8aaa7a",
+            weak: "#4a5a3a",
+            new: "#c8d4b8"
+        ),
+        "ophelia": ThemeManager.makePreset(
+            selection: "#4a7a5a",
+            background: "#e4ece8",
+            surface: "#f4f8f6",
+            text: "#1a2a24",
+            border: "#90a898",
+            mastered: "#5a8a6a",
+            almost: "#a08090",
+            learning: "#7aaa8a",
+            weak: "#3a5a4a",
+            new: "#b0c0b8"
+        ),
+        "bedroomArles": ThemeManager.makePreset(
+            selection: "#3a70a0",
+            background: "#e8f0f8",
+            surface: "#f8fafc",
+            text: "#2a3a4a",
+            border: "#80a8c8",
+            mastered: "#4a90d9",
+            almost: "#f4c430",
+            learning: "#5aaa5a",
+            weak: "#8b4513",
+            new: "#a8c8e0"
+        ),
+        "towerBabel": ThemeManager.makePreset(
+            selection: "#6a5030",
+            background: "#ece4d0",
+            surface: "#f8f4e8",
+            text: "#3a3020",
+            border: "#b8a888",
+            mastered: "#a08060",
+            almost: "#c9a66b",
+            learning: "#8a7050",
+            weak: "#5a4030",
+            new: "#c8b8a0"
+        ),
+        "luncheonBoating": ThemeManager.makePreset(
+            selection: "#4a7a9a",
+            background: "#e8f0f4",
+            surface: "#f8fafb",
+            text: "#1a3040",
+            border: "#90b0c0",
+            mastered: "#5a8aaa",
+            almost: "#e8a870",
+            learning: "#7aaaca",
+            weak: "#3a5a7a",
+            new: "#a8c0d0"
+        ),
+        "grandJatte": ThemeManager.makePreset(
+            selection: "#5a8a5a",
+            background: "#e8f0e4",
+            surface: "#f8faf4",
+            text: "#2a3a28",
+            border: "#a0b890",
+            mastered: "#6a9a6a",
+            almost: "#d4a87a",
+            learning: "#8aba8a",
+            weak: "#4a6a4a",
+            new: "#b8c8a8"
+        ),
+
+        "cityMorning": ThemeManager.makePreset(
+            selection: "#4a90a4",
+            background: "#e8f4f8",
+            surface: "#f8fafc",
+            text: "#2a3a4a",
+            border: "#c8d8e4",
+            mastered: "#87ceeb",
+            almost: "#ffd700",
+            learning: "#98d8c8",
+            weak: "#708090",
+            new: "#b0c4de"
+        ),
+        "concrete": ThemeManager.makePreset(
+            selection: "#5a5a5a",
+            background: "#e8e8e8",
+            surface: "#f8f8f8",
+            text: "#2a2a2a",
+            border: "#b0b0b0",
+            mastered: "#6a7a6a",
+            almost: "#9a9a9a",
+            learning: "#808080",
+            weak: "#4a4a4a",
+            new: "#c0c0c0"
+        ),
+        "underground": ThemeManager.makePreset(
+            selection: "#a08020",
+            background: "#e0dcd0",
+            surface: "#f8f4ec",
+            text: "#3a3428",
+            border: "#a09080",
+            mastered: "#d4a520",
+            almost: "#f0c040",
+            learning: "#c09020",
+            weak: "#8a6a10",
+            new: "#a0a090"
+        ),
+        "rainyIntersection": ThemeManager.makePreset(
+            selection: "#4a6a88",
+            background: "#dce4ec",
+            surface: "#f0f4f8",
+            text: "#2a3a48",
+            border: "#8a9aa8",
+            mastered: "#4a6a8a",
+            almost: "#7a9ab0",
+            learning: "#5a7a9a",
+            weak: "#3a4a5a",
+            new: "#9aaaba"
+        ),
+        "eveningStation": ThemeManager.makePreset(
+            selection: "#d06830",
+            background: "#f8e8dc",
+            surface: "#fff8f0",
+            text: "#3a2a1a",
+            border: "#c8a890",
+            mastered: "#ff8c42",
+            almost: "#ffa560",
+            learning: "#e87830",
+            weak: "#a05020",
+            new: "#b8a090"
+        ),
+        "officeDistrict": ThemeManager.makePreset(
+            selection: "#3a6080",
+            background: "#e4ecf4",
+            surface: "#f6f8fa",
+            text: "#1a2838",
+            border: "#88a0b0",
+            mastered: "#4a7090",
+            almost: "#6890a8",
+            learning: "#5a80a0",
+            weak: "#3a5070",
+            new: "#98b0c0"
+        ),
+        "redevelopment": ThemeManager.makePreset(
+            selection: "#3a80b0",
+            background: "#e8ecf0",
+            surface: "#f8f8fa",
+            text: "#2a3a48",
+            border: "#90a0b0",
+            mastered: "#ff7f50",
+            almost: "#4a90c0",
+            learning: "#90b0c0",
+            weak: "#4a5a6a",
+            new: "#a8b8c8"
+        ),
+        "oldTown": ThemeManager.makePreset(
+            selection: "#6a5a40",
+            background: "#ece4d8",
+            surface: "#faf6f0",
+            text: "#3a3020",
+            border: "#b8a890",
+            mastered: "#8b7355",
+            almost: "#a08060",
+            learning: "#9a7a5a",
+            weak: "#5a4a3a",
+            new: "#c8b8a0"
+        ),
+        "backAlley": ThemeManager.makePreset(
+            selection: "#4a6a40",
+            background: "#e0e4d8",
+            surface: "#f4f6f0",
+            text: "#2a3020",
+            border: "#909880",
+            mastered: "#6a8a5a",
+            almost: "#a09080",
+            learning: "#7a9a6a",
+            weak: "#3a4a30",
+            new: "#a0a890"
+        ),
+        "rooftop": ThemeManager.makePreset(
+            selection: "#4a90b0",
+            background: "#e4f0f8",
+            surface: "#f8fcff",
+            text: "#1a3040",
+            border: "#a0c0d0",
+            mastered: "#87ceeb",
+            almost: "#f0e68c",
+            learning: "#98d8e8",
+            weak: "#5a7a8a",
+            new: "#b8d0e0"
+        ),
+        "underElevated": ThemeManager.makePreset(
+            selection: "#5a6a50",
+            background: "#e0e4dc",
+            surface: "#f4f6f0",
+            text: "#2a3428",
+            border: "#a0a898",
+            mastered: "#7a8a6a",
+            almost: "#9a9a8a",
+            learning: "#8a9a7a",
+            weak: "#4a5a4a",
+            new: "#b0b8a8"
+        ),
+        "downtown": ThemeManager.makePreset(
+            selection: "#e04080",
+            background: "#ece8f0",
+            surface: "#f8f8fc",
+            text: "#2a2a3a",
+            border: "#8080a0",
+            mastered: "#ff6b6b",
+            almost: "#ffd93d",
+            learning: "#4ecdc4",
+            weak: "#c44569",
+            new: "#a0a0b0"
+        ),
+        "lateNight": ThemeManager.makePreset(
+            selection: "#3a5068",
+            background: "#0c1020",
+            surface: "#1a2030",
+            text: "#c8d0e0",
+            border: "#506070",
+            mastered: "#4a6080",
+            almost: "#6a8090",
+            learning: "#5a7088",
+            weak: "#2a3a48",
+            new: "#7888a0",
+            isDarkBase: true
+        ),
+        "trafficSign": ThemeManager.makePreset(
+            selection: "#0080c0",
+            background: "#eaeaea",
+            surface: "#f8f8f8",
+            text: "#1a1a1a",
+            border: "#a0a0a0",
+            mastered: "#00a550",
+            almost: "#ffd700",
+            learning: "#ff6b00",
+            weak: "#e02020",
+            new: "#808080"
+        ),
+        "cityOutline": ThemeManager.makePreset(
+            selection: "#4a6080",
+            background: "#e0e8f0",
+            surface: "#f4f8fc",
+            text: "#1a2a38",
+            border: "#90a0b0",
+            mastered: "#5a7090",
+            almost: "#8aa0b0",
+            learning: "#7090a8",
+            weak: "#3a4a5a",
+            new: "#a0b0c0"
         ),
     ]
 
@@ -894,6 +1811,85 @@ class ThemeManager: ObservableObject {
         case "cyberpunk": return "サイバーパンク"
         case "nordic": return "北欧"
         case "dracula": return "ドラキュラ"
+        case "monaLisa": return "モナ・リザ"
+        case "starryNight": return "星月夜"
+        case "sunflowers": return "ひまわり"
+        case "theScream": return "叫び"
+        case "rushHour": return "通勤ラッシュ"
+        case "skyscrapers": return "高層ビル群"
+        case "glassCity": return "ガラス張りの街"
+        case "neonStreet": return "ネオン街"
+        case "nightView": return "夜景"
+        case "midnight": return "ミッドナイト"
+        case "fugaku36": return "富嶽三十六景"
+        case "nature": return "自然"
+        case "travel": return "旅行"
+        case "tunnel": return "トンネルドライブ"
+        case "circle": return "Circle"
+        case "fugaku": return "富嶽"
+        case "image1": return "画像 1"
+        case "image5": return "画像 5"
+        case "img1136": return "IMG 1136"
+        case "img1136_2": return "IMG 1136-2"
+        case "img1834": return "IMG 1834"
+        case "img2815": return "IMG 2815"
+        case "img2815_2": return "IMG 2815-2"
+        case "img2815_3": return "IMG 2815-3"
+        case "greenForest": return "フォレストグリーン"
+        case "pinkNoir": return "ピンクノワール"
+        case "sunshine": return "サンシャイン"
+        case "lavenderDream": return "ラベンダードリーム"
+        case "coffeeBreak": return "コーヒーブレイク"
+        case "retroGaming": return "レトロゲーミング"
+        case "spring": return "春・淡色"
+        case "summer": return "夏・高彩度"
+        case "autumn": return "秋・深色"
+        case "winter": return "冬・低彩度"
+        case "morning": return "朝・白寄り"
+        case "noon": return "昼・高明度"
+        case "dusk": return "夕・暖色"
+        case "clearSky": return "晴天"
+        case "cloudy": return "曇天・ソフト"
+        case "rainy": return "雨天・低明度"
+        case "snow": return "雪原・ハイキー"
+        case "wind": return "風通し"
+        case "oceanDepth": return "海・深度"
+        case "desert": return "砂漠・乾色"
+        case "skyGrad": return "空・グラデ"
+        case "moonlight": return "月光・寒色"
+        case "fog": return "霧・低コントラスト"
+        case "lightning": return "雷・アクセント"
+        case "lastSupper": return "最後の晩餐"
+        case "waterLilies": return "睡蓮"
+        case "guernica": return "ゲルニカ"
+        case "girlWithPearl": return "真珠の耳飾りの少女"
+        case "nightWatch": return "夜警"
+        case "libertyLeading": return "民衆を導く自由の女神"
+        case "theKiss": return "接吻"
+        case "americanGothic": return "アメリカン・ゴシック"
+        case "theGleaners": return "落穂拾い"
+        case "lasMeninas": return "ラス・メニーナス"
+        case "shepherdess": return "羊飼いの少女"
+        case "ophelia": return "オフィーリア"
+        case "bedroomArles": return "アルルの寝室"
+        case "towerBabel": return "バベルの塔"
+        case "luncheonBoating": return "舟遊びの昼食"
+        case "grandJatte": return "グランド・ジャット島の日曜日"
+        case "cityMorning": return "都心の朝"
+        case "concrete": return "コンクリート"
+        case "underground": return "地下通路"
+        case "rainyIntersection": return "雨の交差点"
+        case "eveningStation": return "夕方の駅前"
+        case "officeDistrict": return "オフィス街"
+        case "redevelopment": return "再開発地区"
+        case "oldTown": return "旧市街"
+        case "backAlley": return "路地裏"
+        case "rooftop": return "屋上"
+        case "underElevated": return "高架下"
+        case "downtown": return "繁華街"
+        case "lateNight": return "無人の深夜"
+        case "trafficSign": return "交通標識"
+        case "cityOutline": return "都市の輪郭"
         default: return id.capitalized
         }
     }
