@@ -250,6 +250,25 @@
   - 学習/マイページのカードやリスト背景・文字色を `ThemeManager` 基準に寄せて統一。
   - `SettingsView`（マイページ）に「やることリスト」「テスト履歴」への導線を追加。
 
+### 2026-01-13: Icon Composer の `.icon` をXcodeに直接追加して同期（B方式）
+- **症状**:
+  - Icon Composerの `.icon` をソース・オブ・トゥルースにしたい（Xcodeへ直接追加して変更を同期したい）。
+  - 移行中に以下のビルドエラーが発生した:
+    - `FocusTimerAttributes.swift used twice`（Widgetターゲット）
+    - `.xcodeproj` が複数存在して `xcodebuild` がプロジェクトを特定できない
+    - `build.db` がロックされてビルドが失敗
+- **原因**:
+  - `Assets.xcassets/AppIcon.appiconset`（従来PNG）構成のまま `.icon` を足すと、プロジェクト側設定/運用の整理が必要。
+  - Widgetターゲットが `Sources/Shared` と `Sources/ANKI-HUB-iOS-Widget` の両方から同名ファイルを取り込み、コンパイラが区別できなくなった。
+  - `xcodegen generate` の再生成で `.xcodeproj` が二重に残り、`xcodebuild` が曖昧になった。
+  - 同じビルドルートで連続/並列ビルドを走らせ、XCBuildのDBがロック競合した。
+- **解決策**:
+  - `Assets.xcassets` に `AppIcon.icon` を追加（`.appiconset` と同名にして共存）。
+  - `project.yml` に `ASSETCATALOG_OTHER_FLAGS: "$(inherited) --enable-icon-stack-fallback-generation=disabled"` を追加して、Icon Composerの挙動を安定化。
+  - `FocusTimerAttributes.swift` は `Sources/Shared` を唯一の定義とし、Widget直下の重複ファイルを削除。
+  - 重複した `.xcodeproj` を削除し、以後は `xcodegen generate` で再生成。
+  - Widgetビルドは `-derivedDataPath` を分けてDBロックを回避。
+
 ### 2026-01-11: PomodoroView のビルド失敗（accent参照/opaque return type）
 - **症状**:
   - `PomodoroView.swift` のコンパイルで `cannot find 'accent' in scope` / `function declares an opaque return type, but has no return statements...` が出てビルドが失敗する。
