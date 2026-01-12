@@ -29,8 +29,11 @@ build/
 # Backups
 *.bak
 
-# Local asset duplicates
+# Local image folders (user-specific)
 画像/
+
+# Windsurf IDE local files
+.windsurf/
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .windsurf/rules/snyk_rules.md

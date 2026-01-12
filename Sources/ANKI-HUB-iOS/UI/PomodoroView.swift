@@ -9,6 +9,8 @@ import UserNotifications
 struct PomodoroView: View {
     @ObservedObject var theme = ThemeManager.shared
 
+    let startRequest: PomodoroStartRequest?
+
     @Environment(\.scenePhase) private var scenePhase
 
     private struct PersistedTimerState: Codable {
@@ -47,6 +49,10 @@ struct PomodoroView: View {
     @State private var isOvertime = false
     @State private var overtimeSeconds: TimeInterval = 0
 
+    @State private var didApplyStartRequest = false
+
+    @State private var suppressModeChangeUpdate = false
+
     @State private var lastPersistedAt: Date = .distantPast
 
     @State private var showStudyLogSheet = false
@@ -67,11 +73,16 @@ struct PomodoroView: View {
     @AppStorage("anki_hub_timer_focus_minutes") private var focusMinutes: Int = 25
     @AppStorage("anki_hub_timer_short_break_minutes") private var shortBreakMinutes: Int = 5
     @AppStorage("anki_hub_timer_long_break_minutes") private var longBreakMinutes: Int = 15
+    @AppStorage("anki_hub_timer_custom_minutes_v1") private var customMinutes: Int = 25
 
     // UI State
     @State private var selectedTab: TimerTab = .timer
     @State private var selectedMode: TimerMode = .focus
     @State private var showSettings = false
+
+    init(startRequest: PomodoroStartRequest? = nil) {
+        self.startRequest = startRequest
+    }
 
     enum TimerTab: String, CaseIterable {
         case timer = "タイマー"
@@ -99,7 +110,7 @@ struct PomodoroView: View {
         case .focus: return TimeInterval(focusMinutes * 60)
         case .shortBreak: return TimeInterval(shortBreakMinutes * 60)
         case .longBreak: return TimeInterval(longBreakMinutes * 60)
-        case .custom: return totalTime
+        case .custom: return TimeInterval(customMinutes * 60)
         }
     }
 
@@ -136,6 +147,7 @@ struct PomodoroView: View {
             if !restoreTimerStateIfNeeded() {
                 updateTimerDuration()
             }
+            applyStartRequestIfNeeded()
         }
         .onChange(of: scenePhase) { _, newValue in
             if newValue != .active {
@@ -143,6 +155,10 @@ struct PomodoroView: View {
             }
         }
         .onChange(of: selectedMode) { _, _ in
+            if suppressModeChangeUpdate {
+                suppressModeChangeUpdate = false
+                return
+            }
             if !isActive {
                 updateTimerDuration()
             }
@@ -404,13 +420,11 @@ struct PomodoroView: View {
                 }
 
                 Section("カスタムタイマー") {
-                    let customMinutes = Int(totalTime / 60)
                     Stepper(
                         "\(customMinutes)分",
-                        value: Binding(
-                            get: { Int(totalTime / 60) },
-                            set: { totalTime = TimeInterval($0 * 60) }
-                        ), in: 1...180)
+                        value: $customMinutes,
+                        in: 1...180
+                    )
                 }
             }
             .navigationTitle("タイマー設定")
@@ -435,6 +449,25 @@ struct PomodoroView: View {
     private func updateTimerDuration() {
         totalTime = durationFor(selectedMode)
         timeRemaining = totalTime
+    }
+
+    private func applyStartRequestIfNeeded() {
+        guard !didApplyStartRequest else { return }
+        didApplyStartRequest = true
+
+        guard let req = startRequest, req.open else { return }
+        guard !isActive else { return }
+
+        selectedTab = .timer
+
+        suppressModeChangeUpdate = true
+        selectedMode = .custom
+
+        let safeMinutes = max(1, min(180, req.minutes))
+        customMinutes = safeMinutes
+        totalTime = TimeInterval(safeMinutes * 60)
+        timeRemaining = totalTime
+        toggleTimer()
     }
 
     private func endTimeString(_ date: Date) -> String {

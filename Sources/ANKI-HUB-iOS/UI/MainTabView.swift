@@ -3,6 +3,8 @@ import SwiftUI
 struct MainTabView: View {
     @State private var selectedTab: Tab = .home
 
+    @State private var timerStartRequest: PomodoroStartRequest?
+
     @ObservedObject private var theme = ThemeManager.shared
     
     enum Tab {
@@ -44,5 +46,25 @@ struct MainTabView: View {
             }
         }
         .applyAppTheme()
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
+        .sheet(item: $timerStartRequest) { req in
+            PomodoroView(startRequest: req)
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "sugwranki" else { return }
+        guard url.host == "timer" else { return }
+
+        let comps = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        let minutes = comps?.queryItems?.first(where: { $0.name == "minutes" })?.value
+        let parsedMinutes = Int(minutes ?? "")
+        let safeMinutes = max(1, min(180, parsedMinutes ?? 25))
+
+        if url.path == "/start" {
+            timerStartRequest = PomodoroStartRequest(mode: "custom", minutes: safeMinutes, open: true)
+        }
     }
 }

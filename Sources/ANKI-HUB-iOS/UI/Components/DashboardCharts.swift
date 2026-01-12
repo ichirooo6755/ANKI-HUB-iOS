@@ -115,12 +115,20 @@ struct DashboardCharts: View {
             .new: 0, .weak: 0, .learning: 0, .almost: 0, .mastered: 0,
         ]
 
+        var totalVocabCount = 0
+        var trackedCount = 0
+
         for subject in Subject.allCases {
             let stats = masteryTracker.getStats(for: subject.id)
             for (level, count) in stats {
                 totalStats[level, default: 0] += count
+                trackedCount += count
             }
+
+            totalVocabCount += VocabularyData.shared.getVocabulary(for: subject).count
         }
+
+        totalStats[.new] = max(0, totalVocabCount - trackedCount)
 
         return MasteryLevel.allCases.map { level in
             MasteryData(level: level, count: totalStats[level] ?? 0)

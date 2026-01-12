@@ -5,6 +5,13 @@ import SwiftUI
     import WidgetKit
 #endif
 
+struct PomodoroStartRequest: Identifiable {
+    let id = UUID()
+    let mode: String
+    let minutes: Int
+    let open: Bool
+}
+
 // MARK: - Vocabulary
 struct Vocabulary: Identifiable, Codable {
     let id: String
@@ -314,6 +321,18 @@ class LearningStats: ObservableObject {
         saveStats()
     }
 
+    func applyMasterySnapshot(from masteryItems: [String: [String: MasteryItem]]) {
+        let all = masteryItems.values.flatMap { $0.values }
+        let total = all.count
+        let mastered = all.filter { $0.mastery == .mastered }.count
+        let learning = all.filter { $0.mastery == .learning || $0.mastery == .almost }.count
+
+        masteredCount = mastered
+        learningCount = learning
+        totalWords = total
+        masteryRate = total == 0 ? 0 : Int((Double(mastered) / Double(total) * 100.0).rounded())
+    }
+
     func recordStudySession(subject: String, wordsStudied: Int, minutes: Int) {
         let key = todayKey()
 
@@ -487,10 +506,12 @@ class MasteryTracker: ObservableObject {
             {
                 await MainActor.run {
                     self.items = decoded
+                    LearningStats.shared.applyMasterySnapshot(from: decoded)
                 }
             } else {
                 await MainActor.run {
                     self.items = [:]
+                    LearningStats.shared.applyMasterySnapshot(from: [:])
                 }
             }
         }

@@ -15,6 +15,7 @@ private let widgetShowTodayMinutesKey = "anki_hub_widget_show_today_minutes_v1"
 private let widgetShowMistakesKey = "anki_hub_widget_show_mistakes_v1"
 private let widgetMistakeCountKey = "anki_hub_widget_mistake_count_v1"
 private let widgetStyleKey = "anki_hub_widget_style_v1"
+private let widgetTimerMinutesKey = "anki_hub_widget_timer_minutes_v1"
 
 fileprivate struct WidgetSettings {
     let showStreak: Bool
@@ -22,6 +23,7 @@ fileprivate struct WidgetSettings {
     let showMistakes: Bool
     let mistakeCount: Int
     let style: String
+    let timerMinutes: Int
 
     init(defaults: UserDefaults?) {
         self.showStreak = defaults?.object(forKey: widgetShowStreakKey) as? Bool ?? true
@@ -30,6 +32,8 @@ fileprivate struct WidgetSettings {
         let count = defaults?.integer(forKey: widgetMistakeCountKey) ?? 3
         self.mistakeCount = max(1, min(3, count))
         self.style = defaults?.string(forKey: widgetStyleKey) ?? "system"
+        let rawMinutes = defaults?.integer(forKey: widgetTimerMinutesKey) ?? 25
+        self.timerMinutes = max(1, min(180, rawMinutes))
     }
 }
 
@@ -181,6 +185,16 @@ struct StudyWidgetEntryView: View {
                 }
             }
 
+            if family == .systemSmall || family == .systemMedium {
+                if let url = timerURL(minutes: entry.settings.timerMinutes) {
+                    Link(destination: url) {
+                        Label("タイマー開始", systemImage: "play.fill")
+                            .font(.caption.bold())
+                            .lineLimit(1)
+                    }
+                }
+            }
+
             #if os(iOS)
                 if family == .accessoryRectangular {
                     VStack(alignment: .leading, spacing: 2) {
@@ -214,6 +228,15 @@ struct StudyWidgetEntryView: View {
             Spacer()
         }
         .padding(14)
+    }
+
+    private func timerURL(minutes: Int) -> URL? {
+        var comps = URLComponents()
+        comps.scheme = "sugwranki"
+        comps.host = "timer"
+        comps.path = "/start"
+        comps.queryItems = [URLQueryItem(name: "minutes", value: String(minutes))]
+        return comps.url
     }
 }
 

@@ -20,6 +20,7 @@ struct SettingsView: View {
     @AppStorage("anki_hub_widget_show_mistakes_v1") private var widgetShowMistakes: Bool = true
     @AppStorage("anki_hub_widget_mistake_count_v1") private var widgetMistakeCount: Int = 3
     @AppStorage("anki_hub_widget_style_v1") private var widgetStyle: String = "system"
+    @AppStorage("anki_hub_widget_timer_minutes_v1") private var widgetTimerMinutes: Int = 25
 
     private let widgetAppGroupId = "group.com.ankihub.ios"
 
@@ -139,6 +140,7 @@ struct SettingsView: View {
         defaults?.set(widgetShowMistakes, forKey: "anki_hub_widget_show_mistakes_v1")
         defaults?.set(widgetMistakeCount, forKey: "anki_hub_widget_mistake_count_v1")
         defaults?.set(widgetStyle, forKey: "anki_hub_widget_style_v1")
+        defaults?.set(widgetTimerMinutes, forKey: "anki_hub_widget_timer_minutes_v1")
     }
 
     @ViewBuilder
@@ -274,6 +276,8 @@ struct SettingsView: View {
                 Text("ダーク").tag("dark")
                 Text("アクセント").tag("accent")
             }
+
+            Stepper("ウィジェット: タイマー（\(widgetTimerMinutes)分）", value: $widgetTimerMinutes, in: 1...180)
         }
     }
 
@@ -566,6 +570,12 @@ struct SettingsView: View {
             #endif
         }
         .onChange(of: widgetStyle) { _, _ in
+            saveWidgetSettingsToAppGroup()
+            #if canImport(WidgetKit)
+                WidgetCenter.shared.reloadAllTimelines()
+            #endif
+        }
+        .onChange(of: widgetTimerMinutes) { _, _ in
             saveWidgetSettingsToAppGroup()
             #if canImport(WidgetKit)
                 WidgetCenter.shared.reloadAllTimelines()

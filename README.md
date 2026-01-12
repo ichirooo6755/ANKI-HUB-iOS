@@ -206,6 +206,22 @@
   - タイマー状態の永続化をスロットリング（15秒に1回）し、バックグラウンド遷移時だけ強制保存。
   - 目盛り描画を `TickMarksView` に分離し `drawingGroup()` でキャッシュ寄りにして描画負荷を軽減。
 
+### 2026-01-13: Total Mastery が0に見える / ウィジェットからタイマー開始 / ウィジェットにタイマー分数を保存
+- **症状**:
+  - `Total Mastery（習熟度）` のドーナツが0のまま、または動いていないように見える。
+  - ウィジェットから「タイマー開始」ができない。
+  - ウィジェットで開始するタイマー分数をアプリ側で保存しておきたい。
+- **原因**:
+  - `DashboardCharts` の合算が「追跡済み（MasteryTracker.itemsに存在する単語）」のみを集計しており、`.new（未学習）` を総語彙数から算出していなかった。
+  - `MasteryTracker.loadData()` 時に `LearningStats` のスナップショットへ反映が無く、起動直後に表示が0になりやすかった。
+  - ウィジェットにタイマー起動の導線（ディープリンク）が無かった。
+  - ウィジェットのタイマー分数をApp Groupへ保存して参照する仕組みが無かった。
+- **解決策**:
+  - `DashboardCharts` で全教科の総単語数を合算し、`trackedCount` との差分で `.new` を算出してドーナツに反映。
+  - `MasteryTracker.loadData()` で `LearningStats.applyMasterySnapshot(...)` を呼び、起動時表示を安定化。
+  - ウィジェットに `sugwranki://timer/start?minutes=...` の `Link` を追加し、App側で `onOpenURL` 受信→`PomodoroView` を開いて自動開始。
+  - `SettingsView` に「ウィジェット: タイマー（分）」を追加し、App GroupのUserDefaults（`anki_hub_widget_timer_minutes_v1`）へ保存してWidget側で参照。
+
 ### 2026-01-11: PomodoroView のビルド失敗（accent参照/opaque return type）
 - **症状**:
   - `PomodoroView.swift` のコンパイルで `cannot find 'accent' in scope` / `function declares an opaque return type, but has no return statements...` が出てビルドが失敗する。
