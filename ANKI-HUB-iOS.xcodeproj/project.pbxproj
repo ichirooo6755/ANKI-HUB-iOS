@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -22,7 +22,7 @@
 		1FC5D8B3DEEB458B33056201 /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE32F1808DF4458315A2714E /* SupabaseAuthService.swift */; };
 		200431E047FDFACCFF413C21 /* DueReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F79BCB55DEDFE78F084EAA /* DueReviewView.swift */; };
 		23D6245B68DE4BB723F84A60 /* CustomVocabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4398A49B466FC3993E8172 /* CustomVocabView.swift */; };
-		263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */; };
+		263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */; };
 		2A0EF5C09EDB43D7B8FE26DC /* PaperWordbookSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741D8F69D11144E5DD9DB9BC /* PaperWordbookSyncView.swift */; };
 		2C1ABDC45CD5F8ADA035D35F /* SupabaseUserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1C5FE8DB7BFD3B11BD999F /* SupabaseUserService.swift */; };
 		315D15A35EAC862834E16EDD /* RawData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40A5C945DE2F4DDC5048A9B7 /* RawData.swift */; };
@@ -64,7 +64,7 @@
 		A3D894DFB107646CD5765CDE /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175DF687B5B72F0A1287D7C8 /* AuthView.swift */; };
 		AD7204EA7FE25A373DA09E58 /* StudyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F58365865FC827B5844A3DF /* StudyView.swift */; };
 		AF206C45C76C127198A3CAA2 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1841F3BD7BC47EBEE04FFBA0 /* MainTabView.swift */; };
-		AF61E7ABCB5E6EB2B5B9AF89 /* ANKI-HUB-iOS-Widget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 61393CB0BC16AE745E73C5F0 /* ANKI-HUB-iOS-Widget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AF61E7ABCB5E6EB2B5B9AF89 /* sugwrAnkiWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 61393CB0BC16AE745E73C5F0 /* sugwrAnkiWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B77E69E118EF3148EAF7F36A /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADA96F2A157000729DE70FE /* ThemeManager.swift */; };
 		BF852B66B4DF7E5580218757 /* IMG_5275.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 847B2C7F2FCED2418C7A2565 /* IMG_5275.jpg */; };
 		C01A134A29F6D6FF1398B0D1 /* IMG_5278.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1520F30DF5831EB5B7B6819F /* IMG_5278.jpg */; };
@@ -105,7 +105,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				AF61E7ABCB5E6EB2B5B9AF89 /* ANKI-HUB-iOS-Widget.appex in Embed Foundation Extensions */,
+				AF61E7ABCB5E6EB2B5B9AF89 /* sugwrAnkiWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -118,7 +118,7 @@
 		0AA8580402E097FFA50EF559 /* InputModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputModeView.swift; sourceTree = "<group>"; };
 		0ADA96F2A157000729DE70FE /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		0D10CE7B75BBB8FDB0998DFB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		1364BC3DC160BA9167F2E954 /* ANKI-HUB-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "ANKI-HUB-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1364BC3DC160BA9167F2E954 /* sugwrAnki.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sugwrAnki.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		138EF5A87CD96F36979ED3F1 /* SupabaseError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseError.swift; sourceTree = "<group>"; };
 		1520F30DF5831EB5B7B6819F /* IMG_5278.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_5278.jpg; sourceTree = "<group>"; };
 		15E4AE6F56E943FB5A0CDC9A /* MasteryColorEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryColorEditorView.swift; sourceTree = "<group>"; };
@@ -133,7 +133,7 @@
 		2F42290185DB1686BC4377B5 /* ExamHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamHistoryView.swift; sourceTree = "<group>"; };
 		305EDF981FCEF4E9139FACCC /* SupabaseSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseSession.swift; sourceTree = "<group>"; };
 		339AB4910D5268AA3D376674 /* DashboardCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCharts.swift; sourceTree = "<group>"; };
-		3411F36B7C9778DDA4B2FC44 /* 古文単語リスト - Table 1.csv */ = {isa = PBXFileReference; path = "古文単語リスト - Table 1.csv"; sourceTree = "<group>"; };
+		3411F36B7C9778DDA4B2FC44 /* 古文単語リスト - Table 1.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "古文単語リスト - Table 1.csv"; sourceTree = "<group>"; };
 		34C205FA228416CEF67DAA8F /* FocusTimerAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerAttributes.swift; sourceTree = "<group>"; };
 		3565F5636D859200FC648AF8 /* WeakWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakWordsView.swift; sourceTree = "<group>"; };
 		3F58365865FC827B5844A3DF /* StudyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyView.swift; sourceTree = "<group>"; };
@@ -153,12 +153,12 @@
 		5D96FECE438DA97CD55CF884 /* ChapterSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterSelectionView.swift; sourceTree = "<group>"; };
 		5E329F923BA8E6CB5BFF9724 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5E47B989230174E6185BFE75 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
-		61393CB0BC16AE745E73C5F0 /* ANKI-HUB-iOS-Widget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = "ANKI-HUB-iOS-Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		61393CB0BC16AE745E73C5F0 /* sugwrAnkiWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = sugwrAnkiWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		72781903D422A43C1827C20E /* InputModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputModeManager.swift; sourceTree = "<group>"; };
 		740662370E2D90A1663E2962 /* SupabaseHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseHTTPClient.swift; sourceTree = "<group>"; };
 		741D8F69D11144E5DD9DB9BC /* PaperWordbookSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperWordbookSyncView.swift; sourceTree = "<group>"; };
 		767910158F8B2E691292C680 /* ANKI-HUB-iOS-Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "ANKI-HUB-iOS-Widget.entitlements"; sourceTree = "<group>"; };
-		76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */ = {isa = PBXFileReference; path = "重要古語・プラスアルファ古文単語一覧 - Table 1.csv"; sourceTree = "<group>"; };
+		76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "重要古語・プラスアルファ古文単語一覧 - Table 1.csv"; sourceTree = "<group>"; };
 		7DE956E3F2E960F2EA83BA43 /* SeikeiWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeikeiWebView.swift; sourceTree = "<group>"; };
 		847B2C7F2FCED2418C7A2565 /* IMG_5275.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_5275.jpg; sourceTree = "<group>"; };
 		84F79BCB55DEDFE78F084EAA /* DueReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DueReviewView.swift; sourceTree = "<group>"; };
@@ -177,7 +177,7 @@
 		BA7BB3F93154CF38182D09B9 /* DataParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataParser.swift; sourceTree = "<group>"; };
 		BA98B3F09DCD84AA7292B33E /* kanbun.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = kanbun.json; sourceTree = "<group>"; };
 		BBA115CFD27ED4C6EE9C318E /* IMG_5274.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_5274.jpg; sourceTree = "<group>"; };
-		BDB2587306CD8270B3D5E82D /* vocab1900.tsv */ = {isa = PBXFileReference; path = vocab1900.tsv; sourceTree = "<group>"; };
+		BDB2587306CD8270B3D5E82D /* vocab1900.tsv */ = {isa = PBXFileReference; lastKnownFileType = text; path = vocab1900.tsv; sourceTree = "<group>"; };
 		C16E0A064EF69F6FE57A51F4 /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
 		C66D02FAC24A6FA7FA24E01E /* ReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportView.swift; sourceTree = "<group>"; };
 		D7648808FC06CE5AA0EA52A6 /* kobun_pdf.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = kobun_pdf.json; sourceTree = "<group>"; };
@@ -263,8 +263,8 @@
 		3A0170937A3825E259F5300C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				61393CB0BC16AE745E73C5F0 /* ANKI-HUB-iOS-Widget.appex */,
-				1364BC3DC160BA9167F2E954 /* ANKI-HUB-iOS.app */,
+				61393CB0BC16AE745E73C5F0 /* sugwrAnkiWidget.appex */,
+				1364BC3DC160BA9167F2E954 /* sugwrAnki.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -331,7 +331,7 @@
 			isa = PBXGroup;
 			children = (
 				3411F36B7C9778DDA4B2FC44 /* 古文単語リスト - Table 1.csv */,
-				76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */,
+				76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */,
 			);
 			path = OriginalData;
 			sourceTree = "<group>";
@@ -431,7 +431,7 @@
 			packageProductDependencies = (
 			);
 			productName = "ANKI-HUB-iOS";
-			productReference = 1364BC3DC160BA9167F2E954 /* ANKI-HUB-iOS.app */;
+			productReference = 1364BC3DC160BA9167F2E954 /* sugwrAnki.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1203992621608FE7F4121BAF /* ANKI-HUB-iOS-Widget */ = {
@@ -448,7 +448,7 @@
 			packageProductDependencies = (
 			);
 			productName = "ANKI-HUB-iOS-Widget";
-			productReference = 61393CB0BC16AE745E73C5F0 /* ANKI-HUB-iOS-Widget.appex */;
+			productReference = 61393CB0BC16AE745E73C5F0 /* sugwrAnkiWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -458,7 +458,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					032C2D7DFD65E8BF42D3C001 = {
 						DevelopmentTeam = K5D7GVJFG7;
@@ -480,7 +480,6 @@
 			);
 			mainGroup = C83B8297AE0BCE50FCF85A34;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -508,7 +507,7 @@
 				06EBC52649F0C2262A24CDFA /* kobun_pdf.json in Resources */,
 				39C2CC9034AD6C8202BB8BD7 /* vocab1900.tsv in Resources */,
 				3BCDFDF6DDCDC4BAFC9F160F /* 古文単語リスト - Table 1.csv in Resources */,
-				263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */,
+				263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -617,7 +616,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				INFOPLIST_FILE = "Sources/ANKI-HUB-iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -647,7 +645,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				INFOPLIST_FILE = "Sources/ANKI-HUB-iOS-Widget/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -675,7 +672,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				INFOPLIST_FILE = "Sources/ANKI-HUB-iOS-Widget/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -729,8 +725,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -744,6 +742,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -763,7 +762,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				INFOPLIST_FILE = "Sources/ANKI-HUB-iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -820,8 +818,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -842,6 +842,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
