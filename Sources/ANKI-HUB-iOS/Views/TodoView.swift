@@ -222,6 +222,7 @@ struct TodoView: View {
             }
         }
         .scrollContentBackground(.hidden)
+        .listRowBackground(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
     }
 }
 
@@ -239,14 +240,18 @@ struct TodoRow: View {
             } label: {
                 Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
-                    .foregroundStyle(item.isCompleted ? .green : .secondary)
+                    .foregroundStyle(
+                        item.isCompleted
+                            ? theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+                            : theme.secondaryText
+                    )
             }
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.title)
                     .strikethrough(item.isCompleted)
-                    .foregroundStyle(item.isCompleted ? .secondary : .primary)
+                    .foregroundStyle(item.isCompleted ? theme.secondaryText : theme.primaryText)
 
                 HStack(spacing: 8) {
                     // Priority

@@ -23,10 +23,10 @@ public struct LiquidGlassModifier: ViewModifier {
         let border = theme.currentPalette.color(.border, isDark: isDark)
         let primary = theme.currentPalette.color(.primary, isDark: isDark)
 
-        let useMaterial = needsExtraContrast
+        let useMaterial = theme.useLiquidGlass && needsExtraContrast
         let surfaceOpacity: Double = {
             if useMaterial {
-                return isDark ? 0.55 : 0.32
+                return isDark ? 0.78 : 0.62
             }
             return isDark ? 0.88 : 0.96
         }()
@@ -574,13 +574,18 @@ class ThemeManager: ObservableObject {
         return (lighter + 0.05) / (darker + 0.05)
     }
 
-    private func readableTextColor(proposed: Color, on background: Color, minimumContrast: Double) -> Color {
-        if let r = contrastRatio(foreground: proposed, background: background), r >= minimumContrast {
+    private func readableTextColor(proposed: Color, on background: Color, minimumContrast: Double)
+        -> Color
+    {
+        if let r = contrastRatio(foreground: proposed, background: background), r >= minimumContrast
+        {
             return proposed
         }
 
         let fallback = onColor(for: background)
-        if let r2 = contrastRatio(foreground: fallback, background: background), r2 >= minimumContrast {
+        if let r2 = contrastRatio(foreground: fallback, background: background),
+            r2 >= minimumContrast
+        {
             return fallback
         }
         return fallback
@@ -818,48 +823,38 @@ class ThemeManager: ObservableObject {
             textDark: "#b8d8ec", borderDark: "#3a6070", selectionDark: "#6ab4d4"
         ),
         "neonStreet": ThemePalette(
-            primary: "#e040a0", secondary: "#00ffff", accent: "#00ffff", background: "#0a0818",
-            surface: "#1a1020", text: "#f0e0f8", border: "#5a3a7a", selection: "#e040a0",
-            mastered: "#ff00ff", almost: "#00ffff", learning: "#ff6ec7", weak: "#8a2be2",
-            new: "#4a4a6a",
+            primary: "#d946ef", secondary: "#0ea5e9", accent: "#c026d3", background: "#fdf4ff",
+            surface: "#ffffff", text: "#4a044e", border: "#f0abfc", selection: "#e879f9",
+            mastered: "#d946ef", almost: "#0ea5e9", learning: "#e879f9", weak: "#86198f",
+            new: "#94a3b8",
             primaryDark: "#e040a0", backgroundDark: "#0a0818", surfaceDark: "#1a1020",
             textDark: "#f0e0f8", borderDark: "#5a3a7a", selectionDark: "#e040a0"
         ),
         "nightView": ThemePalette(
-            primary: "#00a0c0", secondary: "#ff6b9d", accent: "#ffd700", background: "#0a0a1a",
-            surface: "#1a1a2a", text: "#e8e8f0", border: "#3a3a5a", selection: "#00a0c0",
-            mastered: "#ffd700", almost: "#ff6b9d", learning: "#00bfff", weak: "#1a1a3a",
-            new: "#4a4a6a",
+            primary: "#0284c7", secondary: "#f43f5e", accent: "#f59e0b", background: "#f0f9ff",
+            surface: "#ffffff", text: "#0c4a6e", border: "#bae6fd", selection: "#38bdf8",
+            mastered: "#fbbf24", almost: "#f43f5e", learning: "#0ea5e9", weak: "#0c4a6e",
+            new: "#94a3b8",
             primaryDark: "#00a0c0", backgroundDark: "#0a0a1a", surfaceDark: "#1a1a2a",
             textDark: "#e8e8f0", borderDark: "#3a3a5a", selectionDark: "#00a0c0"
         ),
 
-        "midnight": ThemeManager.makePreset(
-            selection: "#818cf8",
-            background: "#0f172a",
-            surface: "#1e293b",
-            text: "#e2e8f0",
-            border: "#334155",
-            mastered: "#34d399",
-            almost: "#fbbf24",
-            learning: "#fb923c",
-            weak: "#f87171",
+        "midnight": ThemePalette(
+            primary: "#4f46e5", secondary: "#94a3b8", accent: "#6366f1", background: "#f8fafc",
+            surface: "#ffffff", text: "#1e293b", border: "#e2e8f0", selection: "#818cf8",
+            mastered: "#34d399", almost: "#fbbf24", learning: "#fb923c", weak: "#f87171",
             new: "#475569",
-            isDarkBase: true
+            primaryDark: "#818cf8", backgroundDark: "#0f172a", surfaceDark: "#1e293b",
+            textDark: "#e2e8f0", borderDark: "#334155", selectionDark: "#818cf8"
         ),
 
-        "fugaku36": ThemeManager.makePreset(
-            selection: "#D9C179",
-            background: "#010326",
-            surface: "#011140",
-            text: "#F2D1B3",
-            border: "#8C857D",
-            mastered: "#4ADE80",
-            almost: "#D9C179",
-            learning: "#F2D1B3",
-            weak: "#F87171",
-            new: "#94A3B8",
-            isDarkBase: true
+        "fugaku36": ThemePalette(
+            primary: "#d97706", secondary: "#916016", accent: "#f59e0b", background: "#fffbeb",
+            surface: "#ffffff", text: "#1e3a8a", border: "#fcd34d", selection: "#b45309",
+            mastered: "#4ade80", almost: "#fcd34d", learning: "#f59e0b", weak: "#f87171",
+            new: "#94a3b8",
+            primaryDark: "#d9c179", backgroundDark: "#010326", surfaceDark: "#011140",
+            textDark: "#f2d1b3", borderDark: "#8c857d", selectionDark: "#d9c179"
         ),
         "nature": ThemeManager.makePreset(
             selection: "#6393A6",
@@ -885,18 +880,13 @@ class ThemeManager: ObservableObject {
             weak: "#A62626",
             new: "#A0D9D9"
         ),
-        "tunnel": ThemeManager.makePreset(
-            selection: "#F2668B",
-            background: "#011F26",
-            surface: "#025E73",
-            text: "#F2668B",
-            border: "#026873",
-            mastered: "#03A688",
-            almost: "#026873",
-            learning: "#025E73",
-            weak: "#F2668B",
-            new: "#025E73",
-            isDarkBase: true
+        "tunnel": ThemePalette(
+            primary: "#0d9488", secondary: "#0f766e", accent: "#14b8a6", background: "#f0fdfa",
+            surface: "#ffffff", text: "#134e4a", border: "#99f6e4", selection: "#0f766e",
+            mastered: "#10b981", almost: "#14b8a6", learning: "#0e7490", weak: "#f43f5e",
+            new: "#94a3b8",
+            primaryDark: "#f2668b", backgroundDark: "#011f26", surfaceDark: "#025e73",
+            textDark: "#f2668b", borderDark: "#026873", selectionDark: "#f2668b"
         ),
         "circle": ThemeManager.makePreset(
             selection: "#184040",
@@ -910,18 +900,13 @@ class ThemeManager: ObservableObject {
             weak: "#F2F2F2",
             new: "#F2F2F2"
         ),
-        "fugaku": ThemeManager.makePreset(
-            selection: "#D9BB84",
-            background: "#051931",
-            surface: "#1f2937",
-            text: "#D9BB84",
-            border: "#4A7348",
-            mastered: "#4ADE80",
-            almost: "#D9BB84",
-            learning: "#60A5FA",
-            weak: "#F87171",
-            new: "#475569",
-            isDarkBase: true
+        "fugaku": ThemePalette(
+            primary: "#d9bb84", secondary: "#916016", accent: "#d9bb84", background: "#fffbeb",
+            surface: "#ffffff", text: "#422006", border: "#fcd34d", selection: "#b45309",
+            mastered: "#4ade80", almost: "#d9bb84", learning: "#60a5fa", weak: "#f87171",
+            new: "#94a3b8",
+            primaryDark: "#d9bb84", backgroundDark: "#051931", surfaceDark: "#1f2937",
+            textDark: "#d9bb84", borderDark: "#4a7348", selectionDark: "#d9bb84"
         ),
         "image1": ThemeManager.makePreset(
             selection: "#1F67A6",
@@ -959,56 +944,37 @@ class ThemeManager: ObservableObject {
             weak: "#05AFF2",
             new: "#05C7F2"
         ),
-        "img1136_2": ThemeManager.makePreset(
-            selection: "#05C7F2",
-            background: "#022601",
-            surface: "#022601",
-            text: "#05AFF2",
-            border: "#03A64A",
-            mastered: "#048C4D",
-            almost: "#03A64A",
-            learning: "#05C7F2",
-            weak: "#05AFF2",
-            new: "#022601",
-            isDarkBase: true
+        "img1136_2": ThemePalette(
+            primary: "#05c7f2", secondary: "#03a64a", accent: "#05aff2", background: "#ecfdf5",
+            surface: "#ffffff", text: "#064e3b", border: "#6ee7b7", selection: "#05c7f2",
+            mastered: "#048c4d", almost: "#03a64a", learning: "#05c7f2", weak: "#05aff2",
+            new: "#94a3b8",
+            primaryDark: "#05c7f2", backgroundDark: "#022601", surfaceDark: "#022601",
+            textDark: "#05aff2", borderDark: "#03a64a", selectionDark: "#05c7f2"
         ),
-        "img1834": ThemeManager.makePreset(
-            selection: "#D99C9C",
-            background: "#012340",
-            surface: "#012340",
-            text: "#D9D1C7",
-            border: "#D9D1C7",
-            mastered: "#8CF25C",
-            almost: "#D99C9C",
-            learning: "#D9D1C7",
-            weak: "#A61C28",
-            new: "#012340",
-            isDarkBase: true
+        "img1834": ThemePalette(
+            primary: "#d99c9c", secondary: "#8cf25c", accent: "#d99c9c", background: "#f8fafc",
+            surface: "#ffffff", text: "#0f172a", border: "#e2e8f0", selection: "#d99c9c",
+            mastered: "#8cf25c", almost: "#d99c9c", learning: "#d9d1c7", weak: "#a61c28",
+            new: "#94a3b8",
+            primaryDark: "#d99c9c", backgroundDark: "#012340", surfaceDark: "#012340",
+            textDark: "#d9d1c7", borderDark: "#d9d1c7", selectionDark: "#d99c9c"
         ),
-        "img2815": ThemeManager.makePreset(
-            selection: "#7EBFD9",
-            background: "#0D0D0D",
-            surface: "#2C3540",
-            text: "#C4E5F2",
-            border: "#2C3540",
-            mastered: "#48592E",
-            almost: "#7EBFD9",
-            learning: "#C4E5F2",
-            weak: "#8C4227",
-            new: "#2C3540",
-            isDarkBase: true
+        "img2815": ThemePalette(
+            primary: "#7ebfd9", secondary: "#48592e", accent: "#7ebfd9", background: "#f8fafc",
+            surface: "#ffffff", text: "#0f172a", border: "#e2e8f0", selection: "#7ebfd9",
+            mastered: "#48592e", almost: "#7ebfd9", learning: "#c4e5f2", weak: "#8c4227",
+            new: "#94a3b8",
+            primaryDark: "#7ebfd9", backgroundDark: "#0d0d0d", surfaceDark: "#2c3540",
+            textDark: "#c4e5f2", borderDark: "#2c3540", selectionDark: "#7ebfd9"
         ),
-        "img2815_2": ThemeManager.makePreset(
-            selection: "#CEE8F2",
-            background: "#2C3540",
-            surface: "#ffffff",
-            text: "#CEE8F2",
-            border: "#7EBFD9",
-            mastered: "#48592E",
-            almost: "#7EBFD9",
-            learning: "#CEE8F2",
-            weak: "#8C4227",
-            new: "#2C3540"
+        "img2815_2": ThemePalette(
+            primary: "#cee8f2", secondary: "#48592e", accent: "#7ebfd9", background: "#f8fafc",
+            surface: "#ffffff", text: "#0f172a", border: "#7ebfd9", selection: "#cee8f2",
+            mastered: "#48592e", almost: "#7ebfd9", learning: "#cee8f2", weak: "#8c4227",
+            new: "#94a3b8",
+            primaryDark: "#cee8f2", backgroundDark: "#2c3540", surfaceDark: "#ffffff",
+            textDark: "#cee8f2", borderDark: "#7ebfd9", selectionDark: "#cee8f2"
         ),
         "img2815_3": ThemeManager.makePreset(
             selection: "#C4E5F2",
@@ -1036,18 +1002,13 @@ class ThemeManager: ObservableObject {
             weak: "#ef4444",
             new: "#6b7280"
         ),
-        "pinkNoir": ThemeManager.makePreset(
-            selection: "#db2777",
-            background: "#0a0a0a",
-            surface: "#18181b",
-            text: "#fce7f3",
-            border: "#831843",
-            mastered: "#ec4899",
-            almost: "#f472b6",
-            learning: "#a855f7",
-            weak: "#ef4444",
-            new: "#4b5563",
-            isDarkBase: true
+        "pinkNoir": ThemePalette(
+            primary: "#db2777", secondary: "#f472b6", accent: "#db2777", background: "#fdf2f8",
+            surface: "#ffffff", text: "#831843", border: "#fbcfe8", selection: "#db2777",
+            mastered: "#ec4899", almost: "#f472b6", learning: "#a855f7", weak: "#ef4444",
+            new: "#9ca3af",
+            primaryDark: "#db2777", backgroundDark: "#0a0a0a", surfaceDark: "#18181b",
+            textDark: "#fce7f3", borderDark: "#831843", selectionDark: "#db2777"
         ),
         "sunshine": ThemeManager.makePreset(
             selection: "#eab308",
@@ -1085,18 +1046,13 @@ class ThemeManager: ObservableObject {
             weak: "#dc2626",
             new: "#78716c"
         ),
-        "retroGaming": ThemeManager.makePreset(
-            selection: "#10b981",
-            background: "#020617",
-            surface: "#0f172a",
-            text: "#4ade80",
-            border: "#06b6d4",
-            mastered: "#4ade80",
-            almost: "#a3e635",
-            learning: "#facc15",
-            weak: "#f87171",
+        "retroGaming": ThemePalette(
+            primary: "#10b981", secondary: "#4ade80", accent: "#06b6d4", background: "#f0fdfa",
+            surface: "#ffffff", text: "#064e3b", border: "#67e8f9", selection: "#10b981",
+            mastered: "#4ade80", almost: "#a3e635", learning: "#facc15", weak: "#f87171",
             new: "#22d3ee",
-            isDarkBase: true
+            primaryDark: "#10b981", backgroundDark: "#020617", surfaceDark: "#0f172a",
+            textDark: "#4ade80", borderDark: "#06b6d4", selectionDark: "#10b981"
         ),
 
         "spring": ThemeManager.makePreset(

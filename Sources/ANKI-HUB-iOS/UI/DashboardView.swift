@@ -290,6 +290,8 @@ struct StatCard: View {
     let icon: String
     let color: Color
 
+    @ObservedObject private var theme = ThemeManager.shared
+
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
@@ -297,11 +299,12 @@ struct StatCard: View {
                     .foregroundColor(color)
                 Text(title)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(theme.secondaryText)
             }
             Text(value)
                 .font(.title2)
                 .bold()
+                .foregroundStyle(theme.primaryText)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -312,6 +315,8 @@ struct StatCard: View {
 struct SubjectCard: View {
     let subject: Subject
 
+    @ObservedObject private var theme = ThemeManager.shared
+
     var body: some View {
         VStack {
             Image(systemName: subject.icon)
@@ -321,10 +326,11 @@ struct SubjectCard: View {
 
             Text(subject.displayName)
                 .font(.headline)
+                .foregroundStyle(theme.primaryText)
 
             Text(subject.description)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(theme.secondaryText)
                 .multilineTextAlignment(.center)
         }
         .padding()
@@ -339,6 +345,8 @@ struct ToolCard: View {
     let title: String
     let color: Color
 
+    @ObservedObject private var theme = ThemeManager.shared
+
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
@@ -347,6 +355,7 @@ struct ToolCard: View {
             Text(title)
                 .font(.caption)
                 .fontWeight(.medium)
+                .foregroundStyle(theme.primaryText)
         }
         .frame(maxWidth: .infinity)
         .padding()

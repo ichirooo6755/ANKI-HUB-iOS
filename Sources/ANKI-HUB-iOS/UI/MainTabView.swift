@@ -46,6 +46,9 @@ struct MainTabView: View {
             }
         }
         .applyAppTheme()
+        .onAppear {
+            MasteryTracker.shared.loadData()
+        }
         .onOpenURL { url in
             handleDeepLink(url)
         }

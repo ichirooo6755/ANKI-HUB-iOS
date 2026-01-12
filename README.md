@@ -231,6 +231,25 @@
   - `color_presets_list.md` の全ID/色コードを `ThemeManager.presets` に追加し、テーマ選択UIから選択可能にした。
   - `getThemeName` に表示名マッピングを追加し、一覧で英語IDが露出しないように調整。
 
+### 2026-01-13: InputModeのスクロール不可 / OCRクラッシュ / マイページ・学習タブのテーマ不整合 / ToDo・テスト履歴が使えない
+- **症状**:
+  - インプットモード（集中暗記）の画面でスクロールできず、端末サイズによってはUIが画面外に逃げる。
+  - OCR/スキャン機能を使おうとするとクラッシュする（またはSimで使えない）。
+  - 学習タブ/マイページで一部コンテナの背景や文字色がテーマに追従せず、白/黒固定っぽく見える。
+  - やることリスト/テスト点数記録の機能が見つからず、実質使えない。
+- **原因**:
+  - `FocusedMemorizationView` の一部画面が `ScrollView` ではなく `VStack + Spacer` 依存だった。
+  - `Info.plist` にカメラ利用許可（`NSCameraUsageDescription`）が無く、実機で起動時に落ちる可能性があった。
+  - VisionKitスキャナ非対応環境（特にSimulator）でのガードが無かった。
+  - 一部カード/ラベルが `.secondary` 等に依存しており、テーマ側の `text/surface` とズレるケースがあった。
+  - ToDo/テスト履歴への導線がマイページ側に無かった。
+- **解決策**:
+  - `FocusedMemorizationView` の該当画面を `ScrollView` 化。
+  - `Info.plist` に `NSCameraUsageDescription` を追加。
+  - `VNDocumentCameraViewController.isSupported` をチェックし、非対応時はアラート表示にしてクラッシュ回避。
+  - 学習/マイページのカードやリスト背景・文字色を `ThemeManager` 基準に寄せて統一。
+  - `SettingsView`（マイページ）に「やることリスト」「テスト履歴」への導線を追加。
+
 ### 2026-01-11: PomodoroView のビルド失敗（accent参照/opaque return type）
 - **症状**:
   - `PomodoroView.swift` のコンパイルで `cannot find 'accent' in scope` / `function declares an opaque return type, but has no return statements...` が出てビルドが失敗する。

@@ -27,7 +27,7 @@ struct ProfileView: View {
                                 .font(.title2.bold())
                             Text(authManager.currentUser?.email ?? "ログインしていません")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(themeManager.secondaryText)
                             if authManager.currentUser != nil {
                                 Text(authManager.isInvited ? "プレミアム" : "無料プラン")
                                     .font(.caption)
@@ -128,6 +128,7 @@ struct ProfileView: View {
             }
         }
         .scrollContentBackground(.hidden)
+        .listRowBackground(themeManager.color(.surface, scheme: colorScheme))
         .background(ThemeManager.shared.background)
         .onAppear {
             #if os(iOS)

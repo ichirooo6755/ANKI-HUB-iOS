@@ -104,12 +104,8 @@ struct SubjectGridItem: View {
                         Text("インプット")
                             .font(.caption)
                             .padding(5)
-                            .background(
-                                theme.currentPalette.color(
-                                    .selection, isDark: theme.effectiveIsDark
-                                ).opacity(0.2)
-                            )
-                            .cornerRadius(5)
+                            .foregroundStyle(theme.primaryText)
+                            .liquidGlass(cornerRadius: 8)
                     }
                 }
                 .padding(.top, -10)

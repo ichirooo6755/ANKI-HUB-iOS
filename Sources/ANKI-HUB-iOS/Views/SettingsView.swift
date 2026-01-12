@@ -87,6 +87,18 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
+    private var toolsSection: some View {
+        Section("ツール") {
+            NavigationLink(destination: TodoView()) {
+                Label("やることリスト", systemImage: "list.bullet")
+            }
+            NavigationLink(destination: ExamHistoryView()) {
+                Label("テスト履歴", systemImage: "doc.text")
+            }
+        }
+    }
+
+    @ViewBuilder
     private var statsSection: some View {
         let rowBg = themeManager.color(.surface, scheme: colorScheme)
         Section("学習統計") {
@@ -509,6 +521,7 @@ struct SettingsView: View {
                     statsSection
                     studySection
                     appearanceSection
+                    toolsSection
                     syncSection
                     infoSection
                 }

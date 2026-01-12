@@ -146,57 +146,76 @@ struct FocusedMemorizationView: View {
     // MARK: - Day Select View
     
     private var daySelectView: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            
-            Image(systemName: "brain.head.profile")
-                .font(.system(size: 60))
-                .foregroundStyle(LinearGradient(colors: [.orange, .yellow], startPoint: .topLeading, endPoint: .bottomTrailing))
-            
-            Text("インプットモード")
-                .font(.largeTitle.bold())
+        ScrollView {
+            VStack(spacing: 24) {
+                Image(systemName: "brain.head.profile")
+                    .font(.system(size: 60))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.orange, .yellow],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ))
 
-            Picker("教科", selection: $selectedSubject) {
-                ForEach(subjectOptions) { s in
-                    Text(s.displayName).tag(s)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal)
-            
-            // Progress Summary
-            VStack(spacing: 8) {
-                HStack(spacing: 24) {
-                    statItem(value: getKnownTotal(), label: "わかる", color: .green)
-                    statItem(value: getUnknownTotal(), label: "わからない", color: .red)
-                    statItem(value: getNewTotal(), label: "未処理", color: .gray)
-                }
-            }
-            .padding()
-            .liquidGlass()
-            .padding(.horizontal)
+                Text("インプットモード")
+                    .font(.largeTitle.bold())
 
-            SubjectMasteryChart(subject: selectedSubject, masteryTracker: masteryTracker)
+                Picker("教科", selection: $selectedSubject) {
+                    ForEach(subjectOptions) { s in
+                        Text(s.displayName).tag(s)
+                    }
+                }
+                .pickerStyle(.segmented)
                 .padding(.horizontal)
 
-            Spacer()
-            Spacer()
-            
-            // Day Buttons
-            VStack(spacing: 12) {
-                dayButton(day: 1, icon: "sun.max.fill", title: "1日目", subtitle: "時間制限なし", gradient: [.orange, .yellow])
-                dayButton(day: 2, icon: "bolt.fill", title: "2日目", subtitle: "\(String(format: "%.1f", day2Seconds))秒/語", gradient: [.yellow, .orange])
-                dayButton(day: 3, icon: "mic.fill", title: "3日目", subtitle: "\(String(format: "%.1f", day3Seconds))秒/語", gradient: [.purple, .indigo])
+                // Progress Summary
+                VStack(spacing: 8) {
+                    HStack(spacing: 24) {
+                        statItem(value: getKnownTotal(), label: "わかる", color: .green)
+                        statItem(value: getUnknownTotal(), label: "わからない", color: .red)
+                        statItem(value: getNewTotal(), label: "未処理", color: .gray)
+                    }
+                }
+                .padding()
+                .liquidGlass()
+                .padding(.horizontal)
+
+                SubjectMasteryChart(subject: selectedSubject, masteryTracker: masteryTracker)
+                    .padding(.horizontal)
+
+                // Day Buttons
+                VStack(spacing: 12) {
+                    dayButton(
+                        day: 1,
+                        icon: "sun.max.fill",
+                        title: "1日目",
+                        subtitle: "時間制限なし",
+                        gradient: [.orange, .yellow]
+                    )
+                    dayButton(
+                        day: 2,
+                        icon: "bolt.fill",
+                        title: "2日目",
+                        subtitle: "\(String(format: "%.1f", day2Seconds))秒/語",
+                        gradient: [.yellow, .orange]
+                    )
+                    dayButton(
+                        day: 3,
+                        icon: "mic.fill",
+                        title: "3日目",
+                        subtitle: "\(String(format: "%.1f", day3Seconds))秒/語",
+                        gradient: [.purple, .indigo]
+                    )
+                }
+                .padding(.horizontal)
+
+                Button("進捗をリセット") {
+                    resetProgress()
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
-            .padding(.horizontal)
-            
-            Button("進捗をリセット") {
-                resetProgress()
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            
-            Spacer()
+            .padding(.vertical, 16)
         }
     }
     
@@ -241,60 +260,61 @@ struct FocusedMemorizationView: View {
     // MARK: - Block Select View
     
     private var blockSelectView: some View {
-        VStack(spacing: 20) {
-            Text(dayLabel(currentDay))
-                .font(.title2.bold())
-            
-            Text("ブロックを選択（各50語）")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            
-            // Block Grid
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
-                ForEach(0..<totalBlocks, id: \.self) { index in
-                    let completionCount = getBlockCompletionCount(day: currentDay, block: index)
-                    let highlight = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
-                    Button {
-                        startBlock(index)
-                    } label: {
-                        VStack(spacing: 4) {
-                            Text("\(index + 1)")
-                                .font(.headline)
-                            if completionCount > 0 {
-                                Text("\(completionCount)回")
-                                    .font(.caption2)
+        ScrollView {
+            VStack(spacing: 20) {
+                Text(dayLabel(currentDay))
+                    .font(.title2.bold())
+
+                Text("ブロックを選択（各50語）")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                // Block Grid
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
+                    ForEach(0..<totalBlocks, id: \.self) { index in
+                        let completionCount = getBlockCompletionCount(day: currentDay, block: index)
+                        let highlight = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                        Button {
+                            startBlock(index)
+                        } label: {
+                            VStack(spacing: 4) {
+                                Text("\(index + 1)")
+                                    .font(.headline)
+                                if completionCount > 0 {
+                                    Text("\(completionCount)回")
+                                        .font(.caption2)
+                                }
                             }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+                                    .opacity(theme.effectiveIsDark ? 0.55 : 0.7)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(completionCount > 0 ? highlight.opacity(0.18) : Color.clear)
+                            )
+                            .foregroundStyle(completionCount > 0 ? highlight : .primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(completionCount > 0 ? highlight : Color.clear, lineWidth: 2)
+                            )
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-                                .opacity(theme.effectiveIsDark ? 0.55 : 0.7)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(completionCount > 0 ? highlight.opacity(0.18) : Color.clear)
-                        )
-                        .foregroundStyle(completionCount > 0 ? highlight : .primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(completionCount > 0 ? highlight : Color.clear, lineWidth: 2)
-                        )
                     }
                 }
+                .padding(.horizontal)
+
+                Button("戻る") {
+                    currentScreen = .daySelect
+                }
+                .foregroundStyle(.secondary)
+                .padding(.top, 8)
             }
-            .padding(.horizontal)
-            
-            Spacer()
-            
-            Button("戻る") {
-                currentScreen = .daySelect
-            }
-            .foregroundStyle(.secondary)
-            .padding()
+            .padding(.top)
+            .padding(.bottom, 16)
         }
-        .padding(.top)
     }
     
     // MARK: - Study View

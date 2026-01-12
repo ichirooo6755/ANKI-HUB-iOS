@@ -8,6 +8,7 @@ import SwiftUI
 struct ScanView: View {
     @ObservedObject var theme = ThemeManager.shared
     @State private var showScanner = false
+    @State private var showScannerUnsupportedAlert = false
 
     #if os(iOS)
         @State private var scannedImages: [UIImage] = []
@@ -45,7 +46,11 @@ struct ScanView: View {
                             .padding(.horizontal)
 
                             Button {
-                                showScanner = true
+                                if VNDocumentCameraViewController.isSupported {
+                                    showScanner = true
+                                } else {
+                                    showScannerUnsupportedAlert = true
+                                }
                             } label: {
                                 let bg = theme.currentPalette.color(
                                     .primary, isDark: theme.effectiveIsDark)
@@ -168,7 +173,11 @@ struct ScanView: View {
                         .overlay(alignment: .bottom) {
                             HStack(spacing: 12) {
                                 Button {
-                                    showScanner = true
+                                    if VNDocumentCameraViewController.isSupported {
+                                        showScanner = true
+                                    } else {
+                                        showScannerUnsupportedAlert = true
+                                    }
                                 } label: {
                                     Label("追加でスキャン", systemImage: "plus")
                                         .font(.headline)
@@ -204,6 +213,11 @@ struct ScanView: View {
                 #endif
             }
             .navigationTitle("Scanner")
+            .alert("スキャンできません", isPresented: $showScannerUnsupportedAlert) {
+                Button("OK") {}
+            } message: {
+                Text("この端末ではスキャン機能が利用できません。実機(iPhone/iPad)でお試しください。")
+            }
             .sheet(isPresented: $showScanner) {
                 #if os(iOS)
                     DocumentScannerView { images in

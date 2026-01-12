@@ -129,6 +129,7 @@ struct ExamHistoryView: View {
             }
         }
         .scrollContentBackground(.hidden)
+        .listRowBackground(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
     }
 }
 
@@ -153,7 +154,7 @@ struct ExamResultRow: View {
                     if !result.subject.isEmpty {
                         Text(result.subject)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.secondaryText)
                     }
                 }
 
@@ -170,7 +171,7 @@ struct ExamResultRow: View {
 
                 Text("\(result.year)年")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
             }
 
             Spacer()
@@ -182,7 +183,7 @@ struct ExamResultRow: View {
 
                 Text("\(result.score)/\(result.total)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
             }
         }
         .padding(.vertical, 4)
