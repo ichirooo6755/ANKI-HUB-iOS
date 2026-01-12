@@ -15,6 +15,11 @@ struct SettingsView: View {
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("anki_hub_target_date_timestamp_v2") private var targetDateTimestamp: Double = 0
     @AppStorage("anki_hub_widget_subject_filter_v1") private var widgetSubjectFilter: String = ""
+    @AppStorage("anki_hub_widget_show_streak_v1") private var widgetShowStreak: Bool = true
+    @AppStorage("anki_hub_widget_show_today_minutes_v1") private var widgetShowTodayMinutes: Bool = true
+    @AppStorage("anki_hub_widget_show_mistakes_v1") private var widgetShowMistakes: Bool = true
+    @AppStorage("anki_hub_widget_mistake_count_v1") private var widgetMistakeCount: Int = 3
+    @AppStorage("anki_hub_widget_style_v1") private var widgetStyle: String = "system"
 
     private let widgetAppGroupId = "group.com.ankihub.ios"
 
@@ -126,6 +131,16 @@ struct SettingsView: View {
         )
     }
 
+    private func saveWidgetSettingsToAppGroup() {
+        let defaults = UserDefaults(suiteName: widgetAppGroupId)
+        defaults?.set(widgetSubjectFilter, forKey: "anki_hub_widget_subject_filter_v1")
+        defaults?.set(widgetShowStreak, forKey: "anki_hub_widget_show_streak_v1")
+        defaults?.set(widgetShowTodayMinutes, forKey: "anki_hub_widget_show_today_minutes_v1")
+        defaults?.set(widgetShowMistakes, forKey: "anki_hub_widget_show_mistakes_v1")
+        defaults?.set(widgetMistakeCount, forKey: "anki_hub_widget_mistake_count_v1")
+        defaults?.set(widgetStyle, forKey: "anki_hub_widget_style_v1")
+    }
+
     @ViewBuilder
     private var accountSection: some View {
         Section {
@@ -234,6 +249,30 @@ struct SettingsView: View {
                 Text("古文").tag(Subject.kobun.rawValue)
                 Text("漢文").tag(Subject.kanbun.rawValue)
                 Text("政経").tag(Subject.seikei.rawValue)
+            }
+
+            Toggle(isOn: $widgetShowStreak) {
+                Text("ウィジェット: 連続学習日数")
+            }
+
+            Toggle(isOn: $widgetShowTodayMinutes) {
+                Text("ウィジェット: 今日の学習時間")
+            }
+
+            Toggle(isOn: $widgetShowMistakes) {
+                Text("ウィジェット: 間違えた単語")
+            }
+
+            Picker("ウィジェット: 間違えた単語の表示数", selection: $widgetMistakeCount) {
+                Text("1件").tag(1)
+                Text("2件").tag(2)
+                Text("3件").tag(3)
+            }
+
+            Picker("ウィジェット: 見た目", selection: $widgetStyle) {
+                Text("システム").tag("system")
+                Text("ダーク").tag("dark")
+                Text("アクセント").tag("accent")
             }
         }
     }
@@ -486,7 +525,7 @@ struct SettingsView: View {
             #endif
             loadReminderTimesIfNeeded()
             migrateRetentionSettings()
-            saveWidgetSubjectFilterToAppGroup()
+            saveWidgetSettingsToAppGroup()
         }
         .onChange(of: kobunInputModeUseAll) { _, _ in
             SyncManager.shared.requestAutoSync()
@@ -497,7 +536,37 @@ struct SettingsView: View {
             }
         }
         .onChange(of: widgetSubjectFilter) { _, _ in
-            saveWidgetSubjectFilterToAppGroup()
+            saveWidgetSettingsToAppGroup()
+            #if canImport(WidgetKit)
+                WidgetCenter.shared.reloadAllTimelines()
+            #endif
+        }
+        .onChange(of: widgetShowStreak) { _, _ in
+            saveWidgetSettingsToAppGroup()
+            #if canImport(WidgetKit)
+                WidgetCenter.shared.reloadAllTimelines()
+            #endif
+        }
+        .onChange(of: widgetShowTodayMinutes) { _, _ in
+            saveWidgetSettingsToAppGroup()
+            #if canImport(WidgetKit)
+                WidgetCenter.shared.reloadAllTimelines()
+            #endif
+        }
+        .onChange(of: widgetShowMistakes) { _, _ in
+            saveWidgetSettingsToAppGroup()
+            #if canImport(WidgetKit)
+                WidgetCenter.shared.reloadAllTimelines()
+            #endif
+        }
+        .onChange(of: widgetMistakeCount) { _, _ in
+            saveWidgetSettingsToAppGroup()
+            #if canImport(WidgetKit)
+                WidgetCenter.shared.reloadAllTimelines()
+            #endif
+        }
+        .onChange(of: widgetStyle) { _, _ in
+            saveWidgetSettingsToAppGroup()
             #if canImport(WidgetKit)
                 WidgetCenter.shared.reloadAllTimelines()
             #endif
