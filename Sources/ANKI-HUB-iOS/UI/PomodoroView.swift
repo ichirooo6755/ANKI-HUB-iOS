@@ -202,7 +202,7 @@ struct PomodoroView: View {
                                 selectedMode == mode
                                     ? mode.color.opacity(0.2) : Color.gray.opacity(0.1)
                             )
-                            .foregroundStyle(selectedMode == mode ? mode.color : .secondary)
+                            .foregroundStyle(selectedMode == mode ? mode.color : theme.secondaryText)
                             .cornerRadius(8)
                     }
                 }
@@ -230,14 +230,14 @@ struct PomodoroView: View {
                     if isActive, let end = endTime {
                         Text("終了: \(endTimeString(end))")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.secondaryText)
                             .padding(.top, 4)
                     }
 
                     if isOvertime {
                         Text("オーバータイム")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.secondaryText)
                             .padding(.top, 2)
                     }
                 }
@@ -252,7 +252,7 @@ struct PomodoroView: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .font(.title2)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                         .frame(width: 60, height: 60)
                         .liquidGlassCircle()
                 }
@@ -275,7 +275,7 @@ struct PomodoroView: View {
                 } label: {
                     Image(systemName: "gearshape.fill")
                         .font(.title2)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                         .frame(width: 60, height: 60)
                         .liquidGlassCircle()
                 }
@@ -317,7 +317,7 @@ struct PomodoroView: View {
 
                     Text("ストップウォッチ")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                 }
             }
             .frame(width: 300, height: 300)
@@ -330,7 +330,7 @@ struct PomodoroView: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .font(.title2)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                         .frame(width: 60, height: 60)
                         .liquidGlassCircle()
                 }
@@ -354,7 +354,7 @@ struct PomodoroView: View {
                 } label: {
                     Image(systemName: "flag.fill")
                         .font(.title2)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                         .frame(width: 60, height: 60)
                         .liquidGlassCircle()
                 }
@@ -378,7 +378,7 @@ struct PomodoroView: View {
                                 HStack {
                                     Text("\(idx + 1)")
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(theme.secondaryText)
                                         .frame(width: 28, alignment: .leading)
                                     Spacer()
                                     Text(stopwatchString(from: t))

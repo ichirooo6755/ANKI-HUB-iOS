@@ -1,5 +1,30 @@
 import SwiftUI
 
+#if os(iOS)
+import UIKit
+#endif
+
+private extension Color {
+    func toHexString() -> String {
+        #if os(iOS)
+            let ui = UIColor(self)
+            var r: CGFloat = 0
+            var g: CGFloat = 0
+            var b: CGFloat = 0
+            var a: CGFloat = 0
+            ui.getRed(&r, green: &g, blue: &b, alpha: &a)
+            return String(
+                format: "#%02X%02X%02X",
+                Int(r * 255.0),
+                Int(g * 255.0),
+                Int(b * 255.0)
+            )
+        #else
+            return "#000000"
+        #endif
+    }
+}
+
 struct ThemeSettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.colorScheme) var colorScheme
@@ -20,7 +45,7 @@ struct ThemeSettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("プレビュー")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(themeManager.color(.secondary, scheme: colorScheme))
                             .textCase(.uppercase)
                             .padding(.horizontal)
 
@@ -32,7 +57,7 @@ struct ThemeSettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("テーマを選択")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(themeManager.color(.secondary, scheme: colorScheme))
                             .textCase(.uppercase)
                             .padding(.horizontal)
 
@@ -56,7 +81,7 @@ struct ThemeSettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("カスタマイズ")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(themeManager.color(.secondary, scheme: colorScheme))
                             .textCase(.uppercase)
                             .padding(.horizontal)
 
@@ -92,7 +117,7 @@ struct ThemeSettingsView: View {
                                     .foregroundColor(themeManager.color(.text, scheme: colorScheme))
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(themeManager.color(.secondary, scheme: colorScheme))
                             }
                             .padding()
                             .liquidGlass()
@@ -105,7 +130,7 @@ struct ThemeSettingsView: View {
                                     .foregroundColor(themeManager.color(.text, scheme: colorScheme))
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(themeManager.color(.secondary, scheme: colorScheme))
                             }
                             .padding()
                             .liquidGlass()
@@ -203,11 +228,17 @@ struct ThemeSelectionCard: View {
 
         let palette = themeManager.getPalette(id: themeId)
         let primary = Color(
-            hex: palette?.hexString(for: .primary, isDark: colorScheme == .dark) ?? "#000000")
+            hex: palette?.hexString(for: .primary, isDark: colorScheme == .dark)
+                ?? themeManager.color(.primary, scheme: colorScheme).toHexString()
+        )
         let bg = Color(
-            hex: palette?.hexString(for: .surface, isDark: colorScheme == .dark) ?? "#ffffff")
+            hex: palette?.hexString(for: .surface, isDark: colorScheme == .dark)
+                ?? themeManager.color(.surface, scheme: colorScheme).toHexString()
+        )
         let text = Color(
-            hex: palette?.hexString(for: .text, isDark: colorScheme == .dark) ?? "#000000")
+            hex: palette?.hexString(for: .text, isDark: colorScheme == .dark)
+                ?? themeManager.color(.text, scheme: colorScheme).toHexString()
+        )
 
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading) {

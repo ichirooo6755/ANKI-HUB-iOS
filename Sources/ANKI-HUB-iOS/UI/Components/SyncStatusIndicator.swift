@@ -24,11 +24,11 @@ struct SyncStatusIndicator: View {
             if syncManager.isSyncing {
                 Text("同期中...")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(ThemeManager.shared.secondaryText)
             } else if let lastSync = syncManager.lastSyncDate {
                 Text(timeAgo(date: lastSync))
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(ThemeManager.shared.secondaryText)
             }
         }
         .padding(6)

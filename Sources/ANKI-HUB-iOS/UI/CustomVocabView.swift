@@ -18,7 +18,7 @@ struct CustomVocabView: View {
                 ForEach(items) { item in
                     VStack(alignment: .leading) {
                         Text(item.word).font(.headline)
-                        Text(item.meaning).font(.caption).foregroundColor(.secondary)
+                        Text(item.meaning).font(.caption).foregroundStyle(theme.secondaryText)
                     }
                 }
                 .onDelete { indexSet in

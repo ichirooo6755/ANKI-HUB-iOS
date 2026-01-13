@@ -14,7 +14,7 @@ struct PastExamAnalysisView: View {
     private var borderColor: Color { theme.currentPalette.color(.border, isDark: theme.effectiveIsDark) }
     private var weakColor: Color { theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark) }
     private var masteredColor: Color { theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark) }
-    private var onColoredBackgroundText: Color { theme.effectiveIsDark ? .white : .black }
+    private func onText(for bg: Color) -> Color { theme.onColor(for: bg) }
     
     // Add Score State
     @State private var inputYear = "2024"
@@ -79,7 +79,7 @@ struct PastExamAnalysisView: View {
                 
                 HStack(alignment: .bottom, spacing: 10) {
                     VStack(alignment: .leading) {
-                        Text("年度").font(.caption).foregroundColor(.gray)
+                        Text("年度").font(.caption).foregroundStyle(theme.secondaryText)
                         TextField("2024", text: $inputYear)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             #if os(iOS)
@@ -89,7 +89,7 @@ struct PastExamAnalysisView: View {
                     .frame(width: 80)
                     
                     VStack(alignment: .leading) {
-                        Text("種類").font(.caption).foregroundColor(.gray)
+                        Text("種類").font(.caption).foregroundStyle(theme.secondaryText)
                         Picker("Type", selection: $inputType) {
                             ForEach(ExamResult.ExamType.allCases, id: \.self) { type in
                                 Text(type.label).tag(type)
@@ -104,7 +104,7 @@ struct PastExamAnalysisView: View {
                 
                 HStack(alignment: .bottom, spacing: 10) {
                     VStack(alignment: .leading) {
-                        Text("点数 / 満点").font(.caption).foregroundColor(.gray)
+                        Text("点数 / 満点").font(.caption).foregroundStyle(theme.secondaryText)
                         HStack {
                             TextField("点数", text: $inputScore)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -127,14 +127,14 @@ struct PastExamAnalysisView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                             .background(primaryColor)
-                            .foregroundStyle(onColoredBackgroundText)
+                            .foregroundStyle(onText(for: primaryColor))
                             .cornerRadius(8)
                     }
                     .frame(width: 80)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("科目/大学/学部").font(.caption).foregroundColor(.gray)
+                    Text("科目/大学/学部").font(.caption).foregroundStyle(theme.secondaryText)
                     TextField("科目", text: $inputSubject)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     TextField("大学名", text: $inputUniversity)
@@ -212,7 +212,7 @@ struct PastExamAnalysisView: View {
                         
                         Button(action: { manager.deleteResult(id: res.id) }) {
                             Image(systemName: "xmark")
-                                .foregroundColor(.gray)
+                                .foregroundStyle(theme.secondaryText)
                         }
                     }
                     .padding()
@@ -244,7 +244,7 @@ struct PastExamAnalysisView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(LinearGradient(colors: [primaryColor, accentColor], startPoint: .leading, endPoint: .trailing))
-                        .foregroundStyle(onColoredBackgroundText)
+                        .foregroundStyle(onText(for: primaryColor))
                         .cornerRadius(12)
                 }
             }
@@ -300,7 +300,7 @@ struct PastExamAnalysisView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(LinearGradient(colors: [masteredColor, selectionColor], startPoint: .leading, endPoint: .trailing))
-                        .foregroundStyle(onColoredBackgroundText)
+                        .foregroundStyle(onText(for: masteredColor))
                         .cornerRadius(12)
                 }
             }
@@ -349,7 +349,7 @@ struct PastExamAnalysisView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(LinearGradient(colors: [accentColor, weakColor], startPoint: .leading, endPoint: .trailing))
-                        .foregroundStyle(onColoredBackgroundText)
+                        .foregroundStyle(onText(for: accentColor))
                         .cornerRadius(12)
                 }
                 
@@ -443,7 +443,7 @@ struct TabButton: View {
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
         let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
-        let onColoredBackgroundText: Color = theme.effectiveIsDark ? .white : .black
+        let onColoredBackgroundText: Color = theme.onColor(for: primary)
         Button(action: { selected = id }) {
             Text(title)
                 .font(.system(size: 14, weight: .bold))

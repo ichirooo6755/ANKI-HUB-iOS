@@ -286,6 +286,15 @@
   - OCRに `UIImage` の向き（orientation）を渡して日本語認識を安定化。
   - OCR結果テキストから空欄候補を抽出して一覧表示（手動抽出ボタンも追加）。
 
+### 2026-01-13: ダークモードで一部テキストが黒固定になり可読性が落ちる
+- **症状**:
+  - ダークモード時に一部画面でテキスト色が黒固定になり、背景に埋もれて読めない。
+- **原因**:
+  - `.secondary` / `.primary` などシステム色依存、または `theme.effectiveIsDark ? .white : .black` のような固定色フォールバックが残っており、テーマ/ダークモードとズレるケースがあった。
+- **解決策**:
+  - テキスト色を `ThemeManager.primaryText/secondaryText` 基準に寄せ、色付き背景上は `ThemeManager.onColor(for:)` を使用してコントラストを確保。
+  - 対象例: `PomodoroView` / `SyncStatusIndicator` / `CustomVocabView` / `PastExamAnalysisView` / `ThemeSettingsView`
+
 ### 2026-01-11: PomodoroView のビルド失敗（accent参照/opaque return type）
 - **症状**:
   - `PomodoroView.swift` のコンパイルで `cannot find 'accent' in scope` / `function declares an opaque return type, but has no return statements...` が出てビルドが失敗する。
