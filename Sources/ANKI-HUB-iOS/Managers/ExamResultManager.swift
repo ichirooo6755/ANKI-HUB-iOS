@@ -57,14 +57,18 @@ class ExamResultManager: ObservableObject {
 
     private let key = "anki_hub_exam_scores_v2"
     private let oldKey = "anki_hub_exam_scores_v1"
+    private let appGroupId = "group.com.ankihub.ios"
+    private let migratedKey = "anki_hub_exam_scores_v2_migrated_to_app_group"
 
     init() {
+        migrateIfNeeded()
         loadResults()
     }
 
     func loadResults() {
+        let defaults = UserDefaults(suiteName: appGroupId) ?? .standard
         // Try new format first
-        if let data = UserDefaults.standard.data(forKey: key),
+        if let data = defaults.data(forKey: key),
             let decoded = try? JSONDecoder().decode([ExamResult].self, from: data)
         {
             results = decoded
@@ -72,7 +76,7 @@ class ExamResultManager: ObservableObject {
         }
 
         // Migrate from old format
-        if let data = UserDefaults.standard.data(forKey: oldKey),
+        if let data = defaults.data(forKey: oldKey),
             let decoded = try? JSONDecoder().decode([OldExamResult].self, from: data)
         {
             results = decoded.map { old in
@@ -154,10 +158,32 @@ class ExamResultManager: ObservableObject {
 
     private func saveResults() {
         if let data = try? JSONEncoder().encode(results) {
-            UserDefaults.standard.set(data, forKey: key)
+            let defaults = UserDefaults(suiteName: appGroupId) ?? .standard
+            defaults.set(data, forKey: key)
         }
 
         SyncManager.shared.requestAutoSync()
+    }
+
+    private func migrateIfNeeded() {
+        let defaults = UserDefaults(suiteName: appGroupId)
+
+        if defaults?.bool(forKey: migratedKey) == true {
+            return
+        }
+
+        guard defaults?.data(forKey: key) == nil else {
+            defaults?.set(true, forKey: migratedKey)
+            return
+        }
+
+        if let data = UserDefaults.standard.data(forKey: key) {
+            defaults?.set(data, forKey: key)
+        } else if let data = UserDefaults.standard.data(forKey: oldKey) {
+            defaults?.set(data, forKey: oldKey)
+        }
+
+        defaults?.set(true, forKey: migratedKey)
     }
 
     // Analytics
@@ -175,3 +201,4 @@ class ExamResultManager: ObservableObject {
         Dictionary(grouping: results) { $0.type }
     }
 }
+

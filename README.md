@@ -269,6 +269,23 @@
   - 重複した `.xcodeproj` を削除し、以後は `xcodegen generate` で再生成。
   - Widgetビルドは `-derivedDataPath` を分けてDBロックを回避。
 
+### 2026-01-13: 英検/漢文/苦手学習のコンテナがテーマに追従しない / ToDo・テスト履歴の保存が不安定 / ウィジェットにToDo表示 / OCRの空欄抽出
+- **症状**:
+  - 英検/漢文/苦手学習の一部画面で、コンテナや文字色がテーマに追従せず白/黒固定っぽく見えることがある。
+  - やることリスト/テスト履歴が端末によって「使えない（保存が反映されない/表示が空になる）」ように見える。
+  - ウィジェットでToDoを表示したい。
+  - OCRで日本語を認識した後、空欄（□/＿＿/（　）など）を抽出して本文と分けたい。
+- **原因**:
+  - 一部のUIが `.secondary` 等のシステム色に依存しており、テーマ側の `text/surface` とズレるケースがあった。
+  - ToDo/テスト履歴の保存が `UserDefaults.standard` に寄っていると、Widget（App Group）側から参照できず同期不一致に見える。
+  - OCRが画像の向き情報を渡さないと、縦向き/回転ページで認識精度が落ちる。
+- **解決策**:
+  - 主要画面のテキスト色を `ThemeManager.primaryText/secondaryText` 基準に寄せ、英検/漢文/苦手学習の表示ブレを低減。
+  - ToDo/テスト履歴の保存先を App Group（`group.com.ankihub.ios`）へ統一し、旧データは移行。
+  - マイページにウィジェット用のToDo表示設定（ON/OFF・件数）を追加し、Widget側で未完了ToDoを表示。
+  - OCRに `UIImage` の向き（orientation）を渡して日本語認識を安定化。
+  - OCR結果テキストから空欄候補を抽出して一覧表示（手動抽出ボタンも追加）。
+
 ### 2026-01-11: PomodoroView のビルド失敗（accent参照/opaque return type）
 - **症状**:
   - `PomodoroView.swift` のコンパイルで `cannot find 'accent' in scope` / `function declares an opaque return type, but has no return statements...` が出てビルドが失敗する。

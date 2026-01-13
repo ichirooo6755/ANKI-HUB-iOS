@@ -10,52 +10,61 @@ struct WeakWordsView: View {
     private let subjects: [Subject] = [.english, .eiken, .kobun, .kanbun, .seikei]
 
     var body: some View {
-        List {
-            ForEach(subjects) { subject in
-                let weakItems = weakItems(for: subject)
+        ZStack {
+            theme.background
+            List {
+                ForEach(subjects) { subject in
+                    let weakItems = weakItems(for: subject)
 
-                Section {
-                    NavigationLink(destination: QuizView(subject: subject, chapter: nil, mistakesOnly: true)) {
-                        HStack {
-                            Image(systemName: subject.icon)
-                                .foregroundStyle(subject.color)
-                                .frame(width: 28)
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(subject.displayName)
-                                    .font(.headline)
-                                Text("苦手: \(weakItems.count)語")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    Section {
+                        NavigationLink(destination: QuizView(subject: subject, chapter: nil, mistakesOnly: true)) {
+                            HStack {
+                                Image(systemName: subject.icon)
+                                    .foregroundStyle(subject.color)
+                                    .frame(width: 28)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(subject.displayName)
+                                        .font(.headline)
+                                        .foregroundStyle(theme.primaryText)
+                                    Text("苦手: \(weakItems.count)語")
+                                        .font(.caption)
+                                        .foregroundStyle(theme.secondaryText)
+                                }
+                                Spacer()
                             }
-                            Spacer()
                         }
-                    }
-                    .disabled(weakItems.isEmpty)
+                        .disabled(weakItems.isEmpty)
 
-                    if !weakItems.isEmpty {
-                        ForEach(filtered(weakItems), id: \.self) { wordId in
-                            let item = masteryTracker.items[subject.rawValue]?[wordId]
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(displayText(subject: subject, wordId: wordId).term)
-                                    .font(.subheadline)
-                                Text(displayText(subject: subject, wordId: wordId).meaning)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                        if !weakItems.isEmpty {
+                            ForEach(filtered(weakItems), id: \.self) { wordId in
+                                let item = masteryTracker.items[subject.rawValue]?[wordId]
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(displayText(subject: subject, wordId: wordId).term)
+                                        .font(.subheadline)
+                                        .foregroundStyle(theme.primaryText)
+                                    Text(displayText(subject: subject, wordId: wordId).meaning)
+                                        .font(.caption)
+                                        .foregroundStyle(theme.secondaryText)
 
-                                if let chosen = item?.lastChosenAnswerText,
-                                   let correct = item?.lastCorrectAnswerText,
-                                   item?.lastAnswerWasCorrect == false {
-                                    Text("あなた: \(chosen) / 正解: \(correct)")
-                                        .font(.caption2)
-                                        .foregroundStyle(theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark))
+                                    if let chosen = item?.lastChosenAnswerText,
+                                       let correct = item?.lastCorrectAnswerText,
+                                       item?.lastAnswerWasCorrect == false {
+                                        Text("あなた: \(chosen) / 正解: \(correct)")
+                                            .font(.caption2)
+                                            .foregroundStyle(
+                                                theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
+                                            )
+                                    }
                                 }
                             }
                         }
+                    } header: {
+                        Text(subject.displayName)
                     }
-                } header: {
-                    Text(subject.displayName)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .listRowBackground(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
         }
         .navigationTitle("苦手一括復習")
         .searchable(text: $searchText, prompt: "検索")

@@ -14,6 +14,7 @@ struct ScanView: View {
         @State private var scannedImages: [UIImage] = []
         @State private var recognizedText: String = ""
         @State private var extractedWords: [ExtractedWord] = []
+        @State private var extractedBlanks: [String] = []
         @State private var isRecognizing: Bool = false
     #endif
 
@@ -89,6 +90,21 @@ struct ScanView: View {
                                 }
                                 .padding(.horizontal)
 
+                                if !extractedBlanks.isEmpty {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("空欄候補")
+                                            .font(.headline)
+                                        ForEach(extractedBlanks, id: \.self) { b in
+                                            Text(b)
+                                                .font(.caption)
+                                                .foregroundStyle(theme.secondaryText)
+                                                .padding(10)
+                                                .liquidGlass()
+                                        }
+                                    }
+                                    .padding(.horizontal)
+                                }
+
                                 if isRecognizing {
                                     ProgressView("OCR中...")
                                         .padding(.vertical)
@@ -109,6 +125,20 @@ struct ScanView: View {
                                             .cornerRadius(12)
                                     }
                                     .disabled(isRecognizing)
+
+                                    Button {
+                                        extractBlanksFromText()
+                                    } label: {
+                                        let bg = theme.currentPalette.color(
+                                            .accent, isDark: theme.effectiveIsDark)
+                                        Label("空欄を抽出", systemImage: "square.dashed")
+                                            .font(.headline)
+                                            .foregroundStyle(theme.onColor(for: bg))
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(bg)
+                                            .cornerRadius(12)
+                                    }
 
                                     Button {
                                         extractWordsFromText()
@@ -294,9 +324,49 @@ struct ScanView: View {
                 let text = try await TextRecognitionService.shared.recognizeText(
                     from: scannedImages)
                 recognizedText = text
+                extractBlanksFromText()
             } catch {
                 recognizedText = ""
             }
+        }
+
+        fileprivate func extractBlanksFromText() {
+            let lines = recognizedText.components(separatedBy: .newlines)
+            var blanks: [String] = []
+
+            func add(_ s: String) {
+                let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !t.isEmpty else { return }
+                if !blanks.contains(t) { blanks.append(t) }
+            }
+
+            for line in lines {
+                let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty else { continue }
+
+                if trimmed.contains("□") {
+                    add(trimmed)
+                    continue
+                }
+                if trimmed.contains("＿") || trimmed.contains("__") {
+                    add(trimmed)
+                    continue
+                }
+                if trimmed.contains("（") && trimmed.contains("）") {
+                    if trimmed.contains("（　") || trimmed.contains("( ") || trimmed.contains("(  ") {
+                        add(trimmed)
+                        continue
+                    }
+                }
+                if trimmed.contains("(") && trimmed.contains(")") {
+                    if trimmed.contains("( ") || trimmed.contains("(  ") {
+                        add(trimmed)
+                        continue
+                    }
+                }
+            }
+
+            extractedBlanks = blanks
         }
 
         fileprivate func extractWordsFromText() {
@@ -374,6 +444,7 @@ struct ScanView: View {
             scannedImages = []
             recognizedText = ""
             extractedWords = []
+            extractedBlanks = []
             isRecognizing = false
         }
     }

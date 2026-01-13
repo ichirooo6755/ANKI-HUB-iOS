@@ -34,12 +34,12 @@ struct ChapterSelectionView: View {
                                     .font(.headline)
                                 Text(chapter.description)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundStyle(theme.secondaryText)
                             }
                             Spacer()
                             if chapter.isLocked {
                                 Image(systemName: "lock.fill")
-                                    .foregroundColor(.gray)
+                                    .foregroundStyle(theme.secondaryText)
                             } else {
                                 CircularProgressView(progress: chapter.progress, lineWidth: 3)
                                     .frame(width: 30, height: 30)

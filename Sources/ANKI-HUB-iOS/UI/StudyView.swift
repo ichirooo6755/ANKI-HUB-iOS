@@ -170,6 +170,12 @@ struct ToolsGridView: View {
             NavigationLink(destination: WeakWordsView()) {
                 ToolCard(icon: "exclamationmark.triangle.fill", title: "苦手復習", color: .purple)
             }
+            NavigationLink(destination: TodoView()) {
+                ToolCard(icon: "list.bullet", title: "やること", color: .teal)
+            }
+            NavigationLink(destination: ExamHistoryView()) {
+                ToolCard(icon: "doc.text", title: "テスト履歴", color: .indigo)
+            }
             NavigationLink(destination: PomodoroView()) {
                 ToolCard(icon: "timer", title: "タイマー", color: .red)
             }

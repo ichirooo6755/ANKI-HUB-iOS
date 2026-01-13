@@ -31,10 +31,13 @@ class TodoManager: ObservableObject {
     @Published var items: [TodoItem] = []
 
     private let key = "anki_hub_todo_items_v1"
+    private let appGroupId = "group.com.ankihub.ios"
+    private let migratedKey = "anki_hub_todo_items_v1_migrated_to_app_group"
 
     private var cancellables: Set<AnyCancellable> = []
 
     init() {
+        migrateIfNeeded()
         loadItems()
 
         NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
@@ -53,7 +56,8 @@ class TodoManager: ObservableObject {
     }
 
     func loadItems() {
-        if let data = UserDefaults.standard.data(forKey: key),
+        let defaults = UserDefaults(suiteName: appGroupId) ?? .standard
+        if let data = defaults.data(forKey: key),
             let decoded = try? JSONDecoder().decode([TodoItem].self, from: data)
         {
             items = decoded
@@ -89,9 +93,33 @@ class TodoManager: ObservableObject {
 
     private func saveItems() {
         if let data = try? JSONEncoder().encode(items) {
-            UserDefaults.standard.set(data, forKey: key)
+            let defaults = UserDefaults(suiteName: appGroupId) ?? .standard
+            defaults.set(data, forKey: key)
         }
         SyncManager.shared.requestAutoSync()
+
+        NotificationCenter.default.post(
+            name: Notification.Name("anki_hub_todo_items_updated"),
+            object: nil
+        )
+    }
+
+    private func migrateIfNeeded() {
+        let defaults = UserDefaults(suiteName: appGroupId)
+
+        if defaults?.bool(forKey: migratedKey) == true {
+            return
+        }
+
+        guard defaults?.data(forKey: key) == nil else {
+            defaults?.set(true, forKey: migratedKey)
+            return
+        }
+
+        if let old = UserDefaults.standard.data(forKey: key) {
+            defaults?.set(old, forKey: key)
+        }
+        defaults?.set(true, forKey: migratedKey)
     }
 
     var pendingItems: [TodoItem] {
@@ -114,35 +142,33 @@ struct TodoView: View {
     @State private var editingItem: TodoItem? = nil
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                theme.background
+        ZStack {
+            theme.background
 
-                if manager.items.isEmpty {
-                    emptyStateView
-                } else {
-                    todoList
+            if manager.items.isEmpty {
+                emptyStateView
+            } else {
+                todoList
+            }
+        }
+        .navigationTitle("やることリスト")
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
                 }
             }
-            .navigationTitle("やることリスト")
-            #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showAddSheet = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                    }
-                }
-            }
-            .sheet(isPresented: $showAddSheet) {
-                AddTodoSheet(manager: manager)
-            }
-            .sheet(item: $editingItem) { item in
-                EditTodoSheet(manager: manager, item: item)
-            }
+        }
+        .sheet(isPresented: $showAddSheet) {
+            AddTodoSheet(manager: manager)
+        }
+        .sheet(item: $editingItem) { item in
+            EditTodoSheet(manager: manager, item: item)
         }
         .applyAppTheme()
     }
@@ -151,11 +177,11 @@ struct TodoView: View {
         VStack(spacing: 20) {
             Image(systemName: "list.bullet")
                 .font(.system(size: 60))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.secondaryText)
 
             Text("タスクがありません")
                 .font(.headline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.secondaryText)
 
             Button {
                 showAddSheet = true
@@ -270,7 +296,11 @@ struct TodoRow: View {
                             Text(formatDate(dueDate))
                         }
                         .font(.caption)
-                        .foregroundStyle(isOverdue(dueDate) ? .red : .secondary)
+                        .foregroundStyle(
+                            isOverdue(dueDate)
+                                ? theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
+                                : theme.secondaryText
+                        )
                     }
                 }
             }

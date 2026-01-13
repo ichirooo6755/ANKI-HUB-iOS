@@ -336,14 +336,4 @@ struct AddWordSheet: View {
     }
 }
 
-// MARK: - Data Model
-
-struct WordbookEntry: Identifiable, Codable {
-    let id: String
-    var term: String
-    var meaning: String
-    var hint: String?
-    var mastery: MasteryLevel
-}
-
 // Previews removed for SPM

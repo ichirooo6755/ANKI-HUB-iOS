@@ -82,7 +82,7 @@ struct DashboardView: View {
                                                 .font(.title3.bold())
                                             Text("\(totalDueCount)語")
                                                 .font(.subheadline)
-                                                .foregroundColor(.secondary)
+                                                .foregroundStyle(ThemeManager.shared.secondaryText)
                                         }
                                         Spacer()
                                         Image(systemName: "clock.badge.exclamationmark")
@@ -106,7 +106,7 @@ struct DashboardView: View {
                                                 .font(.title3.bold())
                                             Text("苦手が\(totalWeakCount)語あります")
                                                 .font(.subheadline)
-                                                .foregroundColor(.secondary)
+                                                .foregroundStyle(ThemeManager.shared.secondaryText)
                                         }
                                         Spacer()
                                         Image(systemName: "exclamationmark.triangle.fill")
@@ -128,7 +128,7 @@ struct DashboardView: View {
                                         .font(.title3.bold())
                                     Text("\(learningStats.todayMinutes)分 / 目標30分")
                                         .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                        .foregroundStyle(ThemeManager.shared.secondaryText)
                                 }
                                 Spacer()
                                 CircularProgressView(
@@ -150,7 +150,7 @@ struct DashboardView: View {
                                             .font(.title3.bold())
                                         Text("タスクを管理")
                                             .font(.subheadline)
-                                            .foregroundColor(.secondary)
+                                            .foregroundStyle(ThemeManager.shared.secondaryText)
                                     }
                                     Spacer()
                                     Image(systemName: "list.bullet")
@@ -176,7 +176,7 @@ struct DashboardView: View {
                                             .font(.title3.bold())
                                         Text("過去のテスト結果を確認")
                                             .font(.subheadline)
-                                            .foregroundColor(.secondary)
+                                            .foregroundStyle(ThemeManager.shared.secondaryText)
                                     }
                                     Spacer()
                                     Image(systemName: "doc.text")
@@ -202,7 +202,7 @@ struct DashboardView: View {
                                             .font(.title3.bold())
                                         Text("ストップウォッチも使える")
                                             .font(.subheadline)
-                                            .foregroundColor(.secondary)
+                                            .foregroundStyle(ThemeManager.shared.secondaryText)
                                     }
                                     Spacer()
                                     Image(systemName: "timer")

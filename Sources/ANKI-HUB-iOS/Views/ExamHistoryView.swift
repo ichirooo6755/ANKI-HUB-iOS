@@ -64,11 +64,11 @@ struct ExamHistoryView: View {
         VStack(spacing: 20) {
             Image(systemName: "doc.text")
                 .font(.system(size: 60))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.secondaryText)
 
             Text("テスト結果がありません")
                 .font(.headline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.secondaryText)
 
             Button {
                 showAddSheet = true
@@ -92,9 +92,10 @@ struct ExamHistoryView: View {
                     VStack(alignment: .leading) {
                         Text("平均得点率")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.secondaryText)
                         Text("\(manager.getAveragePercent())%")
                             .font(.title.bold())
+                            .foregroundStyle(theme.primaryText)
                     }
 
                     Spacer()
@@ -102,9 +103,10 @@ struct ExamHistoryView: View {
                     VStack(alignment: .trailing) {
                         Text("記録数")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.secondaryText)
                         Text("\(manager.results.count)")
                             .font(.title.bold())
+                            .foregroundStyle(theme.primaryText)
                     }
                 }
                 .padding(.vertical, 8)
@@ -166,7 +168,7 @@ struct ExamResultRow: View {
                         ].compactMap { $0 }.joined(separator: " ")
                     )
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
                 }
 
                 Text("\(result.year)年")

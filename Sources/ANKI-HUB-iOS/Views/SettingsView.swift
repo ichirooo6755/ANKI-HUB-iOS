@@ -19,6 +19,8 @@ struct SettingsView: View {
     @AppStorage("anki_hub_widget_show_today_minutes_v1") private var widgetShowTodayMinutes: Bool = true
     @AppStorage("anki_hub_widget_show_mistakes_v1") private var widgetShowMistakes: Bool = true
     @AppStorage("anki_hub_widget_mistake_count_v1") private var widgetMistakeCount: Int = 3
+    @AppStorage("anki_hub_widget_show_todo_v1") private var widgetShowTodo: Bool = false
+    @AppStorage("anki_hub_widget_todo_count_v1") private var widgetTodoCount: Int = 2
     @AppStorage("anki_hub_widget_style_v1") private var widgetStyle: String = "system"
     @AppStorage("anki_hub_widget_timer_minutes_v1") private var widgetTimerMinutes: Int = 25
 
@@ -151,6 +153,8 @@ struct SettingsView: View {
         defaults?.set(widgetShowTodayMinutes, forKey: "anki_hub_widget_show_today_minutes_v1")
         defaults?.set(widgetShowMistakes, forKey: "anki_hub_widget_show_mistakes_v1")
         defaults?.set(widgetMistakeCount, forKey: "anki_hub_widget_mistake_count_v1")
+        defaults?.set(widgetShowTodo, forKey: "anki_hub_widget_show_todo_v1")
+        defaults?.set(widgetTodoCount, forKey: "anki_hub_widget_todo_count_v1")
         defaults?.set(widgetStyle, forKey: "anki_hub_widget_style_v1")
         defaults?.set(widgetTimerMinutes, forKey: "anki_hub_widget_timer_minutes_v1")
     }
@@ -278,6 +282,16 @@ struct SettingsView: View {
             }
 
             Picker("ウィジェット: 間違えた単語の表示数", selection: $widgetMistakeCount) {
+                Text("1件").tag(1)
+                Text("2件").tag(2)
+                Text("3件").tag(3)
+            }
+
+            Toggle(isOn: $widgetShowTodo) {
+                Text("ウィジェット: やることリスト")
+            }
+
+            Picker("ウィジェット: やることリストの表示数", selection: $widgetTodoCount) {
                 Text("1件").tag(1)
                 Text("2件").tag(2)
                 Text("3件").tag(3)
@@ -577,6 +591,18 @@ struct SettingsView: View {
             #endif
         }
         .onChange(of: widgetMistakeCount) { _, _ in
+            saveWidgetSettingsToAppGroup()
+            #if canImport(WidgetKit)
+                WidgetCenter.shared.reloadAllTimelines()
+            #endif
+        }
+        .onChange(of: widgetShowTodo) { _, _ in
+            saveWidgetSettingsToAppGroup()
+            #if canImport(WidgetKit)
+                WidgetCenter.shared.reloadAllTimelines()
+            #endif
+        }
+        .onChange(of: widgetTodoCount) { _, _ in
             saveWidgetSettingsToAppGroup()
             #if canImport(WidgetKit)
                 WidgetCenter.shared.reloadAllTimelines()

@@ -3,6 +3,7 @@ import Foundation
 #if os(iOS)
 import UIKit
 import Vision
+import ImageIO
 
 final class TextRecognitionService {
     static let shared = TextRecognitionService()
@@ -40,12 +41,31 @@ final class TextRecognitionService {
             request.usesLanguageCorrection = true
             request.recognitionLanguages = ["ja-JP", "en-US"]
 
-            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            let handler = VNImageRequestHandler(
+                cgImage: cgImage,
+                orientation: cgImageOrientation(from: image.imageOrientation),
+                options: [:]
+            )
             do {
                 try handler.perform([request])
             } catch {
                 continuation.resume(throwing: error)
             }
+        }
+    }
+
+    private func cgImageOrientation(from orientation: UIImage.Orientation) -> CGImagePropertyOrientation {
+        switch orientation {
+        case .up: return .up
+        case .down: return .down
+        case .left: return .left
+        case .right: return .right
+        case .upMirrored: return .upMirrored
+        case .downMirrored: return .downMirrored
+        case .leftMirrored: return .leftMirrored
+        case .rightMirrored: return .rightMirrored
+        @unknown default:
+            return .up
         }
     }
 }

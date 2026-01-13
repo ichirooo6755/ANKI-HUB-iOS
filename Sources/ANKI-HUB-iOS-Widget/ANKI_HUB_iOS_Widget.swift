@@ -14,14 +14,20 @@ private let widgetShowStreakKey = "anki_hub_widget_show_streak_v1"
 private let widgetShowTodayMinutesKey = "anki_hub_widget_show_today_minutes_v1"
 private let widgetShowMistakesKey = "anki_hub_widget_show_mistakes_v1"
 private let widgetMistakeCountKey = "anki_hub_widget_mistake_count_v1"
+private let widgetShowTodoKey = "anki_hub_widget_show_todo_v1"
+private let widgetTodoCountKey = "anki_hub_widget_todo_count_v1"
 private let widgetStyleKey = "anki_hub_widget_style_v1"
 private let widgetTimerMinutesKey = "anki_hub_widget_timer_minutes_v1"
+
+private let todoItemsKey = "anki_hub_todo_items_v1"
 
 fileprivate struct WidgetSettings {
     let showStreak: Bool
     let showTodayMinutes: Bool
     let showMistakes: Bool
     let mistakeCount: Int
+    let showTodo: Bool
+    let todoCount: Int
     let style: String
     let timerMinutes: Int
 
@@ -31,6 +37,9 @@ fileprivate struct WidgetSettings {
         self.showMistakes = defaults?.object(forKey: widgetShowMistakesKey) as? Bool ?? true
         let count = defaults?.integer(forKey: widgetMistakeCountKey) ?? 3
         self.mistakeCount = max(1, min(3, count))
+        self.showTodo = defaults?.object(forKey: widgetShowTodoKey) as? Bool ?? false
+        let todoCount = defaults?.integer(forKey: widgetTodoCountKey) ?? 2
+        self.todoCount = max(1, min(3, todoCount))
         self.style = defaults?.string(forKey: widgetStyleKey) ?? "system"
         let rawMinutes = defaults?.integer(forKey: widgetTimerMinutesKey) ?? 25
         self.timerMinutes = max(1, min(180, rawMinutes))
@@ -42,13 +51,21 @@ struct StudyEntry: TimelineEntry {
     let streak: Int
     let todayMinutes: Int
     let mistakes: [String]
+    let todos: [String]
     fileprivate let settings: WidgetSettings
 }
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> StudyEntry {
         let defaults = UserDefaults(suiteName: appGroupId)
-        return StudyEntry(date: Date(), streak: 3, todayMinutes: 20, mistakes: [], settings: WidgetSettings(defaults: defaults))
+        return StudyEntry(
+            date: Date(),
+            streak: 3,
+            todayMinutes: 20,
+            mistakes: [],
+            todos: [],
+            settings: WidgetSettings(defaults: defaults)
+        )
     }
 
     func getSnapshot(in context: Context, completion: @escaping (StudyEntry) -> Void) {
@@ -127,16 +144,51 @@ struct Provider: TimelineProvider {
                 let todayMinutes: Int
             }
             if let decoded = try? JSONDecoder().decode(Stored.self, from: data) {
+                let todos = loadTodos(defaults: defaults, settings: settings)
                 return StudyEntry(
                     date: date,
                     streak: decoded.streak,
                     todayMinutes: decoded.todayMinutes,
                     mistakes: settings.showMistakes ? mistakes : [],
+                    todos: settings.showTodo ? todos : [],
                     settings: settings
                 )
             }
         }
-        return StudyEntry(date: date, streak: 0, todayMinutes: 0, mistakes: settings.showMistakes ? mistakes : [], settings: settings)
+
+        let todos = loadTodos(defaults: defaults, settings: settings)
+        return StudyEntry(
+            date: date,
+            streak: 0,
+            todayMinutes: 0,
+            mistakes: settings.showMistakes ? mistakes : [],
+            todos: settings.showTodo ? todos : [],
+            settings: settings
+        )
+    }
+
+    private func loadTodos(defaults: UserDefaults?, settings: WidgetSettings) -> [String] {
+        guard settings.showTodo else { return [] }
+        guard let data = defaults?.data(forKey: todoItemsKey) else { return [] }
+
+        struct StoredTodoItem: Decodable {
+            let id: UUID
+            let title: String
+            let isCompleted: Bool
+            let dueDate: Date?
+            let createdAt: Date
+        }
+
+        guard let decoded = try? JSONDecoder().decode([StoredTodoItem].self, from: data) else {
+            return []
+        }
+
+        let pending = decoded
+            .filter { !$0.isCompleted }
+            .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
+            .map { $0.title }
+
+        return Array(pending.prefix(settings.todoCount))
     }
 }
 
@@ -173,12 +225,28 @@ struct StudyWidgetEntryView: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
+
+                    if entry.settings.showTodo {
+                        ForEach(entry.todos.prefix(entry.settings.todoCount), id: \.self) { t in
+                            Text("• \(t)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
                 }
             }
 
             if family == .systemSmall {
                 if let m = entry.mistakes.first {
                     Text(m)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+
+                if entry.settings.showTodo, let t = entry.todos.first {
+                    Text(t)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)

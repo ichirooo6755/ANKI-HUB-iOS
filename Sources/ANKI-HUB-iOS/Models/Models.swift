@@ -51,6 +51,14 @@ struct Vocabulary: Identifiable, Codable {
     }
 }
 
+struct WordbookEntry: Identifiable, Codable {
+    let id: String
+    var term: String
+    var meaning: String
+    var hint: String?
+    var mastery: MasteryLevel
+}
+
 // MARK: - Kobun Structures
 struct ParticleData: Codable {
     let id: String
