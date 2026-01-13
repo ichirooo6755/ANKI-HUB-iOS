@@ -180,7 +180,7 @@ struct SettingsView: View {
                             } else {
                                 Text("無料プラン")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryText)
                             }
                         }
                     }
@@ -352,7 +352,7 @@ struct SettingsView: View {
                                 if !syncStatus.isEmpty {
                                     Text(syncStatus)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryText)
                                 }
                             }
                         } icon: {
@@ -366,10 +366,10 @@ struct SettingsView: View {
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(themeManager.secondaryText)
                     }
                 }
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryText)
             }
         }
     }
@@ -381,21 +381,21 @@ struct SettingsView: View {
                 Label("バージョン", systemImage: "info.circle")
                 Spacer()
                 Text("2.0.0")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryText)
             }
 
             HStack {
                 Label("ビルド", systemImage: "hammer.fill")
                 Spacer()
                 Text("SwiftUI Native")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryText)
             }
 
             HStack {
                 Label("開発", systemImage: "person.2.fill")
                 Spacer()
                 Text("ANKI-HUB Team")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryText)
             }
         }
     }
@@ -494,7 +494,7 @@ struct SettingsView: View {
                     .font(.headline)
                 Spacer()
                 Text(timerLimitSeconds == 0 ? "制限なし" : "\(timerLimitSeconds)秒")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryText)
             }
 
             Slider(value: timerLimitBinding, in: 0...120, step: 5)
@@ -502,7 +502,7 @@ struct SettingsView: View {
 
             Text("0秒で制限なし")
                 .font(.caption)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(themeManager.secondaryText)
         }
         .padding(.vertical, 4)
         .listRowBackground(rowBg)
