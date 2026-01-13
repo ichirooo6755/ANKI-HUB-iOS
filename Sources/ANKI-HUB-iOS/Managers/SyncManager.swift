@@ -186,7 +186,7 @@ class SyncManager: ObservableObject {
 
         // 2) Mastery per subject
         let mastery = MasteryTracker.shared
-        for subject in [Subject.english, .eiken, .kobun, .kanbun, .seikei] {
+        for subject in [Subject.english, .kobun, .kanbun, .seikei] {
             let perSubject = mastery.items[subject.rawValue] ?? [:]
             let encoded = try JSONEncoder().encode(perSubject)
             let any = try JSONSerialization.jsonObject(with: encoded, options: [])
@@ -373,7 +373,7 @@ class SyncManager: ObservableObject {
             }
 
             // 2) Mastery per subject
-            for subject in [Subject.english, .eiken, .kobun, .kanbun, .seikei] {
+            for subject in [Subject.english, .kobun, .kanbun, .seikei] {
                 if let any = try await SupabaseStudyService.shared.fetch(
                     userId: userId, appId: subject.rawValue, accessToken: accessToken),
                     JSONSerialization.isValidJSONObject(any),

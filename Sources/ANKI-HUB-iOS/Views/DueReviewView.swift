@@ -3,7 +3,7 @@ import SwiftUI
 struct DueReviewView: View {
     @EnvironmentObject var masteryTracker: MasteryTracker
 
-    private let subjects: [Subject] = [.english, .eiken, .kobun, .kanbun, .seikei]
+    private let subjects: [Subject] = [.english, .kobun, .kanbun, .seikei]
 
     var body: some View {
         List {

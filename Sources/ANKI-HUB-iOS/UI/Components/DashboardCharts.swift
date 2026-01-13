@@ -6,19 +6,36 @@ struct DashboardCharts: View {
     @ObservedObject var masteryTracker: MasteryTracker
 
     @ObservedObject private var theme = ThemeManager.shared
+    @State private var showCombinedMastery: Bool = true
 
     var body: some View {
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
-        let combined = getCombinedMasteryData()
-        let totalMastered = combined.first(where: { $0.level == .mastered })?.count ?? 0
+        let data = showCombinedMastery ? getCombinedMasteryData() : getSubjectMasteryData()
+        let totalMastered = data.first(where: { $0.level == .mastered })?.count ?? 0
         VStack(spacing: 20) {
             // Mastery Chart (Donut)
             VStack(alignment: .leading) {
-                Text("Total Mastery（習熟度）")
-                    .font(.headline)
-                    .padding(.bottom, 5)
+                HStack {
+                    Text(showCombinedMastery ? "Total Mastery（習熟度）" : "科目別習熟度")
+                        .font(.headline)
+                        .padding(.bottom, 5)
+                    
+                    Spacer()
+                    
+                    Button {
+                        showCombinedMastery.toggle()
+                    } label: {
+                        Text(showCombinedMastery ? "科目別" : "総合")
+                            .font(.caption)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.2))
+                            .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+                            .clipShape(Capsule())
+                    }
+                }
 
-                Chart(combined) { item in
+                Chart(data) { item in
                     SectorMark(
                         angle: .value("Count", item.count),
                         innerRadius: .ratio(0.6),
@@ -105,6 +122,27 @@ struct DashboardCharts: View {
             }
             .padding()
             .liquidGlass()
+        }
+    }
+    
+    private func getSubjectMasteryData() -> [MasteryData] {
+        var subjectData: [(subject: Subject, stats: [MasteryLevel: Int])] = []
+        
+        for subject in Subject.allCases {
+            let stats = masteryTracker.getStats(for: subject.id)
+            subjectData.append((subject: subject, stats: stats))
+        }
+        
+        // 各科目のデータをマスタリーデベルごとに集計
+        var combinedStats: [MasteryLevel: Int] = [:]
+        for (_, stats) in subjectData {
+            for (level, count) in stats {
+                combinedStats[level, default: 0] += count
+            }
+        }
+        
+        return MasteryLevel.allCases.map { level in
+            MasteryData(level: level, count: combinedStats[level] ?? 0)
         }
     }
 
@@ -237,9 +275,6 @@ struct DashboardCharts: View {
         let isDark = theme.effectiveIsDark
         if subjectId == Subject.english.rawValue {
             return theme.currentPalette.color(.primary, isDark: isDark)
-        }
-        if subjectId == Subject.eiken.rawValue {
-            return theme.currentPalette.color(.accent, isDark: isDark)
         }
         if subjectId == Subject.kobun.rawValue {
             return theme.currentPalette.color(.selection, isDark: isDark)

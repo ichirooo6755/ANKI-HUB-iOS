@@ -263,7 +263,6 @@ struct SettingsView: View {
             Picker("ウィジェット教科", selection: $widgetSubjectFilter) {
                 Text("すべて").tag("")
                 Text("英語").tag(Subject.english.rawValue)
-                Text("英検").tag(Subject.eiken.rawValue)
                 Text("古文").tag(Subject.kobun.rawValue)
                 Text("漢文").tag(Subject.kanbun.rawValue)
                 Text("政経").tag(Subject.seikei.rawValue)

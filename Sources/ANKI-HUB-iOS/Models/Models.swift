@@ -57,6 +57,16 @@ struct WordbookEntry: Identifiable, Codable {
     var meaning: String
     var hint: String?
     var mastery: MasteryLevel
+    var subject: Subject?
+    
+    init(id: String, term: String, meaning: String, hint: String? = nil, mastery: MasteryLevel = .new, subject: Subject? = nil) {
+        self.id = id
+        self.term = term
+        self.meaning = meaning
+        self.hint = hint
+        self.mastery = mastery
+        self.subject = subject
+    }
 }
 
 // MARK: - Kobun Structures
@@ -714,9 +724,8 @@ class MasteryTracker: ObservableObject {
 
 // MARK: - Subject
 
-enum Subject: String, CaseIterable, Identifiable {
+enum Subject: String, CaseIterable, Identifiable, Codable {
     case english = "english"
-    case eiken = "eiken"
     case kobun = "kobun"
     case kanbun = "kanbun"
     case seikei = "seikei"
@@ -726,7 +735,6 @@ enum Subject: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .english: return "英単語"
-        case .eiken: return "英検"
         case .kobun: return "古文"
         case .kanbun: return "漢文"
         case .seikei: return "政経"
@@ -735,11 +743,10 @@ enum Subject: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
-        case .english: return "textformat.abc"
-        case .eiken: return "checkmark.seal.fill"
-        case .kobun: return "scroll.fill"
-        case .kanbun: return "character.textbox"
-        case .seikei: return "building.columns.fill"
+        case .english: return "books.vertical"
+        case .kobun: return "character.book.closed.japanese"
+        case .kanbun: return "character.book.closed.chinese"
+        case .seikei: return "books.vertical"
         }
     }
 
@@ -748,7 +755,6 @@ enum Subject: String, CaseIterable, Identifiable {
         let isDark = theme.effectiveIsDark
         switch self {
         case .english: return theme.currentPalette.color(ThemeColorKey.primary, isDark: isDark)
-        case .eiken: return theme.currentPalette.color(ThemeColorKey.mastered, isDark: isDark)
         case .kobun: return theme.currentPalette.color(ThemeColorKey.selection, isDark: isDark)
         case .kanbun: return theme.currentPalette.color(ThemeColorKey.weak, isDark: isDark)
         case .seikei: return theme.currentPalette.color(ThemeColorKey.accent, isDark: isDark)
@@ -758,7 +764,6 @@ enum Subject: String, CaseIterable, Identifiable {
     var description: String {
         switch self {
         case .english: return "ターゲット1900"
-        case .eiken: return "英検対策"
         case .kobun: return "古典文法・単語"
         case .kanbun: return "句法・語彙"
         case .seikei: return "憲法・政治経済"

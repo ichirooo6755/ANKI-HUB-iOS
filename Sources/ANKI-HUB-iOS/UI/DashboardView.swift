@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct DashboardView: View {
+    @EnvironmentObject var authManager: AuthManager
     @EnvironmentObject var learningStats: LearningStats
     @EnvironmentObject var masteryTracker: MasteryTracker
-    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var appUsageTracker: AppUsageTracker
 
     @AppStorage("anki_hub_last_review_prompt_date") private var lastReviewPromptDate: String = ""
     @State private var showReviewPrompt: Bool = false
@@ -19,7 +21,7 @@ struct DashboardView: View {
     @State private var navigationPath = NavigationPath()
 
     private var totalWeakCount: Int {
-        let subjects = [Subject.english, .eiken, .kobun, .kanbun, .seikei]
+        let subjects = [Subject.english, .kobun, .kanbun, .seikei]
         return subjects.reduce(0) { partial, subject in
             let data = masteryTracker.items[subject.rawValue] ?? [:]
             return partial + data.values.filter { $0.mastery == .weak }.count
@@ -27,7 +29,7 @@ struct DashboardView: View {
     }
 
     private var totalDueCount: Int {
-        let subjects = [Subject.english, .eiken, .kobun, .kanbun, .seikei]
+        let subjects = [Subject.english, .kobun, .kanbun, .seikei]
         return subjects.reduce(0) { partial, subject in
             let vocab = VocabularyData.shared.getVocabulary(for: subject)
             let due = masteryTracker.getSpacedRepetitionItems(
@@ -55,7 +57,7 @@ struct DashboardView: View {
                                 title: "Streak", value: "\(learningStats.streak) days",
                                 icon: "flame.fill", color: .orange)
                             StatCard(
-                                title: "Today", value: "\(learningStats.todayMinutes) min",
+                                title: "Today", value: "\(appUsageTracker.todayUsageMinutes) min",
                                 icon: "clock.fill", color: .blue)
                         }
                         .padding(.horizontal)
@@ -126,13 +128,13 @@ struct DashboardView: View {
                                 VStack(alignment: .leading) {
                                     Text("今日の復習")
                                         .font(.title3.bold())
-                                    Text("\(learningStats.todayMinutes)分 / 目標30分")
+                                    Text("\(appUsageTracker.todayUsageMinutes)分 / 目標30分")
                                         .font(.subheadline)
                                         .foregroundStyle(ThemeManager.shared.secondaryText)
                                 }
                                 Spacer()
                                 CircularProgressView(
-                                    progress: Double(learningStats.todayMinutes) / 30.0
+                                    progress: Double(appUsageTracker.todayUsageMinutes) / 30.0
                                 )
                                 .frame(width: 50, height: 50)
                             }
@@ -153,7 +155,7 @@ struct DashboardView: View {
                                             .foregroundStyle(ThemeManager.shared.secondaryText)
                                     }
                                     Spacer()
-                                    Image(systemName: "list.bullet")
+                                    Image(systemName: "list.bullet.clipboard")
                                         .foregroundStyle(
                                             ThemeManager.shared.currentPalette.color(
                                                 .primary,
@@ -205,7 +207,7 @@ struct DashboardView: View {
                                             .foregroundStyle(ThemeManager.shared.secondaryText)
                                     }
                                     Spacer()
-                                    Image(systemName: "timer")
+                                    Image(systemName: "stopwatch.fill")
                                         .foregroundStyle(
                                             ThemeManager.shared.currentPalette.color(
                                                 .accent, isDark: ThemeManager.shared.effectiveIsDark

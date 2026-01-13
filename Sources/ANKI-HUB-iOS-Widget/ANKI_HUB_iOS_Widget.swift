@@ -5,6 +5,10 @@ import WidgetKit
     import ActivityKit
 #endif
 
+#if canImport(AppIntents)
+    import AppIntents
+#endif
+
 private let appGroupId = "group.com.ankihub.ios"
 private let learningStatsKey = "anki_hub_learning_stats"
 private let recentMistakeKey = "anki_hub_recent_mistake_v1"
@@ -355,21 +359,119 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
 }
 
 #if canImport(ActivityKit)
+    #if canImport(AppIntents)
+        struct FocusTimerTogglePauseIntent: AppIntent {
+            static var title: LocalizedStringResource = "Toggle Pause"
+            static var description = IntentDescription("Pause/Resume focus timer")
+
+            func perform() async throws -> some IntentResult {
+                guard let activity = Activity<FocusTimerAttributes>.activities.first else {
+                    return .result()
+                }
+
+                let now = Date()
+                let state = activity.content.state
+
+                if state.isPaused {
+                    let remaining = max(0, state.pausedRemainingSeconds ?? 0)
+                    let target = now.addingTimeInterval(TimeInterval(remaining))
+                    let newState = FocusTimerAttributes.ContentState(
+                        targetTime: target,
+                        totalSeconds: state.totalSeconds,
+                        pausedRemainingSeconds: nil,
+                        isPaused: false
+                    )
+                    await activity.update(ActivityContent(state: newState, staleDate: nil))
+                } else {
+                    let remaining = max(0, Int(state.targetTime.timeIntervalSince(now)))
+                    let newState = FocusTimerAttributes.ContentState(
+                        targetTime: state.targetTime,
+                        totalSeconds: state.totalSeconds,
+                        pausedRemainingSeconds: remaining,
+                        isPaused: true
+                    )
+                    await activity.update(ActivityContent(state: newState, staleDate: nil))
+                }
+
+                return .result()
+            }
+        }
+
+        struct FocusTimerStopIntent: AppIntent {
+            static var title: LocalizedStringResource = "Stop Timer"
+            static var description = IntentDescription("Stop focus timer")
+
+            func perform() async throws -> some IntentResult {
+                guard let activity = Activity<FocusTimerAttributes>.activities.first else {
+                    return .result()
+                }
+                let state = FocusTimerAttributes.ContentState(
+                    targetTime: Date(),
+                    totalSeconds: max(1, activity.content.state.totalSeconds),
+                    pausedRemainingSeconds: 0,
+                    isPaused: true
+                )
+                await activity.end(ActivityContent(state: state, staleDate: nil), dismissalPolicy: .immediate)
+                return .result()
+            }
+        }
+    #endif
+
     struct StudyLiveActivity: Widget {
         var body: some WidgetConfiguration {
             ActivityConfiguration(for: FocusTimerAttributes.self) { context in
                 // Lock Screen / Banner UI
                 VStack {
                     HStack(alignment: .lastTextBaseline) {
-                        Text(context.attributes.timerName)
-                            .font(.headline)
-                            .foregroundStyle(.white)
+                        HStack(spacing: 8) {
+                            Image(systemName: "stopwatch.fill")
+                                .foregroundStyle(.yellow)
+                            Text(context.attributes.timerName)
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                        }
                         Spacer()
-                        Text(context.state.targetTime, style: .timer)
-                            .font(.system(size: 32, weight: .semibold).monospacedDigit())
-                            .foregroundStyle(Color.yellow)
+
+                        if context.state.isPaused {
+                            let remaining = max(0, context.state.pausedRemainingSeconds ?? 0)
+                            Text(Date().addingTimeInterval(TimeInterval(remaining)), style: .timer)
+                                .font(.system(size: 32, weight: .semibold).monospacedDigit())
+                                .foregroundStyle(Color.yellow)
+                        } else {
+                            Text(context.state.targetTime, style: .timer)
+                                .font(.system(size: 32, weight: .semibold).monospacedDigit())
+                                .foregroundStyle(Color.yellow)
+                        }
                     }
                     .padding()
+
+                    if context.state.isPaused {
+                        let remaining = max(0, context.state.pausedRemainingSeconds ?? 0)
+                        ProgressView(value: Double(context.state.totalSeconds - remaining), total: Double(context.state.totalSeconds))
+                            .tint(.yellow)
+                            .padding([.leading, .trailing, .bottom])
+                    } else {
+                        ProgressView(timerInterval: Date()...context.state.targetTime, countsDown: true)
+                            .tint(.yellow)
+                            .padding([.leading, .trailing, .bottom])
+                    }
+
+                    #if canImport(AppIntents)
+                        HStack(spacing: 14) {
+                            Button(intent: FocusTimerTogglePauseIntent()) {
+                                Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.yellow)
+
+                            Button(intent: FocusTimerStopIntent()) {
+                                Image(systemName: "stop.fill")
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.white.opacity(0.25))
+                        }
+                        .padding(.bottom, 8)
+                    #endif
                 }
                 .activityBackgroundTint(Color.black.opacity(0.8))
                 .activitySystemActionForegroundColor(Color.yellow)
@@ -399,14 +501,14 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                         .padding([.leading, .trailing])
                     }
                 } compactLeading: {
-                    Image(systemName: "timer")
+                    Image(systemName: "stopwatch.fill")
                         .tint(.yellow)
                 } compactTrailing: {
                     Text(context.state.targetTime, style: .timer)
                         .monospacedDigit()
                         .frame(maxWidth: 40)
                 } minimal: {
-                    Image(systemName: "timer")
+                    Image(systemName: "stopwatch.fill")
                         .tint(.yellow)
                 }
             }

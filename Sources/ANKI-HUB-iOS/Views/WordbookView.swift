@@ -13,6 +13,7 @@ struct WordbookView: View {
     @State private var searchText: String = ""
     @State private var showAddSheet: Bool = false
     @State private var filterMastery: MasteryLevel? = nil
+    @State private var filterSubject: Subject? = nil
 
     @State private var showCSVExporter: Bool = false
     @State private var showCSVImporter: Bool = false
@@ -35,6 +36,10 @@ struct WordbookView: View {
             result = result.filter { $0.mastery == filter }
         }
         
+        if let filter = filterSubject {
+            result = result.filter { $0.subject == filter }
+        }
+        
         return result
     }
     
@@ -54,12 +59,22 @@ struct WordbookView: View {
                 // Filter Pills
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        FilterPill(title: "すべて", isSelected: filterMastery == nil) {
+                        FilterPill(title: "すべて", isSelected: filterMastery == nil && filterSubject == nil) {
                             filterMastery = nil
+                            filterSubject = nil
                         }
                         ForEach(MasteryLevel.allCases, id: \.self) { level in
-                            FilterPill(title: level.label, color: level.color, isSelected: filterMastery == level) {
+                            FilterPill(title: level.label, color: level.color, isSelected: filterMastery == level && filterSubject == nil) {
                                 filterMastery = level
+                                filterSubject = nil
+                            }
+                        }
+                        Divider()
+                            .frame(height: 20)
+                        ForEach(Subject.allCases, id: \.self) { subject in
+                            FilterPill(title: subject.displayName, isSelected: filterSubject == subject) {
+                                filterSubject = subject
+                                filterMastery = nil
                             }
                         }
                     }
@@ -110,6 +125,19 @@ struct WordbookView: View {
                         } label: {
                             Label("CSVをコピー", systemImage: "doc.on.doc")
                         }
+                        Divider()
+                        // 科目ごとのクイズ
+                        if !words.isEmpty {
+                            Menu {
+                                ForEach(getUniqueSubjects(), id: \.self) { subject in
+                                    NavigationLink(destination: QuizView(subject: subject)) {
+                                        Label("\(subject.displayName)のクイズ", systemImage: subject.icon)
+                                    }
+                                }
+                            } label: {
+                                Label("科目ごとのクイズ", systemImage: "graduationcap.fill")
+                            }
+                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
@@ -158,6 +186,11 @@ struct WordbookView: View {
            let decoded = try? JSONDecoder().decode([WordbookEntry].self, from: data) {
             words = decoded
         }
+    }
+    
+    private func getUniqueSubjects() -> [Subject] {
+        let subjects = Set(words.compactMap { $0.subject })
+        return Array(subjects).sorted { $0.displayName < $1.displayName }
     }
     
     private func saveWords() {

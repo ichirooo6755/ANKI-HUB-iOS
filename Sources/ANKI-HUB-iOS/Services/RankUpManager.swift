@@ -41,7 +41,6 @@ class RankUpManager: ObservableObject {
             // Initialize defaults (1 chunk unlocked for each subject)
             unlockedChunks = [
                 Subject.english.rawValue: 1, // Start with 1 chunk unlocked
-                Subject.eiken.rawValue: 1,
                 Subject.kobun.rawValue: 1,
                 Subject.kanbun.rawValue: 1,
                 Subject.seikei.rawValue: 1

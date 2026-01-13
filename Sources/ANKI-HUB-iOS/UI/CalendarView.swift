@@ -284,7 +284,6 @@ struct CalendarView: View {
         editingWords = String(entry?.words ?? 0)
         editingMinutes = String(entry?.minutes ?? 0)
         editingEnglish = String(entry?.subjects[Subject.english.rawValue] ?? 0)
-        editingEiken = String(entry?.subjects[Subject.eiken.rawValue] ?? 0)
         editingKobun = String(entry?.subjects[Subject.kobun.rawValue] ?? 0)
         editingKanbun = String(entry?.subjects[Subject.kanbun.rawValue] ?? 0)
         editingSeikei = String(entry?.subjects[Subject.seikei.rawValue] ?? 0)
@@ -298,7 +297,6 @@ struct CalendarView: View {
         let minutes = Int(editingMinutes) ?? 0
         let subjects: [String: Int] = [
             Subject.english.rawValue: Int(editingEnglish) ?? 0,
-            Subject.eiken.rawValue: Int(editingEiken) ?? 0,
             Subject.kobun.rawValue: Int(editingKobun) ?? 0,
             Subject.kanbun.rawValue: Int(editingKanbun) ?? 0,
             Subject.seikei.rawValue: Int(editingSeikei) ?? 0,

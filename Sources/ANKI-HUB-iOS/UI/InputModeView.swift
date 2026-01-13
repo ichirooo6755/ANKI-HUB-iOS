@@ -27,6 +27,9 @@ struct InputModeView: View {
 
     // Day 3 Reveal
     @State private var showDay3Answer = false
+    
+    // Shuffle mode
+    @State private var isShuffleMode: Bool = false
 
     // Day 2 Timer
     @State private var timeRemaining: CGFloat = 1.0
@@ -105,6 +108,17 @@ struct InputModeView: View {
 
                         Toggle(isOn: $inputModeMistakesOnly) {
                             Text("間違えた単語だけ")
+                        }
+                        .padding(.horizontal)
+                        
+                        Toggle(isOn: $isShuffleMode) {
+                            HStack {
+                                Image(systemName: "shuffle")
+                                    .foregroundStyle(
+                                        theme.currentPalette.color(
+                                            .accent, isDark: theme.effectiveIsDark))
+                                Text("出題順をシャッフル")
+                            }
                         }
                         .padding(.horizontal)
 
@@ -376,6 +390,11 @@ struct InputModeView: View {
             words = day2UnknownOnly ? manager.getWordsForDay(2, allWords: blockWords) : blockWords
         } else {
             words = manager.getWordsForDay(manager.currentDay, allWords: blockWords)
+        }
+        
+        // Apply shuffle mode if enabled
+        if isShuffleMode {
+            words.shuffle()
         }
 
         // Setup Day 2 timer

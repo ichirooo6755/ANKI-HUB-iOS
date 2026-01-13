@@ -7,6 +7,7 @@ struct ANKIHUBApp: App {
     @StateObject private var masteryTracker = MasteryTracker.shared
     @StateObject private var themeManager = ThemeManager.shared
     @StateObject private var rankUpManager = RankUpManager.shared
+    @StateObject private var appUsageTracker = AppUsageTracker.shared
     
     var body: some Scene {
         WindowGroup {
@@ -16,6 +17,7 @@ struct ANKIHUBApp: App {
             .environmentObject(masteryTracker)
             .environmentObject(themeManager)
             .environmentObject(rankUpManager)
+            .environmentObject(appUsageTracker)
         }
     }
 }

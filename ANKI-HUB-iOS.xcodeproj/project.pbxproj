@@ -83,6 +83,8 @@
 		E5B181117E41EEE73E7DE2F2 /* SupabaseHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 740662370E2D90A1663E2962 /* SupabaseHTTPClient.swift */; };
 		EE43DFBF020289432699FEDE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF5D5AFADBDD2F0E0962E4 /* Models.swift */; };
 		EF0E824C1DB175AF729618DA /* ANKIHUBApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59065F29958F253BC78B88F8 /* ANKIHUBApp.swift */; };
+		A1B2C3D4E5F60718293A4B5D /* AppUsageTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* AppUsageTracker.swift */; };
+		A1B2C3D4E5F60718293A4B6B /* TimerHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6A /* TimerHistoryView.swift */; };
 		F02AE03A08757C17DE9DE070 /* ANKI_HUB_iOS_Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB59E2115FA8A262B97F8D /* ANKI_HUB_iOS_Widget.swift */; };
 		F7F0D63DD84E50398C7CE511 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB6C4627E4259AC39C79F97B /* ScanView.swift */; };
 		FEDF02D06C6EF680639C553D /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E47B989230174E6185BFE75 /* KeychainService.swift */; };
@@ -146,6 +148,8 @@
 		4E166FB010CA8011EB0B52DD /* QuizView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizView.swift; sourceTree = "<group>"; };
 		4E4398A49B466FC3993E8172 /* CustomVocabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomVocabView.swift; sourceTree = "<group>"; };
 		4ECF5D5AFADBDD2F0E0962E4 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* AppUsageTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUsageTracker.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B6A /* TimerHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerHistoryView.swift; sourceTree = "<group>"; };
 		53FD2A057ACA26E1B86B75DF /* KanbunWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbunWebView.swift; sourceTree = "<group>"; };
 		5818B7DD4E6D94E86C1C51A0 /* VocabularyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyData.swift; sourceTree = "<group>"; };
 		59065F29958F253BC78B88F8 /* ANKIHUBApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ANKIHUBApp.swift; sourceTree = "<group>"; };
@@ -274,6 +278,8 @@
 			children = (
 				2362483F3855E8BB934043DD /* ANKI-HUB-iOS.entitlements */,
 				59065F29958F253BC78B88F8 /* ANKIHUBApp.swift */,
+				A1B2C3D4E5F60718293A4B5C /* AppUsageTracker.swift */,
+				A1B2C3D4E5F60718293A4B6A /* TimerHistoryView.swift */,
 				5E329F923BA8E6CB5BFF9724 /* Assets.xcassets */,
 				93E772878E5A32024827FECD /* Info.plist */,
 				E48C5357349B0D5BE530E154 /* Data */,
@@ -528,6 +534,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				EF0E824C1DB175AF729618DA /* ANKIHUBApp.swift in Sources */,
+				A1B2C3D4E5F60718293A4B5D /* AppUsageTracker.swift in Sources */,
+				A1B2C3D4E5F60718293A4B6B /* TimerHistoryView.swift in Sources */,
 				A3D894DFB107646CD5765CDE /* AuthView.swift in Sources */,
 				4500E76D5666EACABDC47001 /* CSVTextDocument.swift in Sources */,
 				65A8DDF391065197C9A54AB8 /* CalendarView.swift in Sources */,

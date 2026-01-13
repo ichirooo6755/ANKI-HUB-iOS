@@ -12,7 +12,7 @@ struct FocusedMemorizationView: View {
 
     @ObservedObject private var theme = ThemeManager.shared
 
-    private let subjectOptions: [Subject] = [.english, .eiken, .kobun]
+    private let subjectOptions: [Subject] = [.english, .kobun]
     
     // MARK: - State
     @State private var currentScreen: ScreenState = .daySelect

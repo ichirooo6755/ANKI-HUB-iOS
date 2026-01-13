@@ -66,7 +66,7 @@ struct ChapterSelectionView: View {
     }
     
     func loadChapters() {
-        if subject == .english || subject == .eiken {
+        if subject == .english {
             // English: 1900 words in 38 chapters (50 words per chapter)
             chapters = (1...38).map { i in
                 let start = (i - 1) * 50 + 1
@@ -153,7 +153,7 @@ struct ChapterSelectionView: View {
         }
 
         switch subject {
-        case .english, .eiken, .kobun:
+        case .english, .kobun:
             let vocab = VocabularyData.shared.getVocabulary(for: subject)
             guard !vocab.isEmpty else { return 0 }
             let startIndex = max(0, (chapterId - 1) * 50)

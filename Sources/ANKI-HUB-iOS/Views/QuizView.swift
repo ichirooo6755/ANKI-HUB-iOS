@@ -49,6 +49,9 @@ struct QuizView: View {
     @State private var showKanbunHint: Bool = false
     @State private var showStartErrorAlert: Bool = false
     @State private var startErrorMessage: String = ""
+    
+    // Shuffle mode
+    @State private var isShuffleMode: Bool = false
 
     private let feedbackOverlayHideDelay: TimeInterval = 0.35
     private let autoAdvanceDelay: TimeInterval = 0.6
@@ -164,30 +167,18 @@ struct QuizView: View {
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
-        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
-            guard timerActive, timeLimit > 0, !showResult else { return }
-
-            if timeRemaining > 0 {
-                timeRemaining -= 1
-            } else {
-                // Time's up - auto skip
-                skipQuestion()
+        .task(id: timerActive) {
+            guard timerActive, timeLimit > 0 else { return }
+            while timerActive, timeLimit > 0, !showResult {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard timerActive, timeLimit > 0, !showResult else { break }
+                if timeRemaining > 0 {
+                    timeRemaining -= 1
+                } else {
+                    skipQuestion()
+                    break
+                }
             }
-        }
-        .alert("単語帳に追加", isPresented: $showAddToWordbook) {
-            Button("追加") {
-                addCurrentWordToWordbook()
-            }
-            Button("キャンセル", role: .cancel) {}
-        } message: {
-            if currentIndex < questions.count {
-                Text("「\(questions[currentIndex].questionText)」を単語帳に追加しますか？")
-            }
-        }
-        .alert("クイズを開始できません", isPresented: $showStartErrorAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(startErrorMessage)
         }
         .sheet(isPresented: $showMistakeReportSheet) {
             NavigationStack {
@@ -294,6 +285,17 @@ struct QuizView: View {
                         }
                     }
                     .padding(.top)
+                    
+                    Toggle(isOn: $isShuffleMode) {
+                        HStack {
+                            Image(systemName: "shuffle")
+                                .foregroundStyle(
+                                    theme.currentPalette.color(
+                                        .accent, isDark: theme.effectiveIsDark))
+                            Text("出題順をシャッフル")
+                        }
+                    }
+                    .padding(.top)
 
                     // Mastery Filter (like UI reference: 未学習/苦手/うろ覚え/ほぼ覚えた)
                     Text("出題範囲")
@@ -394,11 +396,19 @@ struct QuizView: View {
                     // Red Sheet Mode
                     Toggle(isOn: $redSheetMode) {
                         HStack {
-                            Image(systemName: "rectangle.on.rectangle.slash")
-                                .foregroundStyle(
-                                    theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
-                                )
+                            Image(systemName: "doc.plaintext")
+                                .foregroundStyle(theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark))
                             Text("赤シートモード")
+                        }
+                    }
+                    .padding(.top)
+                    
+                    // Reset Button
+                    Button(action: resetToDefaults) {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise.circle")
+                                .foregroundStyle(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
+                            Text("デフォルトに戻す")
                         }
                     }
                     .padding(.top)
@@ -529,7 +539,7 @@ struct QuizView: View {
 
                 // Add to Wordbook Button
                 Button {
-                    showAddToWordbook = true
+                    addCurrentWordToWordbook()
                 } label: {
                     Image(systemName: "bookmark.fill")
                         .font(.caption)
@@ -1469,6 +1479,11 @@ struct QuizView: View {
         quizStartTime = CACurrentMediaTime()
 
         questions = generateQuestions(count: questionCount)
+        
+        // Apply shuffle mode if enabled
+        if isShuffleMode {
+            questions.shuffle()
+        }
 
         if questions.isEmpty {
             startErrorMessage =
@@ -2120,7 +2135,8 @@ struct QuizView: View {
             term: question.questionText,
             meaning: question.answerText,
             hint: question.hint,
-            mastery: .new
+            mastery: .new,
+            subject: subject
         )
 
         // Avoid duplicates
@@ -2144,7 +2160,7 @@ struct QuizView: View {
         let utterance = AVSpeechUtterance(string: text)
         // Set language based on subject
         switch subject {
-        case .english, .eiken:
+        case .english:
             utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         default:
             utterance.voice = AVSpeechSynthesisVoice(language: "ja-JP")
@@ -2298,9 +2314,27 @@ struct Question: Identifiable {
     var seikeiBlankId: Int? = nil
 }
 
+// MARK: - Reset Functions
+
+private extension QuizView {
+    func resetToDefaults() {
+        mode = .fourChoice
+        questionCount = 10
+        masteryFilters = [.new, .weak, .learning, .almost]
+        specialTrainingMode = false
+        mistakesSessionMode = false
+        isShuffleMode = false
+        redSheetMode = false
+        selectedChapter = "すべて"
+        timeLimit = timerLimitSetting
+        baseTimeLimit = timerLimitSetting
+    }
+}
+
 // Previews removed for SPM
 
 // MARK: - String Extensions (Inlined for reliability)
+
 extension String {
     func levenshteinDistance(to destination: String) -> Int {
         let sourceArray = Array(self)

@@ -7,7 +7,7 @@ struct WeakWordsView: View {
 
     @State private var searchText: String = ""
 
-    private let subjects: [Subject] = [.english, .eiken, .kobun, .kanbun, .seikei]
+    private let subjects: [Subject] = [.english, .kobun, .kanbun, .seikei]
 
     var body: some View {
         ZStack {

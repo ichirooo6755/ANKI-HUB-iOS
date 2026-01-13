@@ -12,6 +12,9 @@ struct PomodoroView: View {
     let startRequest: PomodoroStartRequest?
 
     @Environment(\.scenePhase) private var scenePhase
+    #if os(iOS)
+        @Environment(\.verticalSizeClass) private var verticalSizeClass
+    #endif
 
     private struct PersistedTimerState: Codable {
         var isActive: Bool
@@ -34,6 +37,25 @@ struct PomodoroView: View {
         var studyContent: String
     }
 
+    struct TimerHistoryEntry: Identifiable, Codable {
+        let id: UUID
+        let minutes: Int
+        let createdAt: Date
+        let mode: String
+
+        init(id: UUID = UUID(), minutes: Int, createdAt: Date, mode: String) {
+            self.id = id
+            self.minutes = minutes
+            self.createdAt = createdAt
+            self.mode = mode
+        }
+
+        var displayText: String {
+            return "\(minutes)分 - \(mode)"
+        }
+    }
+
+    private let timerHistoryKey = "anki_hub_timer_history_v1"
     private let timerLogKey = "anki_hub_timer_study_logs_v1"
     private let timerEndNotificationId = "anki_hub_timer_end_v1"
     private let persistedTimerStateKey = "anki_hub_pomodoro_timer_state_v1"
@@ -48,6 +70,15 @@ struct PomodoroView: View {
     @State private var startTime: Date? = nil
     @State private var isOvertime = false
     @State private var overtimeSeconds: TimeInterval = 0
+
+    // Timer History
+    @State private var timerHistory: [TimerHistoryEntry] = []
+    @State private var showHistory = false
+    @State private var suppressHistoryOnNextStart = false
+
+    // Edge manipulation
+    @State private var isDragging = false
+    @State private var dragStartAngle: Double = 0
 
     @State private var didApplyStartRequest = false
 
@@ -97,10 +128,18 @@ struct PomodoroView: View {
 
         var color: Color {
             switch self {
-            case .focus: return .red
-            case .shortBreak: return .green
-            case .longBreak: return .blue
-            case .custom: return .purple
+            case .focus:
+                return ThemeManager.shared.currentPalette.color(
+                    .primary, isDark: ThemeManager.shared.effectiveIsDark)
+            case .shortBreak:
+                return ThemeManager.shared.currentPalette.color(
+                    .accent, isDark: ThemeManager.shared.effectiveIsDark)
+            case .longBreak:
+                return ThemeManager.shared.currentPalette.color(
+                    .selection, isDark: ThemeManager.shared.effectiveIsDark)
+            case .custom:
+                return ThemeManager.shared.currentPalette.color(
+                    .weak, isDark: ThemeManager.shared.effectiveIsDark)
             }
         }
     }
@@ -115,27 +154,40 @@ struct PomodoroView: View {
     }
 
     var body: some View {
-        ZStack {
+        #if os(iOS)
+            // Show standby view when landscape and timer/stopwatch is active
+            let isLandscape = verticalSizeClass == .compact
+            let showStandby = isLandscape && (isActive || stopwatchActive)
+        #else
+            let showStandby = false
+        #endif
+
+        return ZStack {
             theme.background
 
-            VStack(spacing: 24) {
-                // Tab Selector
-                Picker("", selection: $selectedTab) {
-                    ForEach(TimerTab.allCases, id: \.self) { tab in
-                        Text(tab.rawValue).tag(tab)
+            if showStandby {
+                standbyTimerView
+            } else {
+                VStack(spacing: 24) {
+                    // Tab Selector
+                    Picker("", selection: $selectedTab) {
+                        ForEach(TimerTab.allCases, id: \.self) { tab in
+                            Text(tab.rawValue).tag(tab)
+                        }
                     }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .padding(.top, 20)
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.top, 20)
 
-                if selectedTab == .timer {
-                    timerView
-                } else {
-                    stopwatchView
+                    if selectedTab == .timer {
+                        timerView
+                    } else {
+                        stopwatchView
+                    }
                 }
             }
         }
+
         .sheet(isPresented: $showSettings) {
             timerSettingsSheet
         }
@@ -144,6 +196,7 @@ struct PomodoroView: View {
         }
         .onAppear {
             setupNotifications()
+            loadTimerHistory()
             if !restoreTimerStateIfNeeded() {
                 updateTimerDuration()
             }
@@ -184,6 +237,73 @@ struct PomodoroView: View {
         .applyAppTheme()
     }
 
+    // MARK: - Timer History Management
+
+    private func loadTimerHistory() {
+        if let data = UserDefaults.standard.data(forKey: timerHistoryKey),
+            let history = try? JSONDecoder().decode([TimerHistoryEntry].self, from: data)
+        {
+            timerHistory = history.sorted { $0.createdAt > $1.createdAt }
+        }
+    }
+
+    private func saveTimerHistory() {
+        if let data = try? JSONEncoder().encode(timerHistory) {
+            UserDefaults.standard.set(data, forKey: timerHistoryKey)
+        }
+    }
+
+    private func addToHistory(minutes: Int, mode: String) {
+        let entry = TimerHistoryEntry(minutes: minutes, createdAt: Date(), mode: mode)
+        timerHistory.insert(entry, at: 0)
+
+        // Keep only last 20 entries
+        if timerHistory.count > 20 {
+            timerHistory = Array(timerHistory.prefix(20))
+        }
+
+        saveTimerHistory()
+    }
+
+    private func applyHistoryEntry(_ entry: TimerHistoryEntry) {
+        // 履歴をそのまま復元したいので、updateTimerDuration()で上書きしない
+        suppressModeChangeUpdate = true
+        selectedMode = TimerMode(rawValue: entry.mode) ?? .focus
+        totalTime = TimeInterval(entry.minutes * 60)
+        timeRemaining = totalTime
+        endTime = nil
+        startTime = nil
+        isOvertime = false
+        overtimeSeconds = 0
+    }
+
+    // MARK: - Edge Manipulation
+
+    private func handleTimeDrag(_ value: DragGesture.Value) {
+        let center = CGPoint(x: 150, y: 150)  // Center of the 300x300 frame
+        let vector = CGVector(dx: value.location.x - center.x, dy: value.location.y - center.y)
+        let angle = atan2(vector.dy, vector.dx) * 180 / .pi
+
+        if !isDragging {
+            isDragging = true
+            dragStartAngle = angle
+        }
+
+        let angleDiff = angle - dragStartAngle
+
+        // Convert angle difference to time adjustment (1 degree = 1 minute)
+        let minutesDiff = Int(angleDiff.rounded())
+
+        // Clamp between 1 and 120 minutes
+        let newMinutes = max(1, min(120, Int(totalTime / 60) + minutesDiff))
+
+        if newMinutes != Int(totalTime / 60) {
+            totalTime = TimeInterval(newMinutes * 60)
+            timeRemaining = totalTime
+            dragStartAngle = angle
+        }
+    }
+
     // MARK: - Timer View
 
     private var timerView: some View {
@@ -202,7 +322,9 @@ struct PomodoroView: View {
                                 selectedMode == mode
                                     ? mode.color.opacity(0.2) : Color.gray.opacity(0.1)
                             )
-                            .foregroundStyle(selectedMode == mode ? mode.color : theme.secondaryText)
+                            .foregroundStyle(
+                                selectedMode == mode ? mode.color : theme.secondaryText
+                            )
                             .cornerRadius(8)
                     }
                 }
@@ -223,9 +345,13 @@ struct PomodoroView: View {
 
                 // Time Display
                 VStack {
-                    Text(isOvertime ? "+\(timeString(from: overtimeSeconds))" : timeString(from: timeRemaining))
-                        .font(.system(size: 60, weight: .thin, design: .monospaced))
-                        .contentTransition(.numericText())
+                    Text(
+                        isOvertime
+                            ? "+\(timeString(from: overtimeSeconds))"
+                            : timeString(from: timeRemaining)
+                    )
+                    .font(.system(size: 60, weight: .thin, design: .monospaced))
+                    .contentTransition(.numericText())
 
                     if isActive, let end = endTime {
                         Text("終了: \(endTimeString(end))")
@@ -244,9 +370,30 @@ struct PomodoroView: View {
             }
             .frame(width: 300, height: 300)
             .liquidGlassCircle()
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        if !isActive {
+                            handleTimeDrag(value)
+                        }
+                    }
+                    .onEnded { _ in
+                        isDragging = false
+                    }
+            )
 
             // Controls
             HStack(spacing: 40) {
+                Button {
+                    showHistory = true
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.title2)
+                        .foregroundStyle(theme.secondaryText)
+                        .frame(width: 60, height: 60)
+                        .liquidGlassCircle()
+                }
+
                 Button {
                     resetTimer()
                 } label: {
@@ -261,7 +408,7 @@ struct PomodoroView: View {
                     toggleTimer()
                 } label: {
                     let bg = selectedMode.color
-                    Image(systemName: isActive ? "pause.fill" : "play.fill")
+                    Image(systemName: isActive ? "pause.fill" : "stopwatch.fill")
                         .font(.title)
                         .foregroundStyle(theme.onColor(for: bg))
                         .frame(width: 80, height: 80)
@@ -284,6 +431,16 @@ struct PomodoroView: View {
             Spacer()
         }
         .padding()
+        .sheet(isPresented: $showHistory) {
+            TimerHistoryView(history: timerHistory) { entry in
+                applyHistoryEntry(entry)
+                showHistory = false
+                if !isActive {
+                    suppressHistoryOnNextStart = true
+                    toggleTimer()
+                }
+            }
+        }
     }
 
     // MARK: - Stopwatch View
@@ -500,6 +657,11 @@ struct PomodoroView: View {
         if isActive {
             if startTime == nil {
                 startTime = Date()
+                if suppressHistoryOnNextStart {
+                    suppressHistoryOnNextStart = false
+                } else {
+                    addToHistory(minutes: Int(totalTime / 60), mode: selectedMode.rawValue)
+                }
             }
             isOvertime = false
             overtimeSeconds = 0
@@ -711,7 +873,9 @@ struct PomodoroView: View {
     }
 
     private func cancelTimerEndNotification() {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [timerEndNotificationId])
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [
+            timerEndNotificationId
+        ])
     }
 
     private func saveStudyLogIfPossible(endedAt: Date) {
@@ -816,7 +980,8 @@ struct PomodoroView: View {
             guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
 
             let attributes = FocusTimerAttributes(timerName: selectedMode.rawValue)
-            let state = FocusTimerAttributes.ContentState(targetTime: targetDate)
+            let state = FocusTimerAttributes.ContentState(
+                targetTime: targetDate, totalSeconds: Int(totalTime))
             let content = ActivityContent(state: state, staleDate: nil)
 
             do {
@@ -832,10 +997,12 @@ struct PomodoroView: View {
     private func endActivity() {
         #if canImport(ActivityKit) && os(iOS)
             guard let id = activityID,
-                let activity = Activity<FocusTimerAttributes>.activities.first(where: { $0.id == id })
+                let activity = Activity<FocusTimerAttributes>.activities.first(where: {
+                    $0.id == id
+                })
             else { return }
 
-            let state = FocusTimerAttributes.ContentState(targetTime: Date())
+            let state = FocusTimerAttributes.ContentState(targetTime: Date(), totalSeconds: 0)
             let content = ActivityContent(state: state, staleDate: nil)
 
             Task {
@@ -843,6 +1010,130 @@ struct PomodoroView: View {
                 self.activityID = nil
             }
         #endif
+    }
+
+    // MARK: - Standby Timer View (Landscape Fullscreen)
+
+    private var standbyTimerView: some View {
+        GeometryReader { geometry in
+            let isTimerMode = selectedTab == .timer
+            let currentTime = isTimerMode ? timeRemaining : stopwatchTime
+            let progress =
+                isTimerMode
+                ? (totalTime > 0 ? timeRemaining / totalTime : 0)
+                : (stopwatchTime.truncatingRemainder(dividingBy: 60) / 60)
+            let accentColor =
+                isTimerMode
+                ? selectedMode.color
+                : theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+
+            HStack(spacing: 0) {
+                // Left section - Time display
+                VStack(spacing: 16) {
+                    if isTimerMode && isOvertime {
+                        Text("+\(timeString(from: overtimeSeconds))")
+                            .font(
+                                .system(
+                                    size: min(geometry.size.width * 0.2, 120), weight: .ultraLight,
+                                    design: .monospaced)
+                            )
+                            .foregroundStyle(.red)
+                            .contentTransition(.numericText())
+                    } else {
+                        Text(
+                            isTimerMode
+                                ? timeString(from: currentTime) : stopwatchString(from: currentTime)
+                        )
+                        .font(
+                            .system(
+                                size: min(geometry.size.width * 0.2, 120), weight: .ultraLight,
+                                design: .monospaced)
+                        )
+                        .foregroundStyle(theme.primaryText)
+                        .contentTransition(.numericText())
+                    }
+
+                    // Mode label
+                    Text(isTimerMode ? selectedMode.rawValue : "ストップウォッチ")
+                        .font(.title3)
+                        .foregroundStyle(theme.secondaryText)
+
+                    if isTimerMode && isOvertime {
+                        Text("オーバータイム")
+                            .font(.caption)
+                            .foregroundStyle(.red.opacity(0.8))
+                    }
+                }
+                .frame(maxWidth: .infinity)
+
+                // Right section - Progress bar and controls
+                VStack(spacing: 20) {
+                    // Vertical progress bar
+                    ZStack(alignment: .bottom) {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(accentColor.opacity(0.2))
+                            .frame(width: 30)
+
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(isTimerMode && isOvertime ? .red : accentColor)
+                            .frame(
+                                width: 30,
+                                height: max(
+                                    0,
+                                    geometry.size.height * 0.6
+                                        * CGFloat(isTimerMode ? progress : (1 - progress)))
+                            )
+                            .animation(.linear(duration: 1), value: progress)
+                    }
+                    .frame(height: geometry.size.height * 0.6)
+
+                    // Control buttons
+                    HStack(spacing: 20) {
+                        // Reset
+                        Button {
+                            if isTimerMode {
+                                resetTimer()
+                            } else {
+                                resetStopwatch()
+                            }
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.title2)
+                                .foregroundStyle(theme.secondaryText)
+                                .frame(width: 50, height: 50)
+                                .background(
+                                    theme.currentPalette.color(
+                                        .surface, isDark: theme.effectiveIsDark
+                                    ).opacity(0.5)
+                                )
+                                .clipShape(Circle())
+                        }
+
+                        // Play/Pause
+                        Button {
+                            if isTimerMode {
+                                toggleTimer()
+                            } else {
+                                toggleStopwatch()
+                            }
+                        } label: {
+                            let isRunning = isTimerMode ? isActive : stopwatchActive
+                            Image(systemName: isRunning ? "pause.fill" : "play.fill")
+                                .font(.title)
+                                .foregroundStyle(theme.onColor(for: accentColor))
+                                .frame(width: 60, height: 60)
+                                .background(accentColor)
+                                .clipShape(Circle())
+                        }
+                    }
+                }
+                .frame(width: 120)
+                .padding(.trailing, 20)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .statusBarHidden(true)
+        .ignoresSafeArea()
     }
 }
 

@@ -98,7 +98,7 @@ struct SubjectGridItem: View {
             }
 
             // Special Link for Kobun/English Input Mode (3-Day Intensive)
-            if subject == .english || subject == .eiken {
+            if subject == .english {
                 HStack {
                     NavigationLink(destination: FocusedMemorizationView(subject: subject)) {
                         Text("インプット")

@@ -10,8 +10,6 @@ class VocabularyData: ObservableObject {
     // For this native port, we store the data in memory.
     
     private var englishData: [Vocabulary] = []
-
-    private var eikenData: [Vocabulary] = []
     
     private var kobunData: [Vocabulary] = []
     
@@ -26,7 +24,6 @@ class VocabularyData: ObservableObject {
     func getVocabulary(for subject: Subject) -> [Vocabulary] {
         switch subject {
         case .english: return englishData
-        case .eiken: return eikenData
         case .kobun: return kobunData
         case .kanbun: return kanbunData
         case .seikei: return seikeiData
@@ -92,8 +89,6 @@ class VocabularyData: ObservableObject {
             englishData = []
             print("⚠️ English: vocab1900.tsv not found in Resources. Sample (RawData) fallback is disabled.")
         }
-
-        eikenData = englishData
         
         // 2. Kanbun Data (JSON) from kanbun.json
         struct KanbunItem: Codable {
