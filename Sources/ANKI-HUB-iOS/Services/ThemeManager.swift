@@ -669,12 +669,12 @@ class ThemeManager: ObservableObject {
     private let presets: [String: ThemePalette] = [
         // --- Standard Presets ---
         "default": ThemePalette(
-            primary: "#4f46e5", secondary: "#64748b", accent: "#f59e0b", background: "#f9fafb",
-            surface: "#ffffff", text: "#1f2937", border: "#e5e7eb", selection: "#4f46e5",
-            mastered: "#10b981", almost: "#f59e0b", learning: "#f97316", weak: "#ef4444",
-            new: "#9ca3af",
-            primaryDark: "#6366f1", backgroundDark: "#0f172a", surfaceDark: "#1e293b",
-            textDark: "#f8fafc", borderDark: "#334155", selectionDark: "#6366f1"
+            primary: "#34C759", secondary: "#8E8E93", accent: "#FF9F0A", background: "#0B0B0C",
+            surface: "#1C1C1E", text: "#F2F2F7", border: "#2C2C2E", selection: "#34C759",
+            mastered: "#34C759", almost: "#FFD60A", learning: "#0A84FF", weak: "#FF453A",
+            new: "#8E8E93",
+            primaryDark: "#34C759", backgroundDark: "#0B0B0C", surfaceDark: "#1C1C1E",
+            textDark: "#F2F2F7", borderDark: "#2C2C2E", selectionDark: "#34C759"
         ),
         "ocean": ThemePalette(
             primary: "#0ea5e9", secondary: "#64748b", accent: "#f59e0b", background: "#f0f9ff",
@@ -1655,12 +1655,12 @@ class ThemeManager: ObservableObject {
         #endif
         // Load initial
         self.currentPalette = ThemePalette(
-            primary: "#4f46e5", secondary: "#64748b", accent: "#f59e0b", background: "#f9fafb",
-            surface: "#ffffff", text: "#1f2937", border: "#e5e7eb", selection: "#4f46e5",
-            mastered: "#10b981", almost: "#fbbf24", learning: "#f97316", weak: "#ef4444",
-            new: "#9ca3af",
-            primaryDark: "#6366f1", backgroundDark: "#0f172a", surfaceDark: "#1e293b",
-            textDark: "#f8fafc", borderDark: "#334155", selectionDark: "#6366f1"
+            primary: "#34C759", secondary: "#8E8E93", accent: "#FF9F0A", background: "#0B0B0C",
+            surface: "#1C1C1E", text: "#F2F2F7", border: "#2C2C2E", selection: "#34C759",
+            mastered: "#34C759", almost: "#FFD60A", learning: "#0A84FF", weak: "#FF453A",
+            new: "#8E8E93",
+            primaryDark: "#34C759", backgroundDark: "#0B0B0C", surfaceDark: "#1C1C1E",
+            textDark: "#F2F2F7", borderDark: "#2C2C2E", selectionDark: "#34C759"
         )
 
         let id = UserDefaults.standard.string(forKey: "selectedThemeId") ?? "default"

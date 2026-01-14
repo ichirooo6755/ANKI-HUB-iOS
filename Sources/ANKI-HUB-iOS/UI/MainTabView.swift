@@ -50,6 +50,9 @@ struct MainTabView: View {
             MasteryTracker.shared.loadData()
         }
         .onOpenURL { url in
+            #if os(iOS)
+            SupabaseAuthService.shared.handleIncomingCallbackURL(url)
+            #endif
             handleDeepLink(url)
         }
         .sheet(item: $timerStartRequest) { req in

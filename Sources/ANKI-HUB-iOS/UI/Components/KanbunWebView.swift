@@ -6,6 +6,14 @@ import WebKit
 struct KanbunWebView: UIViewRepresentable {
   let kanbunText: String
 
+  class Coordinator {
+      var lastSignature: String = ""
+  }
+
+  func makeCoordinator() -> Coordinator {
+      Coordinator()
+  }
+
   // Internal Parser (Inlined to ensure build stability)
   struct LocalKanbunParser {
       static func parse(_ text: String) -> String {
@@ -40,6 +48,12 @@ struct KanbunWebView: UIViewRepresentable {
   }
 
   func updateUIView(_ uiView: WKWebView, context: Context) {
+    let signature = "\(kanbunText.hashValue)|\(uiView.traitCollection.userInterfaceStyle.rawValue)"
+    if signature == context.coordinator.lastSignature {
+      return
+    }
+    context.coordinator.lastSignature = signature
+
     let cssContent = """
       .kanbun {
         writing-mode: vertical-rl;

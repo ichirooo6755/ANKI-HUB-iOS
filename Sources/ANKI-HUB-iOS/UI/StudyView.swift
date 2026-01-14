@@ -96,20 +96,6 @@ struct SubjectGridItem: View {
                     SubjectCard(subject: subject)
                 }
             }
-
-            // Special Link for Kobun/English Input Mode (3-Day Intensive)
-            if subject == .english {
-                HStack {
-                    NavigationLink(destination: FocusedMemorizationView(subject: subject)) {
-                        Text("インプット")
-                            .font(.caption)
-                            .padding(5)
-                            .foregroundStyle(theme.primaryText)
-                            .liquidGlass(cornerRadius: 8)
-                    }
-                }
-                .padding(.top, -10)
-            }
         }
     }
 }

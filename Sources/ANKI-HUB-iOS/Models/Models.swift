@@ -742,10 +742,20 @@ enum Subject: String, CaseIterable, Identifiable, Codable {
     }
 
     var icon: String {
+        let isJapaneseLocale: Bool = {
+            if #available(iOS 16.0, *) {
+                return Locale.current.language.languageCode?.identifier == "ja"
+            }
+            return Locale.current.identifier.hasPrefix("ja")
+        }()
         switch self {
-        case .english: return "books.vertical"
-        case .kobun: return "character.book.closed.japanese"
-        case .kanbun: return "character.book.closed.chinese"
+        case .english:
+            return isJapaneseLocale ? "character.book.closed" : "book.closed"
+        case .kobun:
+            // Use generic text book icons as specialized language variants might not exist in all SF Symbols versions
+            return "text.book.closed"
+        case .kanbun:
+            return "text.book.closed.fill"
         case .seikei: return "books.vertical"
         }
     }

@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import re
 
 # Paths
 FILE1 = "Sources/ANKI-HUB-iOS/Resources/OriginalData/古文単語リスト - Table 1.csv"
@@ -14,35 +15,45 @@ def normalize_word(raw):
     return str(raw).strip().replace(" ", "").replace("\u3000", "")
 
 def clean_hint(raw_hint, word):
-    if not raw_hint: return None
-    if raw_hint == "Not in source": return None
-    if raw_hint == word: return None
-    if "／" in raw_hint:
-        parts = raw_hint.split("／")
-        candidate = parts[0]
-        if candidate != word and candidate != "Not in source":
-            return candidate
+    if not raw_hint:
+        return None
+    if raw_hint == "Not in source":
+        return None
+    if raw_hint == word:
+        return None
+    # If hint contains specific format like "（こころうし）", keep it clean
     return raw_hint
 
 def format_hint(raw_kanji):
-    if not raw_kanji: return None
+    if not raw_kanji:
+        return None
+    # Remove existing parens to avoid double (( ))
     clean = raw_kanji.replace("（", "").replace("）", "")
+    if not clean:
+        return None
     return f"（{clean}）"
+
+def has_kanji(text):
+    if not text:
+        return False
+    return bool(re.search(r'[一-龠]', text))
+
+def is_hiragana_only(text):
+    if not text:
+        return False
+    return bool(re.fullmatch(r'[ぁ-んー]+', text))
 
 def main():
     # 1. Load File 1
-    # Store full items to append later if not in File 2
     items_file1 = {}
     
-    # Corrections Map for File 1
-    # Key: Original, Value: Corrected (or None to skip)
     WORD_CORRECTIONS = {
         "いtoほし": "いとほし",
         "かかかる〜": "かかる〜",
         "さいてもありぬべし": "さてもありぬべし",
         "さ はる": "さはる",
-        "わざわざ": None, # Exclude modern word/error
-        "ひたぶるなり": "ひたぶるなり", # Just in case
+        "わざわざ": None, 
+        "ひたぶるなり": "ひたぶるなり",
     }
 
     if os.path.exists(FILE1):
@@ -53,16 +64,12 @@ def main():
                 k = row.get('漢字表記', '').strip()
                 m = row.get('意味', '').strip()
                 
-                # Apply corrections
                 if w in WORD_CORRECTIONS:
                     w = WORD_CORRECTIONS[w]
                     if w is None: continue
 
                 w = normalize_word(w)
-                
                 if w:
-                    # If multiple entries resolve to same word, first one wins? 
-                    # Or maybe we accumulate. For now, overwrite is fine as duplicates in File 1 are rare.
                     items_file1[w] = {
                         "word": w,
                         "meaning": m,
@@ -72,7 +79,6 @@ def main():
     # 2. Process File 2 (Master List)
     processed_words = set()
     data = []
-    
     index = 1
     
     if os.path.exists(FILE2):
@@ -80,46 +86,67 @@ def main():
             reader = csv.DictReader(f2)
             
             for row in reader:
-                word = row.get('単語', '').strip()
+                word_raw = row.get('単語', '').strip()
                 meaning = row.get('意味', '').strip()
                 col2 = row.get('読み/補足', '').strip()
                 
-                if not word: continue
+                if not word_raw: continue
 
-                # Fix typos in File 2
-                if word == "ひとりやりならず":
-                    word = "ひとやりならず"
+                if word_raw == "ひとりやりならず":
+                    word_raw = "ひとやりならず"
 
-                word = normalize_word(word)
-                if not word:
-                    continue
+                # Logic: Swap if word is Kanji and col2 is Hiragana reading
+                # e.g. word="心憂し", col2="こころうし" -> final_word="こころうし", hint="（心憂し）"
+                final_word = word_raw
+                kanji_hint = None
                 
-                processed_words.add(word)
+                # Check if we should swap
+                # Condition: Word has Kanji AND Col2 is Hiragana (and not just some note)
+                # Simple check: Col2 is hiragana only (maybe with symbols?)
+                # Actually col2 might contain "（...）" or "＝..." so clean it first
+                clean_col2 = col2.split('＝')[0].split('（')[0].strip() # Take first part
+                
+                if has_kanji(word_raw) and is_hiragana_only(clean_col2):
+                    final_word = clean_col2
+                    kanji_hint = word_raw
+                else:
+                    # Keep original structure
+                    # Try to use File 1 hint if available
+                    pass
+
+                final_word_norm = normalize_word(final_word)
+                if not final_word_norm: continue
+                
+                processed_words.add(final_word_norm)
                 
                 item = {
                     "id": index,
-                    "word": word,
+                    "word": final_word,
                     "meaning": meaning
                 }
                 
-                # Determine Hint (Kanji)
-                kanji_candidate = None
+                # Determine Hint
+                # Priority:
+                # 1. Swapped Kanji (from above)
+                # 2. File 1 Match (Kanji column)
+                # 3. Col2 (if not swapped)
                 
-                # Priority 1: File 1 Match
-                if word in items_file1 and items_file1[word]["hint"] != "Not in source":
-                    kanji_candidate = items_file1[word]["hint"]
-                # Priority 2: File 2 Column 2 (Parse)
+                final_hint_str = None
+                
+                if kanji_hint:
+                    final_hint_str = kanji_hint
+                elif final_word_norm in items_file1 and items_file1[final_word_norm]["hint"] != "Not in source":
+                    final_hint_str = items_file1[final_word_norm]["hint"]
                 else:
-                    processed = clean_hint(col2, word)
-                    if processed:
-                        kanji_candidate = processed
-                
-                if kanji_candidate:
-                    item["hint"] = format_hint(kanji_candidate)
+                    # If we didn't swap, maybe col2 has useful info
+                    if col2 and col2 != final_word:
+                         final_hint_str = col2
 
-                # Fix hint data errors based on PDF reference
-                # かる: Source says （離る） but PDF says （離る／下二）
-                if word == "かる" and item.get("hint") == "（離る）":
+                if final_hint_str:
+                    item["hint"] = format_hint(final_hint_str)
+
+                # Specific fix
+                if final_word == "かる" and item.get("hint") == "（離る）":
                     item["hint"] = "（離る／下二）"
                 
                 data.append(item)
@@ -128,8 +155,6 @@ def main():
     # 3. Append Unique items from File 1
     for w, info in items_file1.items():
         if w not in processed_words:
-            
-            # Since w is already corrected in Step 1, simple check is enough
             item = {
                 "id": index,
                 "word": w,
@@ -140,9 +165,9 @@ def main():
             
             data.append(item)
             index += 1
-            print(f"Added unique from File 1: {w}")
+            processed_words.add(w)
 
-    # 4. Supplement missing words from kobun_pdf.json (CSV priority)
+    # 4. Supplement from PDF (and Merge)
     if os.path.exists(PDF_JSON):
         try:
             with open(PDF_JSON, mode="r", encoding="utf-8") as f:
@@ -151,37 +176,34 @@ def main():
             pdf_by_word = {}
             for p in pdf_items:
                 k = normalize_word(p.get("word"))
-                if k and k not in pdf_by_word:
+                if k:
                     pdf_by_word[k] = p
 
-            # 4-1. Fill missing hint from PDF when CSV has the word but hint is missing
+            # 4-1. Merge info into existing items
             for item in data:
                 wkey = normalize_word(item.get("word"))
-                if not wkey:
-                    continue
-                if item.get("hint"):
-                    continue
+                if not wkey: continue
+                
                 p = pdf_by_word.get(wkey)
-                if p and p.get("hint"):
-                    item["hint"] = p.get("hint")
+                if p:
+                    # Merge Hint if missing
+                    if not item.get("hint") and p.get("hint"):
+                        item["hint"] = p.get("hint")
+                    # Merge Example if missing
+                    if not item.get("example") and p.get("example"):
+                        item["example"] = p.get("example")
 
-            existing = set()
-            for item in data:
-                k = normalize_word(item.get("word"))
-                if k:
-                    existing.add(k)
-
+            # 4-2. Add missing words from PDF
             missing = []
             for p in pdf_items:
                 k = normalize_word(p.get("word"))
-                if not k:
-                    continue
-                if k in existing:
-                    continue
-                missing.append((k, p))
-            missing.sort(key=lambda x: x[0])
+                if k and k not in processed_words:
+                    missing.append(p)
+            
+            # Sort missing by word for consistency
+            missing.sort(key=lambda x: x.get("word", ""))
 
-            for _, p in missing:
+            for p in missing:
                 item = {
                     "id": index,
                     "word": p.get("word", ""),
@@ -193,8 +215,94 @@ def main():
                     item["example"] = p.get("example")
                 data.append(item)
                 index += 1
+                
         except Exception as e:
             print(f"Warning: failed to supplement from PDF: {e}")
+
+    # 5. Post-process: Deduplicate and Kanji/Hiragana normalization
+    def normalize_key(s):
+        return normalize_word(s)
+
+    def score_item(it):
+        meaning_len = len((it.get("meaning") or "").strip())
+        has_example = 1 if it.get("example") else 0
+        has_hint = 1 if it.get("hint") else 0
+        return (meaning_len, has_example, has_hint)
+
+    # 5-1. Exact word duplicates: keep best-scored entry
+    by_word = {}
+    for it in data:
+        k = normalize_key(it.get("word"))
+        if not k:
+            continue
+        if k not in by_word:
+            by_word[k] = it
+            continue
+        cur = by_word[k]
+        if score_item(it) > score_item(cur):
+            by_word[k] = it
+
+    data = list(by_word.values())
+
+    # 5-2. If same meaning has both hiragana-only and kanji forms, prefer hiragana word.
+    # Move kanji form into hint when possible.
+    def canon_meaning(m):
+        if not m:
+            return ""
+        t = re.sub(r"\s+", "", str(m))
+        t = t.replace("／", "/").replace("・", "").replace("、", "")
+        t = t.replace("①", "").replace("②", "").replace("③", "").replace("④", "")
+        return t
+
+    by_meaning = {}
+    for it in data:
+        mk = canon_meaning(it.get("meaning"))
+        if not mk:
+            continue
+        by_meaning.setdefault(mk, []).append(it)
+
+    # For each meaning group, if there is at least one hiragana word,
+    # convert kanji-word entries into the hiragana entry's hint and drop the kanji-word entries.
+    keep_ids = set()
+    drop_ids = set()
+    for mk, items in by_meaning.items():
+        hira_items = [it for it in items if is_hiragana_only(normalize_key(it.get("word")))]
+        kanji_items = [it for it in items if has_kanji(it.get("word")) and not is_hiragana_only(normalize_key(it.get("word")))]
+        if not hira_items or not kanji_items:
+            continue
+
+        # Choose a representative hiragana entry
+        hira_items_sorted = sorted(hira_items, key=score_item, reverse=True)
+        rep = hira_items_sorted[0]
+        keep_ids.add(rep.get("id"))
+
+        # Move kanji forms into hint
+        kanji_forms = []
+        for it in kanji_items:
+            w = (it.get("word") or "").strip()
+            if w:
+                kanji_forms.append(w)
+            drop_ids.add(it.get("id"))
+
+        if kanji_forms:
+            existing_hint = rep.get("hint")
+            merged = " / ".join(sorted(set(kanji_forms)))
+            merged_hint = format_hint(merged)
+            if existing_hint:
+                # keep existing hint, append if different
+                if merged_hint and merged_hint not in existing_hint:
+                    rep["hint"] = existing_hint + " " + merged_hint
+            else:
+                if merged_hint:
+                    rep["hint"] = merged_hint
+
+    if drop_ids:
+        data = [it for it in data if it.get("id") not in drop_ids]
+
+    # Reassign IDs sequentially for stability
+    data.sort(key=lambda x: normalize_key(x.get("word")))
+    for idx, it in enumerate(data, start=1):
+        it["id"] = idx
 
     # Write JSON
     with open(OUTPUT_JSON, 'w', encoding='utf-8') as jsonfile:

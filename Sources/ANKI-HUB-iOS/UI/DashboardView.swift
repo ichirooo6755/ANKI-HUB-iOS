@@ -5,7 +5,6 @@ struct DashboardView: View {
     @EnvironmentObject var learningStats: LearningStats
     @EnvironmentObject var masteryTracker: MasteryTracker
     @EnvironmentObject var themeManager: ThemeManager
-    @EnvironmentObject var appUsageTracker: AppUsageTracker
 
     @AppStorage("anki_hub_last_review_prompt_date") private var lastReviewPromptDate: String = ""
     @State private var showReviewPrompt: Bool = false
@@ -54,10 +53,10 @@ struct DashboardView: View {
                         // Header Stats
                         HStack(spacing: 15) {
                             StatCard(
-                                title: "Streak", value: "\(learningStats.streak) days",
+                                title: "連続学習", value: "\(learningStats.streak)",
                                 icon: "flame.fill", color: .orange)
                             StatCard(
-                                title: "Today", value: "\(appUsageTracker.todayUsageMinutes) min",
+                                title: "今日", value: "\(learningStats.todayMinutes)",
                                 icon: "clock.fill", color: .blue)
                         }
                         .padding(.horizontal)
@@ -106,7 +105,7 @@ struct DashboardView: View {
                                         VStack(alignment: .leading) {
                                             Text("復習待ち")
                                                 .font(.title3.bold())
-                                            Text("苦手が\(totalWeakCount)語あります")
+                                            Text("\(totalWeakCount)語")
                                                 .font(.subheadline)
                                                 .foregroundStyle(ThemeManager.shared.secondaryText)
                                         }
@@ -128,13 +127,13 @@ struct DashboardView: View {
                                 VStack(alignment: .leading) {
                                     Text("今日の復習")
                                         .font(.title3.bold())
-                                    Text("\(appUsageTracker.todayUsageMinutes)分 / 目標30分")
+                                    Text("\(learningStats.todayMinutes)分")
                                         .font(.subheadline)
                                         .foregroundStyle(ThemeManager.shared.secondaryText)
                                 }
                                 Spacer()
                                 CircularProgressView(
-                                    progress: Double(appUsageTracker.todayUsageMinutes) / 30.0
+                                    progress: Double(learningStats.todayMinutes) / 30.0
                                 )
                                 .frame(width: 50, height: 50)
                             }
@@ -150,12 +149,9 @@ struct DashboardView: View {
                                     VStack(alignment: .leading) {
                                         Text("やることリスト")
                                             .font(.title3.bold())
-                                        Text("タスクを管理")
-                                            .font(.subheadline)
-                                            .foregroundStyle(ThemeManager.shared.secondaryText)
                                     }
                                     Spacer()
-                                    Image(systemName: "list.bullet.clipboard")
+                                    Image(systemName: "list.bullet")
                                         .foregroundStyle(
                                             ThemeManager.shared.currentPalette.color(
                                                 .primary,
@@ -176,9 +172,6 @@ struct DashboardView: View {
                                     VStack(alignment: .leading) {
                                         Text("テスト履歴")
                                             .font(.title3.bold())
-                                        Text("過去のテスト結果を確認")
-                                            .font(.subheadline)
-                                            .foregroundStyle(ThemeManager.shared.secondaryText)
                                     }
                                     Spacer()
                                     Image(systemName: "doc.text")
@@ -202,9 +195,6 @@ struct DashboardView: View {
                                     VStack(alignment: .leading) {
                                         Text("タイマー")
                                             .font(.title3.bold())
-                                        Text("ストップウォッチも使える")
-                                            .font(.subheadline)
-                                            .foregroundStyle(ThemeManager.shared.secondaryText)
                                     }
                                     Spacer()
                                     Image(systemName: "stopwatch.fill")
@@ -266,6 +256,7 @@ struct DashboardView: View {
         }
         .applyAppTheme()
         .onAppear {
+            learningStats.loadStats()
             masteryTracker.loadData()
 
             if totalWeakCount > 0 {

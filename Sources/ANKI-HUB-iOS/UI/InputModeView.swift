@@ -7,7 +7,7 @@ struct InputModeView: View {
     @ObservedObject private var theme = ThemeManager.shared
 
     @AppStorage("anki_hub_kobun_inputmode_use_all_v1") private var kobunInputModeUseAll: Bool =
-        false
+        true
     @AppStorage("anki_hub_inputmode_day2_limit_v1") private var day2TimeLimitSetting: Double = 3.0
     @AppStorage("anki_hub_inputmode_day2_unknown_only_v1") private var day2UnknownOnly: Bool = true
     @AppStorage("anki_hub_inputmode_mistakes_only_v1") private var inputModeMistakesOnly: Bool = false
@@ -33,7 +33,6 @@ struct InputModeView: View {
 
     // Day 2 Timer
     @State private var timeRemaining: CGFloat = 1.0
-    @State private var timer: Timer?
     @State private var limitSeconds: Double = 3.0
 
     private struct RecentMistake: Codable {
@@ -122,6 +121,19 @@ struct InputModeView: View {
                         }
                         .padding(.horizontal)
 
+                        Button {
+                            isShuffleMode = false
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.counterclockwise.circle")
+                                    .foregroundStyle(
+                                        theme.currentPalette.color(
+                                            .primary, isDark: theme.effectiveIsDark))
+                                Text("デフォルトに戻す")
+                            }
+                        }
+                        .padding(.horizontal)
+
                         // Day 2 Timer Setting
                         if manager.currentDay == 2 {
                             VStack(alignment: .leading, spacing: 8) {
@@ -168,6 +180,19 @@ struct InputModeView: View {
 
                         Spacer()
 
+                        Button {
+                            addCurrentWordToWordbook()
+                        } label: {
+                            Image(systemName: "bookmark.fill")
+                                .font(.title2)
+                                .foregroundStyle(
+                                    theme.currentPalette.color(
+                                        .accent, isDark: theme.effectiveIsDark))
+                                .frame(width: 56, height: 56)
+                                .liquidGlassCircle()
+                        }
+                        .buttonStyle(.plain)
+
                         Text(selectedSubject.displayName)
                             .font(.caption)
                             .padding(6)
@@ -192,7 +217,7 @@ struct InputModeView: View {
                                 .trim(from: 0, to: timeRemaining)
                                 .stroke(timeRemaining > 0.3 ? primary : danger, lineWidth: 10)
                                 .rotationEffect(.degrees(-90))
-                                .animation(.linear(duration: 0.1), value: timeRemaining)
+                                .animation(.linear(duration: 0.2), value: timeRemaining)
                         }
                         .frame(width: 60, height: 60)
                         .padding()
@@ -345,9 +370,6 @@ struct InputModeView: View {
         .onAppear {
             loadWords()
         }
-        .onDisappear {
-            timer?.invalidate()
-        }
         .onChange(of: selectedSubject) { _, _ in
             selectedBlockIndex = 0
             loadWords()
@@ -358,6 +380,30 @@ struct InputModeView: View {
         .onChange(of: inputModeMistakesOnly) { _, _ in
             selectedBlockIndex = 0
             loadWords()
+        }
+        .task(id: startTime) {
+            guard manager.currentDay == 2 else { return }
+            guard !showResult else { return }
+            guard currentIndex < words.count else { return }
+
+            let tickNanoseconds: UInt64 = 200_000_000
+            while manager.currentDay == 2, !showResult, currentIndex < words.count {
+                do {
+                    try await Task.sleep(nanoseconds: tickNanoseconds)
+                } catch {
+                    break
+                }
+                guard manager.currentDay == 2, !showResult, currentIndex < words.count else { break }
+
+                let elapsed = Date().timeIntervalSince(startTime)
+                let remaining = max(0, limitSeconds - elapsed)
+                let fraction = limitSeconds > 0 ? max(0, min(1, remaining / limitSeconds)) : 0
+                timeRemaining = CGFloat(fraction)
+
+                if remaining <= 0 {
+                    break
+                }
+            }
         }
         .applyAppTheme()
     }
@@ -429,19 +475,6 @@ struct InputModeView: View {
         limitSeconds = day2TimeLimitSetting
         timeRemaining = 1.0
         startTime = Date()
-
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            let elapsed = Date().timeIntervalSince(startTime)
-            let remaining = max(0, limitSeconds - elapsed)
-            timeRemaining = remaining / limitSeconds
-
-            if remaining <= 0 {
-                // Time up! treat as incorrect/slow logic?
-                // Web app might just force reveal or count as fail.
-                // For now, let user continue but it will be recorded as slow.
-            }
-        }
     }
 
     private func nextWord() {
@@ -455,7 +488,6 @@ struct InputModeView: View {
                 }
             } else {
                 showResult = true
-                timer?.invalidate()
 
                 let elapsed = max(0.0, Date().timeIntervalSince(sessionStartTime))
                 let minutes = max(1, Int(ceil(elapsed / 60.0)))
@@ -485,6 +517,36 @@ struct InputModeView: View {
     private func processDay3(correct: Bool) {
         manager.processDay3(wordId: words[currentIndex].id, isCorrect: correct)
         nextWord()
+    }
+
+    private func addCurrentWordToWordbook() {
+        guard words.indices.contains(currentIndex) else { return }
+        let vocab = words[currentIndex]
+
+        var stored: [WordbookEntry] = []
+        if let data = UserDefaults.standard.data(forKey: "anki_hub_wordbook"),
+           let decoded = try? JSONDecoder().decode([WordbookEntry].self, from: data) {
+            stored = decoded
+        }
+
+        let newEntry = WordbookEntry(
+            id: vocab.id,
+            term: vocab.term,
+            meaning: vocab.meaning,
+            hint: vocab.hint,
+            mastery: .new,
+            subject: selectedSubject
+        )
+
+        if !stored.contains(where: { $0.id == newEntry.id }) {
+            stored.append(newEntry)
+            if let data = try? JSONEncoder().encode(stored) {
+                UserDefaults.standard.set(data, forKey: "anki_hub_wordbook")
+            }
+            Task { @MainActor in
+                SyncManager.shared.requestAutoSync()
+            }
+        }
     }
 }
 

@@ -88,9 +88,12 @@ struct PomodoroView: View {
 
     @State private var showStudyLogSheet = false
     @State private var studyContent = ""
+    @State private var shouldResetAfterStudyLog = false
 
     // Live Activity State
     @State private var activityID: String? = nil
+    // External Control (AppIntent)
+    private let focusTimerControlKey = "anki_hub_focus_timer_control_v1"
 
     // Stopwatch State
     @State private var stopwatchTime: TimeInterval = 0
@@ -201,10 +204,13 @@ struct PomodoroView: View {
                 updateTimerDuration()
             }
             applyStartRequestIfNeeded()
+            checkExternalControlRequest()
         }
         .onChange(of: scenePhase) { _, newValue in
             if newValue != .active {
                 persistTimerState(force: true)
+            } else {
+                checkExternalControlRequest()
             }
         }
         .onChange(of: selectedMode) { _, _ in
@@ -221,6 +227,7 @@ struct PomodoroView: View {
                 NotificationCenter.default.publisher(
                     for: UIApplication.willEnterForegroundNotification)
             ) { _ in
+                checkExternalControlRequest()
                 if isActive, let end = endTime {
                     let remaining = end.timeIntervalSince(Date())
                     if remaining <= 0 {
@@ -291,8 +298,8 @@ struct PomodoroView: View {
 
         let angleDiff = angle - dragStartAngle
 
-        // Convert angle difference to time adjustment (1 degree = 1 minute)
-        let minutesDiff = Int(angleDiff.rounded())
+        // 120分を1周(360度)に割り当てる
+        let minutesDiff = Int((angleDiff / 3.0).rounded())
 
         // Clamp between 1 and 120 minutes
         let newMinutes = max(1, min(120, Int(totalTime / 60) + minutesDiff))
@@ -382,50 +389,75 @@ struct PomodoroView: View {
                     }
             )
 
-            // Controls
-            HStack(spacing: 40) {
-                Button {
-                    showHistory = true
-                } label: {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.title2)
-                        .foregroundStyle(theme.secondaryText)
-                        .frame(width: 60, height: 60)
-                        .liquidGlassCircle()
+            // Controls (Health-like)
+            VStack(spacing: 18) {
+                HStack(spacing: 22) {
+                    Button {
+                        showHistory = true
+                    } label: {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.title2)
+                            .foregroundStyle(theme.secondaryText)
+                            .frame(width: 56, height: 56)
+                            .liquidGlassCircle()
+                    }
+
+                    Button {
+                        toggleTimer()
+                    } label: {
+                        let bg = selectedMode.color
+                        Image(systemName: isActive ? "pause.fill" : "play.fill")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundStyle(theme.onColor(for: bg))
+                            .frame(width: 88, height: 88)
+                            .background(bg)
+                            .clipShape(Circle())
+                            .shadow(color: bg.opacity(0.35), radius: 14, x: 0, y: 8)
+                    }
+
+                    Button {
+                        stopTimer(userInitiated: true)
+                    } label: {
+                        Image(systemName: "stop.fill")
+                            .font(.title2)
+                            .foregroundStyle(theme.secondaryText)
+                            .frame(width: 56, height: 56)
+                            .liquidGlassCircle()
+                    }
                 }
 
-                Button {
-                    resetTimer()
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.title2)
+                HStack(spacing: 14) {
+                    Button {
+                        resetTimer()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.clockwise")
+                            Text("リセット")
+                        }
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(theme.secondaryText)
-                        .frame(width: 60, height: 60)
-                        .liquidGlassCircle()
-                }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .liquidGlass(cornerRadius: 16)
+                    }
+                    .buttonStyle(.plain)
 
-                Button {
-                    toggleTimer()
-                } label: {
-                    let bg = selectedMode.color
-                    Image(systemName: isActive ? "pause.fill" : "stopwatch.fill")
-                        .font(.title)
-                        .foregroundStyle(theme.onColor(for: bg))
-                        .frame(width: 80, height: 80)
-                        .background(bg)
-                        .clipShape(Circle())
-                        .shadow(color: selectedMode.color.opacity(0.4), radius: 10, x: 0, y: 5)
-                }
-
-                Button {
-                    showSettings = true
-                } label: {
-                    Image(systemName: "gearshape.fill")
-                        .font(.title2)
+                    Button {
+                        showSettings = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "gearshape.fill")
+                            Text("設定")
+                        }
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(theme.secondaryText)
-                        .frame(width: 60, height: 60)
-                        .liquidGlassCircle()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .liquidGlass(cornerRadius: 16)
+                    }
+                    .buttonStyle(.plain)
                 }
+                .padding(.horizontal, 6)
             }
 
             Spacer()
@@ -580,7 +612,7 @@ struct PomodoroView: View {
                     Stepper(
                         "\(customMinutes)分",
                         value: $customMinutes,
-                        in: 1...180
+                        in: 1...120
                     )
                 }
             }
@@ -608,6 +640,34 @@ struct PomodoroView: View {
         timeRemaining = totalTime
     }
 
+    private func checkExternalControlRequest() {
+        #if canImport(ActivityKit)
+            guard let defaults = UserDefaults(suiteName: "group.com.ankihub.ios"),
+                let data = defaults.data(forKey: focusTimerControlKey),
+                let req = try? JSONDecoder().decode(FocusTimerControlRequest.self, from: data)
+            else { return }
+
+            // Clear request immediately to avoid replay
+            defaults.removeObject(forKey: focusTimerControlKey)
+
+            // Ignore stale requests (>5s)
+            if Date().timeIntervalSince(req.requestedAt) > 5 {
+                return
+            }
+
+            switch req.action {
+            case .togglePause:
+                toggleTimer()
+            case .stop:
+                if isActive {
+                    stopTimer(userInitiated: true)
+                } else if startTime != nil || isOvertime || timeRemaining != totalTime {
+                    stopTimer(userInitiated: true)
+                }
+            }
+        #endif
+    }
+
     private func applyStartRequestIfNeeded() {
         guard !didApplyStartRequest else { return }
         didApplyStartRequest = true
@@ -620,7 +680,7 @@ struct PomodoroView: View {
         suppressModeChangeUpdate = true
         selectedMode = .custom
 
-        let safeMinutes = max(1, min(180, req.minutes))
+        let safeMinutes = max(1, min(120, req.minutes))
         customMinutes = safeMinutes
         totalTime = TimeInterval(safeMinutes * 60)
         timeRemaining = totalTime
@@ -652,32 +712,51 @@ struct PomodoroView: View {
     }
 
     private func toggleTimer() {
-        isActive.toggle()
-
         if isActive {
-            if startTime == nil {
-                startTime = Date()
-                if suppressHistoryOnNextStart {
-                    suppressHistoryOnNextStart = false
-                } else {
-                    addToHistory(minutes: Int(totalTime / 60), mode: selectedMode.rawValue)
-                }
+            pauseTimer()
+            return
+        }
+
+        if startTime == nil {
+            startTime = Date()
+            if suppressHistoryOnNextStart {
+                suppressHistoryOnNextStart = false
+            } else {
+                addToHistory(minutes: Int(totalTime / 60), mode: selectedMode.rawValue)
             }
-            isOvertime = false
-            overtimeSeconds = 0
-            let targetDate = Date().addingTimeInterval(timeRemaining)
-            endTime = targetDate
+        }
 
-            scheduleTimerEndNotification(targetDate: targetDate)
-
-            // Start Live Activity
-            startActivity(targetDate: targetDate)
-
+        isActive = true
+        if isOvertime {
+            endTime = nil
             startTickingTimer()
             persistTimerState(force: true)
-        } else {
-            stopTimer(userInitiated: true)
+            updateActivityForTimerState()
+            return
         }
+
+        let targetDate = Date().addingTimeInterval(timeRemaining)
+        endTime = targetDate
+        scheduleTimerEndNotification(targetDate: targetDate)
+        startActivity(targetDate: targetDate)
+        startTickingTimer()
+        persistTimerState(force: true)
+        updateActivityForTimerState()
+    }
+
+    private func pauseTimer() {
+        guard isActive else { return }
+        isActive = false
+        timer?.invalidate()
+        timer = nil
+
+        if !isOvertime, let end = endTime {
+            timeRemaining = max(0, end.timeIntervalSince(Date()))
+        }
+        endTime = nil
+        cancelTimerEndNotification()
+        persistTimerState(force: true)
+        updateActivityForTimerState()
     }
 
     private func startTickingTimer() {
@@ -717,9 +796,7 @@ struct PomodoroView: View {
         timer = nil
 
         cancelTimerEndNotification()
-
         endActivity()
-
         persistTimerState(force: true)
 
         if userInitiated {
@@ -727,15 +804,20 @@ struct PomodoroView: View {
                 let elapsedSeconds = max(0.0, Date().timeIntervalSince(startedAt))
                 let shouldRecordMode = (selectedMode == .focus || selectedMode == .custom)
                 if shouldRecordMode, elapsedSeconds >= 60 {
+                    shouldResetAfterStudyLog = true
                     showStudyLogSheet = true
                     return
                 }
             }
 
             if isOvertime || timeRemaining == 0 {
+                shouldResetAfterStudyLog = true
                 showStudyLogSheet = true
+                return
             }
         }
+
+        resetTimer()
     }
 
     private func resetTimer() {
@@ -752,6 +834,7 @@ struct PomodoroView: View {
         endActivity()
 
         clearPersistedTimerState()
+        shouldResetAfterStudyLog = false
     }
 
     private var timerStudyLogSheet: some View {
@@ -783,6 +866,9 @@ struct PomodoroView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") {
                         showStudyLogSheet = false
+                        if shouldResetAfterStudyLog {
+                            resetTimer()
+                        }
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -795,6 +881,40 @@ struct PomodoroView: View {
                 }
             }
         }
+    }
+
+    private func updateActivityForTimerState() {
+        #if canImport(ActivityKit) && os(iOS)
+            guard let id = activityID,
+                let activity = Activity<FocusTimerAttributes>.activities.first(where: { $0.id == id })
+            else { return }
+
+            let target: Date
+            let pausedRemaining: Int?
+            if isActive {
+                if isOvertime {
+                    target = Date()
+                    pausedRemaining = nil
+                } else {
+                    target = Date().addingTimeInterval(timeRemaining)
+                    pausedRemaining = nil
+                }
+            } else {
+                target = Date()
+                pausedRemaining = Int(max(0, timeRemaining))
+            }
+
+            let state = FocusTimerAttributes.ContentState(
+                targetTime: target,
+                totalSeconds: max(1, Int(totalTime)),
+                pausedRemainingSeconds: pausedRemaining,
+                isPaused: !isActive
+            )
+            let content = ActivityContent(state: state, staleDate: nil)
+            Task {
+                await activity.update(content)
+            }
+        #endif
     }
 
     private func toggleStopwatch() {
@@ -981,7 +1101,11 @@ struct PomodoroView: View {
 
             let attributes = FocusTimerAttributes(timerName: selectedMode.rawValue)
             let state = FocusTimerAttributes.ContentState(
-                targetTime: targetDate, totalSeconds: Int(totalTime))
+                targetTime: targetDate,
+                totalSeconds: max(1, Int(totalTime)),
+                pausedRemainingSeconds: nil,
+                isPaused: false
+            )
             let content = ActivityContent(state: state, staleDate: nil)
 
             do {
@@ -1002,7 +1126,12 @@ struct PomodoroView: View {
                 })
             else { return }
 
-            let state = FocusTimerAttributes.ContentState(targetTime: Date(), totalSeconds: 0)
+            let state = FocusTimerAttributes.ContentState(
+                targetTime: Date(),
+                totalSeconds: max(1, Int(totalTime)),
+                pausedRemainingSeconds: 0,
+                isPaused: true
+            )
             let content = ActivityContent(state: state, staleDate: nil)
 
             Task {

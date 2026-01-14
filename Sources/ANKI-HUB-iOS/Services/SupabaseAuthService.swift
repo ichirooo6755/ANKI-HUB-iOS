@@ -14,6 +14,7 @@ import Foundation
         @Published private(set) var session: SupabaseSession?
 
         private var webAuthSession: ASWebAuthenticationSession?
+        private var webAuthContinuation: CheckedContinuation<URL, Error>?
 
         enum AuthError: Error {
             case unableToStart
@@ -160,21 +161,37 @@ import Foundation
 
         private func startWebAuth(url: URL, callbackScheme: String) async throws -> URL {
             try await withCheckedThrowingContinuation { continuation in
+                if let existing = self.webAuthContinuation {
+                    self.webAuthContinuation = nil
+                    self.webAuthSession?.cancel()
+                    self.webAuthSession = nil
+                    existing.resume(throwing: SupabaseHTTPClient.HTTPError.invalidResponse)
+                }
+                self.webAuthContinuation = continuation
                 let session = ASWebAuthenticationSession(
                     url: url, callbackURLScheme: callbackScheme
                 ) { [weak self] callbackURL, error in
+                    guard let self else { return }
+
+                    // continuationはプロパティ経由で一度だけresumeする
+                    guard let cont = self.webAuthContinuation else {
+                        self.webAuthSession = nil
+                        return
+                    }
+                    self.webAuthContinuation = nil
+
                     if let error {
-                        self?.webAuthSession = nil
-                        continuation.resume(throwing: error)
+                        self.webAuthSession = nil
+                        cont.resume(throwing: error)
                         return
                     }
                     guard let callbackURL else {
-                        self?.webAuthSession = nil
-                        continuation.resume(throwing: SupabaseHTTPClient.HTTPError.invalidResponse)
+                        self.webAuthSession = nil
+                        cont.resume(throwing: SupabaseHTTPClient.HTTPError.invalidResponse)
                         return
                     }
-                    self?.webAuthSession = nil
-                    continuation.resume(returning: callbackURL)
+                    self.webAuthSession = nil
+                    cont.resume(returning: callbackURL)
                 }
                 session.presentationContextProvider = self
                 session.prefersEphemeralWebBrowserSession = true
@@ -182,9 +199,24 @@ import Foundation
                 let started = session.start()
                 if !started {
                     self.webAuthSession = nil
+                    self.webAuthContinuation = nil
                     continuation.resume(throwing: AuthError.unableToStart)
                 }
             }
+        }
+
+        func handleIncomingCallbackURL(_ url: URL) {
+            guard url.scheme == SupabaseConfig.redirectScheme else { return }
+
+            let isLoginCallbackHost = (url.host == "login-callback")
+            let isLoginCallbackPath = (url.path == "/login-callback")
+            guard isLoginCallbackHost || isLoginCallbackPath else { return }
+
+            guard let continuation = webAuthContinuation else { return }
+            webAuthContinuation = nil
+            webAuthSession?.cancel()
+            webAuthSession = nil
+            continuation.resume(returning: url)
         }
 
         func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {

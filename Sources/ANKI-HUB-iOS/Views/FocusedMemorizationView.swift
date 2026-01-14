@@ -132,13 +132,23 @@ struct FocusedMemorizationView: View {
             }
         }
         .applyAppTheme()
-        .onReceive(Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()) { _ in
+        .task(id: timerActive) {
             guard timerActive, totalTime > 0 else { return }
-            if timeRemaining > 0 {
-                timeRemaining -= 0.1
-            } else {
-                // Auto mark as unknown on timeout
-                recordAnswer(known: false)
+            let tick: Double = 0.1
+            while timerActive, totalTime > 0 {
+                do {
+                    try await Task.sleep(nanoseconds: 100_000_000)
+                } catch {
+                    break
+                }
+                guard timerActive, totalTime > 0 else { break }
+                if timeRemaining > tick {
+                    timeRemaining -= tick
+                } else {
+                    // Auto mark as unknown on timeout
+                    recordAnswer(known: false)
+                    break
+                }
             }
         }
     }

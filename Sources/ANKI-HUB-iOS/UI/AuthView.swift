@@ -94,7 +94,7 @@ struct AuthView: View {
                         } label: {
                             let bg = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
                             HStack(spacing: 12) {
-                                Image(systemName: "g.circle.fill") // Placeholder for Google Icon
+                                Image(systemName: "globe") // Placeholder for Google Icon
                                     .font(.title2)
                                 Text("Sign in with Google")
                                     .font(.headline)

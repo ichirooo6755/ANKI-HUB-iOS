@@ -6,58 +6,77 @@ struct DashboardCharts: View {
     @ObservedObject var masteryTracker: MasteryTracker
 
     @ObservedObject private var theme = ThemeManager.shared
-    @State private var showCombinedMastery: Bool = true
+    @State private var selectedPage: Int = 0
 
     var body: some View {
-        let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
-        let data = showCombinedMastery ? getCombinedMasteryData() : getSubjectMasteryData()
-        let totalMastered = data.first(where: { $0.level == .mastered })?.count ?? 0
+        let pages: [MasteryPage] = {
+            var result: [MasteryPage] = [MasteryPage(kind: .combined, subject: nil)]
+            result.append(contentsOf: Subject.allCases.map { MasteryPage(kind: .subject, subject: $0) })
+            return result
+        }()
+
         VStack(spacing: 20) {
             // Mastery Chart (Donut)
             VStack(alignment: .leading) {
                 HStack {
-                    Text(showCombinedMastery ? "Total Mastery（習熟度）" : "科目別習熟度")
+                    Text("Total Mastery")
                         .font(.headline)
-                        .padding(.bottom, 5)
-                    
                     Spacer()
-                    
-                    Button {
-                        showCombinedMastery.toggle()
-                    } label: {
-                        Text(showCombinedMastery ? "科目別" : "総合")
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.2))
-                            .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-                            .clipShape(Capsule())
-                    }
+                    Image(systemName: "arrow.left.and.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(theme.secondaryText)
                 }
+                .padding(.bottom, 5)
 
-                Chart(data) { item in
-                    SectorMark(
-                        angle: .value("Count", item.count),
-                        innerRadius: .ratio(0.6),
-                        angularInset: 1.5
-                    )
-                    .cornerRadius(5)
-                    .foregroundStyle(item.level.color)
-                }
-                .frame(height: 200)
-                .chartOverlay { _ in
-                    VStack(spacing: 4) {
-                        Text("覚えた")
-                            .font(.caption)
-                            .foregroundStyle(theme.secondaryText)
-                        Text("\(totalMastered)")
-                            .font(.system(.title, design: .rounded).weight(.bold))
-                            .minimumScaleFactor(0.5)
-                            .lineLimit(1)
-                            .foregroundStyle(theme.primaryText)
+                TabView(selection: $selectedPage) {
+                    ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
+                        let data = masteryData(for: page)
+                        let totalMastered = data.first(where: { $0.level == .mastered })?.count ?? 0
+                        VStack {
+                            Chart(data) { item in
+                                SectorMark(
+                                    angle: .value("Count", item.count),
+                                    innerRadius: .ratio(0.6),
+                                    angularInset: 1.5
+                                )
+                                .cornerRadius(5)
+                                .foregroundStyle(item.level.color)
+                            }
+                            .frame(height: 200)
+                            .chartOverlay { _ in
+                                VStack(spacing: 4) {
+                                    Text("覚えた")
+                                        .font(.caption)
+                                        .foregroundStyle(theme.secondaryText)
+                                    Text("\(totalMastered)")
+                                        .font(.system(.title, design: .rounded).weight(.bold))
+                                        .minimumScaleFactor(0.5)
+                                        .lineLimit(1)
+                                        .foregroundStyle(theme.primaryText)
+                                }
+                                .padding(.horizontal, 10)
+                            }
+
+                            if let subject = page.subject {
+                                Text(subject.displayName)
+                                    .font(.caption)
+                                    .foregroundStyle(theme.secondaryText)
+                            } else {
+                                Text("総合")
+                                    .font(.caption)
+                                    .foregroundStyle(theme.secondaryText)
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                        .tag(index)
                     }
-                    .padding(.horizontal, 10)
                 }
+                .frame(height: 240)
+                #if os(iOS)
+                    .tabViewStyle(.page(indexDisplayMode: .automatic))
+                #else
+                    .tabViewStyle(.automatic)
+                #endif
 
                 // Legend
                 HStack {
@@ -76,78 +95,9 @@ struct DashboardCharts: View {
             }
             .padding()
             .liquidGlass()
-
-            // Weekly Activity (Bar)
-            VStack(alignment: .leading) {
-                Text("Weekly Activity（直近7日）")
-                    .font(.headline)
-                    .padding(.bottom, 5)
-
-                Chart(getWeeklyMinutesData()) { entry in
-                    BarMark(
-                        x: .value("Day", entry.day),
-                        y: .value("Minutes", entry.minutes)
-                    )
-                    .foregroundStyle(primary.gradient)
-                    .cornerRadius(4)
-                }
-                .frame(height: 150)
-            }
-            .padding()
-            .liquidGlass()
-
-            // Subject Activity (Weekly Totals)
-            VStack(alignment: .leading) {
-                Text("教科別（直近7日）")
-                    .font(.headline)
-                    .padding(.bottom, 5)
-
-                let data = getWeeklySubjectTotals()
-                if data.isEmpty {
-                    Text("まだ記録がありません。クイズ/インプット/タイマーで学習するとここに反映されます")
-                        .font(.caption)
-                        .foregroundStyle(theme.secondaryText)
-                        .padding(.vertical, 12)
-                } else {
-                    Chart(data) { entry in
-                        BarMark(
-                            x: .value("Subject", entry.subjectDisplayName),
-                            y: .value("Words", entry.words)
-                        )
-                        .foregroundStyle(subjectColor(for: entry.subjectId).gradient)
-                        .cornerRadius(4)
-                    }
-                    .frame(height: 170)
-                }
-            }
-            .padding()
-            .liquidGlass()
         }
     }
     
-    private func getSubjectMasteryData() -> [MasteryData] {
-        var subjectData: [(subject: Subject, stats: [MasteryLevel: Int])] = []
-        
-        for subject in Subject.allCases {
-            let stats = masteryTracker.getStats(for: subject.id)
-            subjectData.append((subject: subject, stats: stats))
-        }
-        
-        // 各科目のデータをマスタリーデベルごとに集計
-        var combinedStats: [MasteryLevel: Int] = [:]
-        for (_, stats) in subjectData {
-            for (level, count) in stats {
-                combinedStats[level, default: 0] += count
-            }
-        }
-        
-        return MasteryLevel.allCases.map { level in
-            MasteryData(level: level, count: combinedStats[level] ?? 0)
-        }
-    }
-
-    // MARK: - Data Helpers
-
     private func getCombinedMasteryData() -> [MasteryData] {
         var totalStats: [MasteryLevel: Int] = [
             .new: 0, .weak: 0, .learning: 0, .almost: 0, .mastered: 0,
@@ -171,6 +121,43 @@ struct DashboardCharts: View {
         return MasteryLevel.allCases.map { level in
             MasteryData(level: level, count: totalStats[level] ?? 0)
         }
+    }
+
+    private func getSubjectMasteryData(_ subject: Subject) -> [MasteryData] {
+        let stats = masteryTracker.getStats(for: subject.id)
+        var combined: [MasteryLevel: Int] = [:]
+        for (level, count) in stats {
+            combined[level, default: 0] += count
+        }
+        let total = VocabularyData.shared.getVocabulary(for: subject).count
+        let tracked = stats.values.reduce(0, +)
+        combined[.new] = max(0, total - tracked)
+
+        return MasteryLevel.allCases.map { level in
+            MasteryData(level: level, count: combined[level] ?? 0)
+        }
+    }
+
+    private func masteryData(for page: MasteryPage) -> [MasteryData] {
+        switch page.kind {
+        case .combined:
+            return getCombinedMasteryData()
+        case .subject:
+            if let subject = page.subject {
+                return getSubjectMasteryData(subject)
+            }
+            return getCombinedMasteryData()
+        }
+    }
+
+    private struct MasteryPage {
+        enum Kind {
+            case combined
+            case subject
+        }
+
+        let kind: Kind
+        let subject: Subject?
     }
 
     struct ActivityData: Identifiable {

@@ -32,7 +32,7 @@ struct QuizView: View {
     @State private var showAnswer = false
     @State private var isRankUpMode = false
     @State private var rankUpChunkIndex: Int = 0
-    @State private var selectedChapter: String = "すべて"
+    @State private var selectedChapters: Set<String> = ["すべて"]
     @State private var availableChapters: [String] = []
     @State private var typingAnswer: String = ""  // For Typing Mode
     @State private var redSheetMode: Bool = false  // 赤シート
@@ -77,6 +77,11 @@ struct QuizView: View {
     @State private var sessionIncorrectQuestions: [Question] = []
     @State private var isReviewRound: Bool = false
 
+    @State private var rechallengeQuestions: [Question] = []
+    @State private var didDecideRechallengeForCurrent: Bool = false
+
+    private static var seikeiParseCache: [Int: (String, [Int: String])] = [:]
+
     // Initializer param
     var initialChapter: String? = nil
     private var initialMistakesOnly: Bool = false
@@ -96,6 +101,102 @@ struct QuizView: View {
         self.baseTimeLimit = timerLimitSetting
     }
 
+    private var bookmarkButton: some View {
+        Button {
+            addCurrentWordToWordbook()
+        } label: {
+            Image(systemName: "bookmark.fill")
+                .font(.title3)
+                .foregroundStyle(
+                    theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .liquidGlassCircle()
+    }
+
+    private var retryButtons: some View {
+        let q = questions[currentIndex]
+        return VStack(spacing: 10) {
+            Text("この問題をセッション内でもう一度出しますか？")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
+            HStack(spacing: 12) {
+                Button {
+                    scheduleRechallenge(for: q)
+                    didDecideRechallengeForCurrent = true
+                } label: {
+                    let bg = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                    Text("もう一度出す")
+                        .font(.headline)
+                        .foregroundStyle(theme.onColor(for: bg))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(bg)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+
+                Button {
+                    didDecideRechallengeForCurrent = true
+                } label: {
+                    Text("今回はいい")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.gray.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            .padding(.horizontal)
+        }
+    }
+
+    private func scheduleRechallenge(for q: Question) {
+        // Avoid duplicates in the rechallenge queue
+        if rechallengeQuestions.contains(where: { $0.id == q.id && $0.questionText == q.questionText }) {
+            return
+        }
+        rechallengeQuestions.append(q)
+    }
+
+    private func toggleChapterSelection(_ chapter: String) {
+        if chapter == "すべて" {
+            selectedChapters = ["すべて"]
+            return
+        }
+
+        // Selecting a specific chapter removes "すべて"
+        if selectedChapters.contains("すべて") {
+            selectedChapters.remove("すべて")
+        }
+
+        if selectedChapters.contains(chapter) {
+            selectedChapters.remove(chapter)
+        } else {
+            selectedChapters.insert(chapter)
+        }
+
+        if selectedChapters.isEmpty {
+            selectedChapters = ["すべて"]
+        }
+    }
+
+    private var selectedChaptersDisplay: String {
+        if selectedChapters.contains("すべて") || selectedChapters.isEmpty {
+            return "すべて"
+        }
+        let sorted = selectedChapters.sorted()
+        if sorted.count <= 2 {
+            return sorted.joined(separator: ", ")
+        }
+        return "\(sorted.prefix(2).joined(separator: ", ")) ほか\(sorted.count - 2)件"
+    }
+
     private func isTypingCorrect(typed: String, answer: String) -> Bool {
         let t = typed.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         let a = answer.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -109,6 +210,16 @@ struct QuizView: View {
 
         // Fuzzy match fallback
         return t.isFuzzyMatch(to: a, tolerance: 0.2)
+    }
+
+    private func cachedParseSeikeiQuizContent(_ text: String) -> (String, [Int: String]) {
+        let key = text.hashValue
+        if let cached = Self.seikeiParseCache[key] {
+            return cached
+        }
+        let parsed = parseSeikeiQuizContent(text)
+        Self.seikeiParseCache[key] = parsed
+        return parsed
     }
 
     private let synthesizer = AVSpeechSynthesizer()
@@ -135,11 +246,21 @@ struct QuizView: View {
                             var caps = VocabularyData.shared.getSeikeiChapters()
                             caps.insert("すべて", at: 0)
                             availableChapters = caps
+                        } else if subject == .kobun {
+                            let total = VocabularyData.shared.getVocabulary(for: .kobun).count
+                            let blocks = max(1, Int(ceil(Double(total) / 50.0)))
+                            var caps: [String] = ["すべて"]
+                            for i in 0..<blocks {
+                                let start = i * 50 + 1
+                                let end = min((i + 1) * 50, total)
+                                caps.append("チャプター \(i + 1)（\(start)-\(end)）")
+                            }
+                            availableChapters = caps
                         } else if subject == .english {
                             // Can add chapters for English here if desired
                         }
                         if let initChap = initialChapter {
-                            selectedChapter = initChap
+                            selectedChapters = [initChap]
                         }
                     }
                     .onChange(of: timerLimitSetting) { _, newValue in
@@ -170,7 +291,11 @@ struct QuizView: View {
         .task(id: timerActive) {
             guard timerActive, timeLimit > 0 else { return }
             while timerActive, timeLimit > 0, !showResult {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                do {
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                } catch {
+                    break
+                }
                 guard timerActive, timeLimit > 0, !showResult else { break }
                 if timeRemaining > 0 {
                     timeRemaining -= 1
@@ -367,30 +492,50 @@ struct QuizView: View {
                     }
                     .pickerStyle(.segmented)
 
-                    // Seikei Chapter Selection
-                    if subject == .seikei {
-                        Text("チャプター")
-                            .font(.headline)
-                            .foregroundStyle(.secondary)
-                            .padding(.top)
-
-                        Menu {
-                            ForEach(availableChapters, id: \.self) { chapter in
-                                Button(chapter) {
-                                    selectedChapter = chapter
+                    // Chapter Selection (multi-select)
+                    if subject == .seikei || subject == .kobun {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("チャプターを選択")
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                            
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                                ForEach(availableChapters, id: \.self) { chapter in
+                                    let isSelected = selectedChapters.contains(chapter)
+                                    Button {
+                                        toggleChapterSelection(chapter)
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                                .foregroundStyle(isSelected
+                                                    ? theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                                                    : .secondary)
+                                            Text(chapter)
+                                                .font(.subheadline)
+                                                .foregroundStyle(theme.primaryText)
+                                                .multilineTextAlignment(.leading)
+                                                .lineLimit(2)
+                                                .minimumScaleFactor(0.85)
+                                        }
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(10)
+                                        .background(
+                                            isSelected
+                                            ? theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.15)
+                                            : Color.gray.opacity(0.08)
+                                        )
+                                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             }
-                        } label: {
-                            HStack {
-                                Text(selectedChapter)
-                                    .foregroundStyle(ThemeManager.shared.primaryText)
-                                Spacer()
-                                Image(systemName: "chevron.up.chevron.down")
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding()
-                            .liquidGlass(cornerRadius: 12)
+                            
+                            Text("選択中: \(selectedChaptersDisplay)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
+                        .padding(.horizontal)
+                        .padding(.vertical, 8)
                     }
 
                     // Red Sheet Mode
@@ -536,16 +681,6 @@ struct QuizView: View {
                     .foregroundStyle(.secondary)
 
                 Spacer()
-
-                // Add to Wordbook Button
-                Button {
-                    addCurrentWordToWordbook()
-                } label: {
-                    Image(systemName: "bookmark.fill")
-                        .font(.caption)
-                        .foregroundStyle(
-                            theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-                }
 
                 // Mistake Report
                 Button {
@@ -707,7 +842,7 @@ struct QuizView: View {
 
                 // For Seikei: Display fullText with blanks using SeikeiWebView
                 if subject == .seikei, let fullText = question.fullText, !fullText.isEmpty {
-                    let (seikeiContent, seikeiBlankMap) = parseSeikeiQuizContent(fullText)
+                    let (seikeiContent, seikeiBlankMap) = cachedParseSeikeiQuizContent(fullText)
                     SeikeiWebView(
                         content: seikeiContent,
                         blankMap: seikeiBlankMap,
@@ -785,6 +920,10 @@ struct QuizView: View {
             .padding(24)
             .liquidGlass(cornerRadius: 20)
             .padding(.horizontal)
+            .overlay(alignment: .topTrailing) {
+                bookmarkButton
+                    .padding(12)
+            }
 
             // Choices
             VStack(spacing: 12) {
@@ -841,6 +980,9 @@ struct QuizView: View {
             }
 
             if showResult {
+                if !isCorrect, !didDecideRechallengeForCurrent {
+                    retryButtons
+                }
                 Button {
                     nextQuestion()
                 } label: {
@@ -884,7 +1026,7 @@ struct QuizView: View {
                 }
 
                 if subject == .seikei, let fullText = question.fullText, !fullText.isEmpty {
-                    let (seikeiContent, seikeiBlankMap) = parseSeikeiQuizContent(fullText)
+                    let (seikeiContent, seikeiBlankMap) = cachedParseSeikeiQuizContent(fullText)
                     SeikeiWebView(
                         content: seikeiContent,
                         blankMap: seikeiBlankMap,
@@ -961,6 +1103,10 @@ struct QuizView: View {
             .padding(24)
             .liquidGlass(cornerRadius: 20)
             .padding(.horizontal)
+            .overlay(alignment: .topTrailing) {
+                bookmarkButton
+                    .padding(12)
+            }
 
             // Answer Input
             VStack(spacing: 16) {
@@ -989,21 +1135,20 @@ struct QuizView: View {
                     .liquidGlass(cornerRadius: 12)
                 }
 
+                if showResult && !isCorrect && !didDecideRechallengeForCurrent {
+                    retryButtons
+                }
+
                 Button {
                     if showResult {
                         typingAnswer = ""
                         nextQuestion()
                     } else {
-                        // Check answer
-                        // Check answer with fuzzy matching (tolerance 0.2 = ~1 error per 5 chars)
-                        // + Partial match: if the typed text is contained in the answer, treat as correct
-                        // (e.g. long answers / phrases).
                         let correct = isTypingCorrect(typed: typingAnswer, answer: question.answerText)
                         selectTypingAnswer(isCorrect: correct)
                     }
                 } label: {
-                    let bg =
-                        showResult
+                    let bg = showResult
                         ? theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
                         : theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
                     Text(showResult ? "次へ" : "決定")
@@ -1113,7 +1258,7 @@ struct QuizView: View {
                 }
 
                 if subject == .seikei, let fullText = question.fullText, !fullText.isEmpty {
-                    let (seikeiContent, seikeiBlankMap) = parseSeikeiQuizContent(fullText)
+                    let (seikeiContent, seikeiBlankMap) = cachedParseSeikeiQuizContent(fullText)
                     SeikeiWebView(
                         content: seikeiContent,
                         blankMap: seikeiBlankMap,
@@ -1194,6 +1339,10 @@ struct QuizView: View {
             .padding(32)
             .liquidGlass(cornerRadius: 24)
             .padding(.horizontal)
+            .overlay(alignment: .topTrailing) {
+                bookmarkButton
+                    .padding(12)
+            }
             .overlay {
                 let okOpacity = min(1.0, max(0.0, Double(cardDragX / 90.0)))
                 let ngOpacity = min(1.0, max(0.0, Double(-cardDragX / 90.0)))
@@ -1303,6 +1452,10 @@ struct QuizView: View {
                 .padding(.horizontal)
 
                 if showResult {
+                    if !isCorrect {
+                        retryButtons
+                            .padding(.horizontal)
+                    }
                     Button {
                         nextQuestion()
                     } label: {
@@ -1603,17 +1756,29 @@ struct QuizView: View {
             }
         }
 
-        // Apply chapter filter for ALL subjects when initialChapter/selectedChapter is set
-        let chapterForFilter: String? = {
-            if let chapter = initialChapter, !chapter.isEmpty { return chapter }
-            if subject == .seikei, selectedChapter != "すべて" { return selectedChapter }
-            return nil
+        // Apply chapter filter (multi-select)
+        let chaptersForFilter: Set<String> = {
+            if let chapter = initialChapter, !chapter.isEmpty { return [chapter] }
+            if subject == .seikei || subject == .kobun {
+                if selectedChapters.contains("すべて") || selectedChapters.isEmpty {
+                    return []
+                }
+                return selectedChapters
+            }
+            return []
         }()
 
-        if let chapter = chapterForFilter, !chapter.isEmpty {
-            // Filter vocabulary by chapter index
-            // Parse chapter title to get range (e.g., "STAGE1" = 0-49, "Chapter 2" = 50-99)
-            vocab = filterVocabByChapter(vocab, chapter: chapter)
+        if !chaptersForFilter.isEmpty {
+            var merged: [Vocabulary] = []
+            var seen: Set<String> = []
+            for chapter in chaptersForFilter {
+                for v in filterVocabByChapter(vocab, chapter: chapter) {
+                    if seen.insert(v.id).inserted {
+                        merged.append(v)
+                    }
+                }
+            }
+            vocab = merged
         }
 
         guard !vocab.isEmpty else {
@@ -1628,7 +1793,7 @@ struct QuizView: View {
 
         let candidateLimit = min(vocab.count, max(desiredCount, desiredCount * 3))
 
-        if chapterForFilter != nil {
+        if !chaptersForFilter.isEmpty {
             // If specific chapter is selected, still use a larger candidate pool so history filtering can't collapse to 1 item.
             finalSelection = Array(vocab.shuffled().prefix(candidateLimit))
         } else {
@@ -1705,6 +1870,10 @@ struct QuizView: View {
     private func filterVocabByChapter(_ vocab: [Vocabulary], chapter: String) -> [Vocabulary] {
         let chunkSize = 50
 
+        if chapter == "すべて" {
+            return vocab
+        }
+
         if subject == .seikei {
             // Seikei: use category field (DataParser assigns exact chapter string)
             return vocab.filter { $0.category == chapter }
@@ -1734,11 +1903,14 @@ struct QuizView: View {
                     return Array(vocab[startIndex..<endIndex])
                 }
             }
-        } else if chapter.hasPrefix("Chapter") {
+        } else if chapter.hasPrefix("Chapter") || chapter.hasPrefix("チャプター") {
             // Kobun/Kanbun/Seikei: Chapter 1, Chapter 2, etc.
             // Extract number from "Chapter X" or "Chapter X (Y-Z条)"
             let numStr =
-                chapter.replacingOccurrences(of: "Chapter ", with: "").components(separatedBy: " ")
+                chapter
+                .replacingOccurrences(of: "Chapter ", with: "")
+                .replacingOccurrences(of: "チャプター ", with: "")
+                .components(separatedBy: " ")
                 .first ?? ""
             if let chapterNum = Int(numStr) {
                 let startIndex = (chapterNum - 1) * chunkSize
@@ -1764,7 +1936,7 @@ struct QuizView: View {
             {
                 let answerToBlankId: [String: Int] = {
                     guard let fullText = word.fullText, !fullText.isEmpty else { return [:] }
-                    let (_, map) = parseSeikeiQuizContent(fullText)
+                    let (_, map) = cachedParseSeikeiQuizContent(fullText)
                     // map is [blankId: answer]
                     return Dictionary(uniqueKeysWithValues: map.map { ($0.value, $0.key) })
                 }()
@@ -1933,7 +2105,7 @@ struct QuizView: View {
 
     private func blankCount(for question: Question) -> Int {
         if subject == .seikei, let fullText = question.fullText, !fullText.isEmpty {
-            let (_, map) = parseSeikeiQuizContent(fullText)
+            let (_, map) = cachedParseSeikeiQuizContent(fullText)
             return max(1, map.count)
         }
         return 1
@@ -2184,7 +2356,21 @@ struct QuizView: View {
         cardDragX = 0
         lastChosenAnswerText = ""
         isProcessingAnswer = false
+        didDecideRechallengeForCurrent = false
         if currentIndex < questions.count - 1 {
+            currentIndex += 1
+            questionStartTime = CACurrentMediaTime()
+            revealedSeikeiBlankId = nil
+            if timeLimit > 0 {
+                timeRemaining = timeLimitForQuestion(at: currentIndex)
+                timerActive = true
+            }
+        } else if !rechallengeQuestions.isEmpty, !isReviewRound {
+            // Append scheduled rechallenge questions and continue session
+            questions.append(contentsOf: rechallengeQuestions.shuffled())
+            rechallengeQuestions = []
+            isReviewRound = true
+
             currentIndex += 1
             questionStartTime = CACurrentMediaTime()
             revealedSeikeiBlankId = nil
@@ -2325,7 +2511,7 @@ private extension QuizView {
         mistakesSessionMode = false
         isShuffleMode = false
         redSheetMode = false
-        selectedChapter = "すべて"
+        selectedChapters = ["すべて"]
         timeLimit = timerLimitSetting
         baseTimeLimit = timerLimitSetting
     }

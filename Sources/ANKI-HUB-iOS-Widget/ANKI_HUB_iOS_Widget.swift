@@ -369,6 +369,14 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                     return .result()
                 }
 
+                // App groupへ操作リクエストを書き込む（アプリ側が起動/復帰時に同期）
+                if let defaults = UserDefaults(suiteName: appGroupId) {
+                    let req = FocusTimerControlRequest(action: .togglePause)
+                    if let data = try? JSONEncoder().encode(req) {
+                        defaults.set(data, forKey: "anki_hub_focus_timer_control_v1")
+                    }
+                }
+
                 let now = Date()
                 let state = activity.content.state
 
@@ -404,6 +412,13 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
             func perform() async throws -> some IntentResult {
                 guard let activity = Activity<FocusTimerAttributes>.activities.first else {
                     return .result()
+                }
+
+                if let defaults = UserDefaults(suiteName: appGroupId) {
+                    let req = FocusTimerControlRequest(action: .stop)
+                    if let data = try? JSONEncoder().encode(req) {
+                        defaults.set(data, forKey: "anki_hub_focus_timer_control_v1")
+                    }
                 }
                 let state = FocusTimerAttributes.ContentState(
                     targetTime: Date(),

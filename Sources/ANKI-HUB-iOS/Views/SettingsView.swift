@@ -88,17 +88,7 @@ struct SettingsView: View {
         }
     }
 
-    @ViewBuilder
-    private var toolsSection: some View {
-        Section("ツール") {
-            NavigationLink(destination: TodoView()) {
-                Label("やることリスト", systemImage: "list.bullet")
-            }
-            NavigationLink(destination: ExamHistoryView()) {
-                Label("テスト履歴", systemImage: "doc.text")
-            }
-        }
-    }
+    
 
     @ViewBuilder
     private var statsSection: some View {
@@ -227,83 +217,40 @@ struct SettingsView: View {
             }
 
             timerSettingRow
-
-            Toggle(isOn: $dailyStudyReminderEnabled) {
-                Text("学習リマインド（毎日）")
-            }
-
-            if dailyStudyReminderEnabled {
-                ForEach(reminderTimeItems) { item in
-                    DatePicker(
-                        item == reminderTimeItems.first ? "通知時刻" : "",
-                        selection: reminderDateBinding(for: item),
-                        displayedComponents: .hourAndMinute
-                    )
-
-                    if reminderTimeItems.count > 1 {
-                        Button(role: .destructive) {
-                            reminderTimeItems.removeAll { $0.id == item.id }
-                            persistReminderTimes()
-                            Task { await applyDailyReminderSetting(enabled: true) }
-                        } label: {
-                            Text("この時刻を削除")
-                        }
-                    }
-                }
-
-                Button {
-                    reminderTimeItems.append(ReminderTimeItem(hour: 20, minute: 0))
-                    persistReminderTimes()
-                    Task { await applyDailyReminderSetting(enabled: true) }
-                } label: {
-                    Text("通知時刻を追加")
-                }
-            }
-
-            Picker("ウィジェット教科", selection: $widgetSubjectFilter) {
-                Text("すべて").tag("")
-                Text("英語").tag(Subject.english.rawValue)
-                Text("古文").tag(Subject.kobun.rawValue)
-                Text("漢文").tag(Subject.kanbun.rawValue)
-                Text("政経").tag(Subject.seikei.rawValue)
-            }
-
-            Toggle(isOn: $widgetShowStreak) {
-                Text("ウィジェット: 連続学習日数")
-            }
-
-            Toggle(isOn: $widgetShowTodayMinutes) {
-                Text("ウィジェット: 今日の学習時間")
-            }
-
-            Toggle(isOn: $widgetShowMistakes) {
-                Text("ウィジェット: 間違えた単語")
-            }
-
-            Picker("ウィジェット: 間違えた単語の表示数", selection: $widgetMistakeCount) {
-                Text("1件").tag(1)
-                Text("2件").tag(2)
-                Text("3件").tag(3)
-            }
-
-            Toggle(isOn: $widgetShowTodo) {
-                Text("ウィジェット: やることリスト")
-            }
-
-            Picker("ウィジェット: やることリストの表示数", selection: $widgetTodoCount) {
-                Text("1件").tag(1)
-                Text("2件").tag(2)
-                Text("3件").tag(3)
-            }
-
-            Picker("ウィジェット: 見た目", selection: $widgetStyle) {
-                Text("システム").tag("system")
-                Text("ダーク").tag("dark")
-                Text("アクセント").tag("accent")
-            }
-
-            Stepper("ウィジェット: タイマー（\(widgetTimerMinutes)分）", value: $widgetTimerMinutes, in: 1...180)
         }
+    }
+
+    @ViewBuilder
+    private var reminderSection: some View {
+        let rowBg = themeManager.color(.surface, scheme: colorScheme)
+        Section("学習リマインド") {
+            NavigationLink {
+                ReminderSettingsView(
+                    enabled: $dailyStudyReminderEnabled,
+                    reminderTimeItems: $reminderTimeItems,
+                    loadReminderTimesIfNeeded: loadReminderTimesIfNeeded,
+                    persistReminderTimes: persistReminderTimes,
+                    applySetting: applyDailyReminderSetting
+                )
+            } label: {
+                Label("学習リマインド設定", systemImage: "bell.badge")
+            }
+        }
+        .listRowBackground(rowBg)
+    }
+
+    @ViewBuilder
+    private var widgetSection: some View {
+        let rowBg = themeManager.color(.surface, scheme: colorScheme)
+        Section("ウィジェット") {
+            NavigationLink {
+                WidgetSettingsView()
+                    .environmentObject(themeManager)
+            } label: {
+                Label("ウィジェット設定", systemImage: "square.grid.2x2")
+            }
+        }
+        .listRowBackground(rowBg)
     }
 
     @ViewBuilder
@@ -533,8 +480,9 @@ struct SettingsView: View {
                     accountSection
                     statsSection
                     studySection
+                    widgetSection
+                    reminderSection
                     appearanceSection
-                    toolsSection
                     syncSection
                     infoSection
                 }
@@ -564,60 +512,6 @@ struct SettingsView: View {
             Task {
                 await applyDailyReminderSetting(enabled: newValue)
             }
-        }
-        .onChange(of: widgetSubjectFilter) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
-        }
-        .onChange(of: widgetShowStreak) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
-        }
-        .onChange(of: widgetShowTodayMinutes) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
-        }
-        .onChange(of: widgetShowMistakes) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
-        }
-        .onChange(of: widgetMistakeCount) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
-        }
-        .onChange(of: widgetShowTodo) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
-        }
-        .onChange(of: widgetTodoCount) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
-        }
-        .onChange(of: widgetStyle) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
-        }
-        .onChange(of: widgetTimerMinutes) { _, _ in
-            saveWidgetSettingsToAppGroup()
-            #if canImport(WidgetKit)
-                WidgetCenter.shared.reloadAllTimelines()
-            #endif
         }
         .onChange(of: authManager.lastAuthErrorMessage) { _, newValue in
             if let msg = newValue {
@@ -705,6 +599,233 @@ struct SettingsView: View {
                 syncStatus = ""
             }
         }
+    }
+
+    private struct ReminderSettingsView: View {
+        @EnvironmentObject var themeManager: ThemeManager
+        @Environment(\.colorScheme) var colorScheme
+
+        @Binding var enabled: Bool
+        @Binding var reminderTimeItems: [ReminderTimeItem]
+
+        let loadReminderTimesIfNeeded: () -> Void
+        let persistReminderTimes: () -> Void
+        let applySetting: (Bool) async -> Void
+
+        var body: some View {
+            let rowBg = themeManager.color(.surface, scheme: colorScheme)
+            List {
+                Section("学習リマインド") {
+                    Toggle(isOn: $enabled) {
+                        Text("学習リマインド（毎日）")
+                    }
+
+                    if enabled {
+                        ForEach(reminderTimeItems) { item in
+                            DatePicker(
+                                item == reminderTimeItems.first ? "通知時刻" : "",
+                                selection: reminderDateBinding(for: item),
+                                displayedComponents: .hourAndMinute
+                            )
+
+                            if reminderTimeItems.count > 1 {
+                                Button(role: .destructive) {
+                                    reminderTimeItems.removeAll { $0.id == item.id }
+                                    persistReminderTimes()
+                                    Task { await applySetting(true) }
+                                } label: {
+                                    Text("この時刻を削除")
+                                }
+                            }
+                        }
+
+                        Button {
+                            reminderTimeItems.append(ReminderTimeItem(hour: 20, minute: 0))
+                            persistReminderTimes()
+                            Task { await applySetting(true) }
+                        } label: {
+                            Text("通知時刻を追加")
+                        }
+                    }
+                }
+                .listRowBackground(rowBg)
+            }
+            .scrollContentBackground(.hidden)
+            #if os(iOS)
+                .listStyle(.insetGrouped)
+            #else
+                .listStyle(.inset)
+            #endif
+            .navigationTitle("学習リマインド")
+            #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .applyAppTheme()
+            .onAppear {
+                loadReminderTimesIfNeeded()
+            }
+            .onChange(of: enabled) { _, newValue in
+                Task { await applySetting(newValue) }
+            }
+        }
+
+        private func reminderDateBinding(for item: ReminderTimeItem) -> Binding<Date> {
+            Binding(
+                get: {
+                    var comps = DateComponents()
+                    comps.hour = item.hour
+                    comps.minute = item.minute
+                    return Calendar.current.date(from: comps) ?? Date()
+                },
+                set: { newValue in
+                    let comps = Calendar.current.dateComponents([.hour, .minute], from: newValue)
+                    guard let idx = reminderTimeItems.firstIndex(where: { $0.id == item.id }) else {
+                        return
+                    }
+                    var t = reminderTimeItems[idx]
+                    t.hour = comps.hour ?? t.hour
+                    t.minute = comps.minute ?? t.minute
+                    reminderTimeItems[idx] = t
+                    persistReminderTimes()
+                    Task { await applySetting(true) }
+                }
+            )
+        }
+    }
+}
+
+struct WidgetSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.colorScheme) var colorScheme
+
+    @AppStorage("anki_hub_widget_subject_filter_v1") private var widgetSubjectFilter: String = ""
+    @AppStorage("anki_hub_widget_show_streak_v1") private var widgetShowStreak: Bool = true
+    @AppStorage("anki_hub_widget_show_today_minutes_v1") private var widgetShowTodayMinutes: Bool = true
+    @AppStorage("anki_hub_widget_show_mistakes_v1") private var widgetShowMistakes: Bool = true
+    @AppStorage("anki_hub_widget_mistake_count_v1") private var widgetMistakeCount: Int = 3
+    @AppStorage("anki_hub_widget_show_todo_v1") private var widgetShowTodo: Bool = false
+    @AppStorage("anki_hub_widget_todo_count_v1") private var widgetTodoCount: Int = 2
+    @AppStorage("anki_hub_widget_style_v1") private var widgetStyle: String = "system"
+    @AppStorage("anki_hub_widget_timer_minutes_v1") private var widgetTimerMinutes: Int = 25
+
+    private let widgetAppGroupId = "group.com.ankihub.ios"
+
+    var body: some View {
+        let rowBg = themeManager.color(.surface, scheme: colorScheme)
+
+        List {
+            Section("ウィジェット") {
+                Picker("教科", selection: $widgetSubjectFilter) {
+                    Text("すべて").tag("")
+                    Text("英語").tag(Subject.english.rawValue)
+                    Text("古文").tag(Subject.kobun.rawValue)
+                    Text("漢文").tag(Subject.kanbun.rawValue)
+                    Text("政経").tag(Subject.seikei.rawValue)
+                }
+
+                Toggle(isOn: $widgetShowStreak) {
+                    Text("連続学習日数")
+                }
+
+                Toggle(isOn: $widgetShowTodayMinutes) {
+                    Text("今日の学習時間")
+                }
+
+                Toggle(isOn: $widgetShowMistakes) {
+                    Text("間違えた単語")
+                }
+
+                Picker("間違えた単語の表示数", selection: $widgetMistakeCount) {
+                    Text("1件").tag(1)
+                    Text("2件").tag(2)
+                    Text("3件").tag(3)
+                }
+
+                Toggle(isOn: $widgetShowTodo) {
+                    Text("やることリスト")
+                }
+
+                Picker("やることリストの表示数", selection: $widgetTodoCount) {
+                    Text("1件").tag(1)
+                    Text("2件").tag(2)
+                    Text("3件").tag(3)
+                }
+
+                Picker("見た目", selection: $widgetStyle) {
+                    Text("システム").tag("system")
+                    Text("ダーク").tag("dark")
+                    Text("アクセント").tag("accent")
+                }
+
+                Stepper(
+                    "タイマー（\(widgetTimerMinutes)分）",
+                    value: $widgetTimerMinutes,
+                    in: 1...180
+                )
+            }
+            .listRowBackground(rowBg)
+        }
+        .scrollContentBackground(.hidden)
+        #if os(iOS)
+            .listStyle(.insetGrouped)
+        #else
+            .listStyle(.inset)
+        #endif
+        .navigationTitle("ウィジェット設定")
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
+        .applyAppTheme()
+        .onAppear {
+            saveWidgetSettingsToAppGroup()
+        }
+        .onChange(of: widgetSubjectFilter) { _, _ in
+            onWidgetSettingsChanged()
+        }
+        .onChange(of: widgetShowStreak) { _, _ in
+            onWidgetSettingsChanged()
+        }
+        .onChange(of: widgetShowTodayMinutes) { _, _ in
+            onWidgetSettingsChanged()
+        }
+        .onChange(of: widgetShowMistakes) { _, _ in
+            onWidgetSettingsChanged()
+        }
+        .onChange(of: widgetMistakeCount) { _, _ in
+            onWidgetSettingsChanged()
+        }
+        .onChange(of: widgetShowTodo) { _, _ in
+            onWidgetSettingsChanged()
+        }
+        .onChange(of: widgetTodoCount) { _, _ in
+            onWidgetSettingsChanged()
+        }
+        .onChange(of: widgetStyle) { _, _ in
+            onWidgetSettingsChanged()
+        }
+        .onChange(of: widgetTimerMinutes) { _, _ in
+            onWidgetSettingsChanged()
+        }
+    }
+
+    private func onWidgetSettingsChanged() {
+        saveWidgetSettingsToAppGroup()
+        #if canImport(WidgetKit)
+            WidgetCenter.shared.reloadAllTimelines()
+        #endif
+    }
+
+    private func saveWidgetSettingsToAppGroup() {
+        let defaults = UserDefaults(suiteName: widgetAppGroupId)
+        defaults?.set(widgetSubjectFilter, forKey: "anki_hub_widget_subject_filter_v1")
+        defaults?.set(widgetShowStreak, forKey: "anki_hub_widget_show_streak_v1")
+        defaults?.set(widgetShowTodayMinutes, forKey: "anki_hub_widget_show_today_minutes_v1")
+        defaults?.set(widgetShowMistakes, forKey: "anki_hub_widget_show_mistakes_v1")
+        defaults?.set(widgetMistakeCount, forKey: "anki_hub_widget_mistake_count_v1")
+        defaults?.set(widgetShowTodo, forKey: "anki_hub_widget_show_todo_v1")
+        defaults?.set(widgetTodoCount, forKey: "anki_hub_widget_todo_count_v1")
+        defaults?.set(widgetStyle, forKey: "anki_hub_widget_style_v1")
+        defaults?.set(widgetTimerMinutes, forKey: "anki_hub_widget_timer_minutes_v1")
     }
 }
 

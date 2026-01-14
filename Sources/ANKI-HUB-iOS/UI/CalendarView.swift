@@ -30,11 +30,11 @@ struct CalendarView: View {
                         // Summary Stats
                         HStack(spacing: 20) {
                             StatCard(
-                                title: "Current Streak", value: "\(learningStats.streak)",
-                                unit: "days", icon: "flame.fill", color: .orange)
+                                title: "連続学習", value: "\(learningStats.streak)",
+                                unit: "", icon: "flame.fill", color: .orange)
                             StatCard(
-                                title: "Today's Focus", value: "\(learningStats.todayMinutes)",
-                                unit: "min", icon: "hourglass", color: .blue)
+                                title: "今日", value: "\(learningStats.todayMinutes)",
+                                unit: "", icon: "hourglass", color: .blue)
                         }
                         .padding(.horizontal)
 
@@ -60,7 +60,7 @@ struct CalendarView: View {
                             // Days of Week
                             HStack {
                                 ForEach(
-                                    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], id: \.self
+                                    ["日", "月", "火", "水", "木", "金", "土"], id: \.self
                                 ) { day in
                                     Text(day)
                                         .font(.caption.bold())
@@ -91,29 +91,58 @@ struct CalendarView: View {
 
                         // Activity Chart (Last 7 Days)
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Weekly Activity")
+                            Text("直近7日")
                                 .font(.headline)
 
                             if #available(iOS 16.0, *) {
+                                let accent = theme.currentPalette.color(
+                                    .primary,
+                                    isDark: theme.effectiveIsDark
+                                )
+                                let grid = theme.currentPalette.color(
+                                    .border,
+                                    isDark: theme.effectiveIsDark
+                                ).opacity(0.28)
+                                let axis = theme.currentPalette.color(
+                                    .secondary,
+                                    isDark: theme.effectiveIsDark
+                                )
+
                                 Chart {
                                     ForEach(last7Days(), id: \.date) { item in
                                         BarMark(
                                             x: .value("Day", item.dayLabel),
                                             y: .value("Minutes", item.minutes)
                                         )
-                                        .foregroundStyle(
-                                            theme.currentPalette.color(
-                                                .primary,
-                                                isDark: theme.effectiveIsDark
-                                            )
-                                        )
-                                        .cornerRadius(4)
+                                        .foregroundStyle(accent.gradient)
+                                        .cornerRadius(6)
                                     }
                                 }
                                 .frame(height: 180)
+                                .chartYAxis {
+                                    AxisMarks(position: .leading) {
+                                        AxisGridLine()
+                                            .foregroundStyle(grid)
+                                        AxisValueLabel()
+                                            .foregroundStyle(axis)
+                                    }
+                                }
+                                .chartXAxis {
+                                    AxisMarks { _ in
+                                        AxisGridLine()
+                                            .foregroundStyle(.clear)
+                                        AxisTick()
+                                            .foregroundStyle(grid)
+                                        AxisValueLabel()
+                                            .foregroundStyle(axis)
+                                    }
+                                }
+                                .chartPlotStyle { plotArea in
+                                    plotArea
+                                        .background(Color.clear)
+                                }
                             } else {
-                                Text("Charts require iOS 16+")
-                                    .font(.caption)
+                                EmptyView()
                             }
                         }
                         .padding()
@@ -124,7 +153,7 @@ struct CalendarView: View {
                     .padding(.top)
                 }
             }
-            .navigationTitle("Calendar")
+            .navigationTitle("カレンダー")
             #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -214,9 +243,11 @@ struct CalendarView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(value)
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                    Text(unit)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if !unit.isEmpty {
+                        Text(unit)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Text(title)
@@ -266,7 +297,8 @@ struct CalendarView: View {
 
     private func monthYearString(from date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateFormat = "yyyy年M月"
         return formatter.string(from: date)
     }
 
@@ -361,6 +393,7 @@ struct CalendarView: View {
 
                 let formatter = DateFormatter()
                 formatter.dateFormat = "E"
+                formatter.locale = Locale(identifier: "ja_JP")
                 let label = formatter.string(from: date)
 
                 data.append(ChartData(date: date, dayLabel: label, minutes: minutes))

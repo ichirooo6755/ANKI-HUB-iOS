@@ -1,6 +1,10 @@
 import Combine
 import SwiftUI
-import UserNotifications
+@preconcurrency import UserNotifications
+
+#if canImport(UniformTypeIdentifiers)
+    import UniformTypeIdentifiers
+#endif
 
 #if canImport(Speech)
     import Speech
@@ -292,21 +296,53 @@ class TodoManager: ObservableObject {
     // MARK: - Templates
 
     func saveAsTemplate(name: String, taskIds: [UUID]) {
-        let tasksToSave = items.filter { taskIds.contains($0.id) }
+        var includeIds = Set(taskIds)
+        var queue = taskIds
+        while let current = queue.popLast() {
+            let children = items.filter { $0.parentId == current }.map { $0.id }
+            for child in children where !includeIds.contains(child) {
+                includeIds.insert(child)
+                queue.append(child)
+            }
+        }
+        let tasksToSave = items.filter { includeIds.contains($0.id) }
         let template = TodoTemplate(name: name, tasks: tasksToSave)
         templates.append(template)
         saveTemplates()
     }
 
     func applyTemplate(_ template: TodoTemplate) {
+        // 旧ID -> 新ID のマップを作り、親子関係やサブタスクを再構築する
+        var idMap: [UUID: UUID] = [:]
+        var copied: [TodoItem] = []
+
+        // 1. まず全タスクをコピーして新しいIDを割り当てる（サブタスクIDは後で付け替え）
         for task in template.tasks {
             var newTask = task
-            newTask.id = UUID()
+            let newId = UUID()
+            idMap[task.id] = newId
+            newTask.id = newId
             newTask.createdAt = Date()
             newTask.isCompleted = false
             newTask.boardColumn = .todo
-            items.append(newTask)
+            newTask.parentId = nil
+            newTask.subtaskIds = []
+            copied.append(newTask)
         }
+
+        // 2. 親子とサブタスクIDを新IDに貼り替える
+        for i in copied.indices {
+            if let oldParent = template.tasks.first(where: { $0.id == template.tasks[i].parentId })?.id,
+               let newParent = idMap[oldParent] {
+                copied[i].parentId = newParent
+            }
+
+            let oldSubtasks = template.tasks.first(where: { $0.id == template.tasks[i].id })?.subtaskIds ?? []
+            copied[i].subtaskIds = oldSubtasks.compactMap { idMap[$0] }
+        }
+
+        // 3. 追加して保存
+        items.append(contentsOf: copied)
         saveItems()
     }
 
@@ -318,9 +354,7 @@ class TodoManager: ObservableObject {
     // MARK: - Notifications
 
     private func scheduleNotification(for item: TodoItem, at date: Date) {
-        let center = UNUserNotificationCenter.current()
-
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
             guard granted else { return }
 
             let content = UNMutableNotificationContent()
@@ -338,13 +372,12 @@ class TodoManager: ObservableObject {
                 trigger: trigger
             )
 
-            center.add(request)
+            UNUserNotificationCenter.current().add(request)
         }
     }
 
     private func cancelNotification(for item: TodoItem) {
-        let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: [
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [
             "\(notificationPrefix)\(item.id.uuidString)"
         ])
     }
@@ -478,11 +511,15 @@ struct TodoView: View {
     @StateObject private var manager = TodoManager()
     @ObservedObject private var theme = ThemeManager.shared
 
+    @Environment(\.openURL) private var openURL
+
     @State private var showAddSheet = false
     @State private var editingItem: TodoItem? = nil
     @State private var viewMode: ViewMode = .list
     @State private var showTemplates = false
     @State private var showCategories = false
+
+    @State private var selectedCategoryFilter: String? = nil
 
     enum ViewMode: String, CaseIterable {
         case list = "リスト"
@@ -497,6 +534,66 @@ struct TodoView: View {
                 emptyStateView
             } else {
                 VStack(spacing: 0) {
+                    // Category Filter
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            Button {
+                                selectedCategoryFilter = nil
+                            } label: {
+                                Text("すべて")
+                                    .font(.caption)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        (selectedCategoryFilter == nil
+                                            ? theme.currentPalette.color(
+                                                .accent, isDark: theme.effectiveIsDark)
+                                            : theme.currentPalette.color(
+                                                .surface, isDark: theme.effectiveIsDark))
+                                    )
+                                    .foregroundStyle(
+                                        selectedCategoryFilter == nil
+                                            ? theme.onColor(
+                                                for: theme.currentPalette.color(
+                                                    .accent, isDark: theme.effectiveIsDark))
+                                            : theme.primaryText
+                                    )
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+
+                            ForEach(manager.categories, id: \.self) { cat in
+                                Button {
+                                    selectedCategoryFilter = cat
+                                } label: {
+                                    Text(cat)
+                                        .font(.caption)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            (selectedCategoryFilter == cat
+                                                ? theme.currentPalette.color(
+                                                    .accent, isDark: theme.effectiveIsDark)
+                                                : theme.currentPalette.color(
+                                                    .surface, isDark: theme.effectiveIsDark))
+                                        )
+                                        .foregroundStyle(
+                                            selectedCategoryFilter == cat
+                                                ? theme.onColor(
+                                                    for: theme.currentPalette.color(
+                                                        .accent, isDark: theme.effectiveIsDark))
+                                                : theme.primaryText
+                                        )
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .padding(.top, 10)
+                        .padding(.bottom, 6)
+                    }
+
                     // View Mode Picker
                     Picker("", selection: $viewMode) {
                         ForEach(ViewMode.allCases, id: \.self) { mode in
@@ -562,7 +659,7 @@ struct TodoView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: 20) {
-            Image(systemName: "list.bullet.clipboard")
+            Image(systemName: "list.bullet")
                 .font(.system(size: 60))
                 .foregroundStyle(theme.secondaryText)
 
@@ -589,9 +686,10 @@ struct TodoView: View {
     private var todoList: some View {
         List {
             // Pending Section
-            if !manager.pendingItems.isEmpty {
-                Section("未完了 (\(manager.pendingItems.count))") {
-                    ForEach(manager.pendingItems) { item in
+            let pending = filteredListItems(manager.pendingItems)
+            if !pending.isEmpty {
+                Section("未完了 (\(pending.count))") {
+                    ForEach(pending) { item in
                         TodoRow(
                             item: item,
                             manager: manager,
@@ -602,11 +700,14 @@ struct TodoView: View {
                             },
                             onTap: {
                                 editingItem = item
+                            },
+                            onStartTimer: { minutes in
+                                startPomodoro(minutes: minutes)
                             })
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
-                            let item = manager.pendingItems[index]
+                            let item = pending[index]
                             manager.deleteItem(id: item.id)
                         }
                     }
@@ -614,9 +715,10 @@ struct TodoView: View {
             }
 
             // Completed Section
-            if !manager.completedItems.isEmpty {
-                Section("完了済み (\(manager.completedItems.count))") {
-                    ForEach(manager.completedItems) { item in
+            let completed = filteredListItems(manager.completedItems)
+            if !completed.isEmpty {
+                Section("完了済み (\(completed.count))") {
+                    ForEach(completed) { item in
                         TodoRow(
                             item: item,
                             manager: manager,
@@ -627,11 +729,14 @@ struct TodoView: View {
                             },
                             onTap: {
                                 editingItem = item
+                            },
+                            onStartTimer: { minutes in
+                                startPomodoro(minutes: minutes)
                             })
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
-                            let item = manager.completedItems[index]
+                            let item = completed[index]
                             manager.deleteItem(id: item.id)
                         }
                     }
@@ -647,16 +752,36 @@ struct TodoView: View {
                 ForEach(TodoItem.BoardColumn.allCases, id: \.self) { column in
                     BoardColumnView(
                         column: column,
-                        items: manager.itemsByColumn(column),
+                        items: filteredBoardItems(column: column),
                         manager: manager,
                         onItemTap: { item in
                             editingItem = item
+                        },
+                        onStartTimer: { minutes in
+                            startPomodoro(minutes: minutes)
                         }
                     )
                 }
             }
             .padding()
         }
+    }
+
+    private func filteredListItems(_ items: [TodoItem]) -> [TodoItem] {
+        guard let category = selectedCategoryFilter else { return items }
+        return items.filter { $0.category == category }
+    }
+
+    private func filteredBoardItems(column: TodoItem.BoardColumn) -> [TodoItem] {
+        let items = manager.itemsByColumn(column)
+        guard let category = selectedCategoryFilter else { return items }
+        return items.filter { $0.category == category }
+    }
+
+    private func startPomodoro(minutes: Int) {
+        let safeMinutes = max(1, min(180, minutes))
+        guard let url = URL(string: "sugwranki://timer/start?minutes=\(safeMinutes)") else { return }
+        openURL(url)
     }
 }
 
@@ -667,8 +792,10 @@ struct BoardColumnView: View {
     let items: [TodoItem]
     @ObservedObject var manager: TodoManager
     let onItemTap: (TodoItem) -> Void
+    let onStartTimer: (Int) -> Void
 
     @ObservedObject private var theme = ThemeManager.shared
+    @State private var isTargeted: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -691,8 +818,12 @@ struct BoardColumnView: View {
                         BoardTaskCard(
                             item: item,
                             manager: manager,
-                            onTap: { onItemTap(item) }
+                            onTap: { onItemTap(item) },
+                            onStartTimer: onStartTimer
                         )
+                        .onDrag {
+                            NSItemProvider(object: item.id.uuidString as NSString)
+                        }
                     }
                 }
             }
@@ -700,9 +831,33 @@ struct BoardColumnView: View {
         .frame(width: 280)
         .padding()
         .background(
-            theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark).opacity(0.5)
+            theme.currentPalette
+                .color(.surface, isDark: theme.effectiveIsDark)
+                .opacity(isTargeted ? 0.75 : 0.5)
         )
         .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(
+                    column.color.opacity(isTargeted ? 0.6 : 0.0),
+                    style: StrokeStyle(lineWidth: 3, dash: [6, 4])
+                )
+        )
+
+        #if canImport(UniformTypeIdentifiers)
+            .onDrop(of: [UTType.text], isTargeted: $isTargeted) { providers in
+                guard let provider = providers.first else { return false }
+                _ = provider.loadObject(ofClass: NSString.self) { str, _ in
+                    guard let nsText = str as? NSString else { return }
+                    let text = nsText as String
+                    guard let id = UUID(uuidString: text) else { return }
+                    Task { @MainActor in
+                        manager.moveItem(id: id, to: column)
+                    }
+                }
+                return true
+            }
+        #endif
     }
 }
 
@@ -712,6 +867,7 @@ struct BoardTaskCard: View {
     let item: TodoItem
     @ObservedObject var manager: TodoManager
     let onTap: () -> Void
+    let onStartTimer: (Int) -> Void
 
     @ObservedObject private var theme = ThemeManager.shared
 
@@ -721,6 +877,28 @@ struct BoardTaskCard: View {
                 Text(item.title)
                     .font(.subheadline)
                     .lineLimit(2)
+                Spacer()
+            }
+
+            HStack(spacing: 8) {
+                if item.recurrence != nil {
+                    Image(systemName: "repeat")
+                        .font(.caption2)
+                        .foregroundStyle(theme.secondaryText)
+                }
+                if item.isReminderEnabled {
+                    Image(systemName: "bell.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
+                if let limit = item.timeLimit {
+                    HStack(spacing: 4) {
+                        Image(systemName: "stopwatch.fill")
+                        Text("\(Int(limit / 60))分")
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(theme.secondaryText)
+                }
                 Spacer()
             }
 
@@ -762,12 +940,18 @@ struct BoardTaskCard: View {
             let subtasks = manager.subtasks(of: item.id)
             if !subtasks.isEmpty {
                 let completed = subtasks.filter { $0.isCompleted }.count
-                HStack(spacing: 4) {
-                    Image(systemName: "checklist")
-                    Text("\(completed)/\(subtasks.count)")
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "checklist")
+                        Text("\(completed)/\(subtasks.count)")
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(theme.secondaryText)
+
+                    ProgressView(value: Double(completed), total: Double(max(1, subtasks.count)))
+                        .progressViewStyle(.linear)
+                        .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
                 }
-                .font(.caption2)
-                .foregroundStyle(theme.secondaryText)
             }
 
             // Move buttons
@@ -785,6 +969,17 @@ struct BoardTaskCard: View {
                         }
                         .buttonStyle(.plain)
                     }
+                }
+
+                if let limit = item.timeLimit {
+                    Button {
+                        onStartTimer(Int(limit / 60))
+                    } label: {
+                        Image(systemName: "stopwatch.fill")
+                            .font(.caption)
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -813,6 +1008,7 @@ struct TodoRow: View {
     @ObservedObject var manager: TodoManager
     let onToggle: () -> Void
     let onTap: () -> Void
+    let onStartTimer: (Int) -> Void
 
     @ObservedObject private var theme = ThemeManager.shared
 
@@ -906,10 +1102,29 @@ struct TodoRow: View {
                         .font(.caption)
                         .foregroundStyle(theme.secondaryText)
                     }
+
+                    if let limit = item.timeLimit {
+                        HStack(spacing: 2) {
+                            Image(systemName: "stopwatch.fill")
+                            Text("\(Int(limit / 60))分")
+                        }
+                        .font(.caption)
+                        .foregroundStyle(theme.secondaryText)
+                    }
                 }
             }
 
             Spacer()
+
+            if let limit = item.timeLimit {
+                Button {
+                    onStartTimer(Int(limit / 60))
+                } label: {
+                    Image(systemName: "stopwatch.fill")
+                        .foregroundStyle(theme.secondaryText)
+                }
+                .buttonStyle(.plain)
+            }
         }
         .contentShape(Rectangle())
         .onTapGesture {
@@ -1054,6 +1269,7 @@ struct TodoDetailSheet: View {
     @ObservedObject var manager: TodoManager
     let item: TodoItem
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     @State private var title: String = ""
     @State private var hasDueDate: Bool = false
@@ -1070,6 +1286,10 @@ struct TodoDetailSheet: View {
     @State private var newComment: String = ""
     @State private var showAddSubtask = false
     @State private var newSubtaskTitle: String = ""
+
+    private var currentItem: TodoItem {
+        manager.items.first(where: { $0.id == item.id }) ?? item
+    }
 
     var body: some View {
         NavigationStack {
@@ -1126,6 +1346,21 @@ struct TodoDetailSheet: View {
                                 set: { timeLimit = $0 * 60 }
                             ), in: 5...120, step: 5)
                     }
+                }
+
+                Section("ポモドーロ") {
+                    Button {
+                        guard hasTimeLimit else { return }
+                        let minutes = max(1, min(180, Int(timeLimit / 60)))
+                        guard let url = URL(string: "sugwranki://timer/start?minutes=\(minutes)") else {
+                            return
+                        }
+                        dismiss()
+                        openURL(url)
+                    } label: {
+                        Label("このタイムリミットでタイマー開始", systemImage: "stopwatch.fill")
+                    }
+                    .disabled(!hasTimeLimit)
                 }
 
                 Section("優先度") {
@@ -1194,7 +1429,7 @@ struct TodoDetailSheet: View {
 
                 // Comments
                 Section("コメント") {
-                    ForEach(item.comments) { comment in
+                    ForEach(currentItem.comments) { comment in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(comment.text)
                             Text(formatCommentDate(comment.createdAt))
@@ -1234,7 +1469,7 @@ struct TodoDetailSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
-                        var updated = item
+                        var updated = currentItem
                         updated.title = title
                         updated.dueDate = hasDueDate ? dueDate : nil
                         updated.priority = priority

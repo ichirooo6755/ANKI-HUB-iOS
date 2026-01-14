@@ -48,54 +48,150 @@ struct ReportView: View {
 
 struct MasteryPieChart: View {
     @ObservedObject var masteryTracker: MasteryTracker
-    
-    var masteryData: [(level: MasteryLevel, count: Int)] {
-        var counts: [MasteryLevel: Int] = [:]
-        for level in MasteryLevel.allCases {
-            counts[level] = 0
+    @State private var selectedPage: Int = 0
+
+    private struct MasteryPage {
+        enum Kind {
+            case combined
+            case subject
         }
-        
-        for (_, subjectData) in masteryTracker.items {
-            for (_, item) in subjectData {
-                counts[item.mastery, default: 0] += 1
-            }
-        }
-        
-        return MasteryLevel.allCases.map { ($0, counts[$0] ?? 0) }
+
+        let kind: Kind
+        let subject: Subject?
+    }
+
+    private struct MasteryData: Identifiable {
+        let id = UUID()
+        let level: MasteryLevel
+        let count: Int
+    }
+
+    private var pages: [MasteryPage] {
+        var result: [MasteryPage] = [MasteryPage(kind: .combined, subject: nil)]
+        result.append(contentsOf: Subject.allCases.map { MasteryPage(kind: .subject, subject: $0) })
+        return result
     }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("習熟度分布")
-                .font(.headline)
-            
-            Chart(masteryData, id: \.level) { item in
-                SectorMark(
-                    angle: .value("Count", item.count),
-                    innerRadius: .ratio(0.5),
-                    angularInset: 1.0
-                )
-                .foregroundStyle(item.level.color)
-                .cornerRadius(4)
+            HStack {
+                Text("Total Mastery")
+                    .font(.headline)
+                Spacer()
+                Image(systemName: "arrow.left.and.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
             }
-            .frame(height: 200)
-            
-            // Legend
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                ForEach(masteryData, id: \.level) { item in
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(item.level.color)
-                            .frame(width: 12, height: 12)
-                        Text("\(item.level.label): \(item.count)")
+
+            TabView(selection: $selectedPage) {
+                ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
+                    let data = masteryData(for: page)
+                    let totalMastered = data.first(where: { $0.level == .mastered })?.count ?? 0
+                    VStack(spacing: 10) {
+                        Chart(data) { item in
+                            SectorMark(
+                                angle: .value("Count", item.count),
+                                innerRadius: .ratio(0.6),
+                                angularInset: 1.5
+                            )
+                            .foregroundStyle(item.level.color)
+                            .cornerRadius(5)
+                        }
+                        .frame(height: 200)
+                        .chartOverlay { _ in
+                            VStack(spacing: 4) {
+                                Text("覚えた")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                Text("\(totalMastered)")
+                                    .font(.system(.title, design: .rounded).weight(.bold))
+                                    .minimumScaleFactor(0.5)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 10)
+                        }
+
+                        Text(page.subject?.displayName ?? "総合")
                             .font(.caption)
-                        Spacer()
+                            .foregroundStyle(.secondary)
+
+                        // Legend
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                            ForEach(MasteryLevel.allCases, id: \.self) { level in
+                                let count = data.first(where: { $0.level == level })?.count ?? 0
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(level.color)
+                                        .frame(width: 12, height: 12)
+                                    Text("\(level.label): \(count)")
+                                        .font(.caption)
+                                    Spacer()
+                                }
+                            }
+                        }
                     }
+                    .tag(index)
                 }
             }
+            .frame(height: 320)
+            #if os(iOS)
+                .tabViewStyle(.page(indexDisplayMode: .automatic))
+            #else
+                .tabViewStyle(.automatic)
+            #endif
         }
         .padding()
         .liquidGlass()
+    }
+
+    private func masteryData(for page: MasteryPage) -> [MasteryData] {
+        switch page.kind {
+        case .combined:
+            return combinedMasteryData()
+        case .subject:
+            if let subject = page.subject {
+                return subjectMasteryData(subject)
+            }
+            return combinedMasteryData()
+        }
+    }
+
+    private func combinedMasteryData() -> [MasteryData] {
+        var totalStats: [MasteryLevel: Int] = [
+            .new: 0, .weak: 0, .learning: 0, .almost: 0, .mastered: 0,
+        ]
+
+        var totalVocabCount = 0
+        var trackedCount = 0
+
+        for subject in Subject.allCases {
+            let stats = masteryTracker.getStats(for: subject.rawValue)
+            for (level, count) in stats {
+                totalStats[level, default: 0] += count
+                trackedCount += count
+            }
+            totalVocabCount += VocabularyData.shared.getVocabulary(for: subject).count
+        }
+
+        totalStats[.new] = max(0, totalVocabCount - trackedCount)
+        return MasteryLevel.allCases.map { level in
+            MasteryData(level: level, count: totalStats[level] ?? 0)
+        }
+    }
+
+    private func subjectMasteryData(_ subject: Subject) -> [MasteryData] {
+        let stats = masteryTracker.getStats(for: subject.rawValue)
+        let total = VocabularyData.shared.getVocabulary(for: subject).count
+        let tracked = stats.values.reduce(0, +)
+        var combined: [MasteryLevel: Int] = [:]
+        for (level, count) in stats {
+            combined[level, default: 0] += count
+        }
+        combined[.new] = max(0, total - tracked)
+
+        return MasteryLevel.allCases.map { level in
+            MasteryData(level: level, count: combined[level] ?? 0)
+        }
     }
 }
 

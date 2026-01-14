@@ -24,4 +24,19 @@ public struct FocusTimerAttributes: ActivityAttributes {
         self.timerName = timerName
     }
 }
+
+public struct FocusTimerControlRequest: Codable, Hashable {
+    public enum Action: String, Codable, Hashable {
+        case togglePause
+        case stop
+    }
+
+    public var action: Action
+    public var requestedAt: Date
+
+    public init(action: Action, requestedAt: Date = Date()) {
+        self.action = action
+        self.requestedAt = requestedAt
+    }
+}
 #endif
