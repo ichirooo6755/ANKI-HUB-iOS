@@ -1,9 +1,10 @@
 import Foundation
 
-#if canImport(ActivityKit)
+#if canImport(ActivityKit) && os(iOS)
 import ActivityKit
+#endif
 
-public struct FocusTimerAttributes: ActivityAttributes {
+public struct FocusTimerAttributes {
     public struct ContentState: Codable, Hashable {
         public var targetTime: Date
         public var totalSeconds: Int
@@ -25,6 +26,10 @@ public struct FocusTimerAttributes: ActivityAttributes {
     }
 }
 
+#if canImport(ActivityKit) && os(iOS)
+extension FocusTimerAttributes: ActivityAttributes {}
+#endif
+
 public struct FocusTimerControlRequest: Codable, Hashable {
     public enum Action: String, Codable, Hashable {
         case togglePause
@@ -39,4 +44,3 @@ public struct FocusTimerControlRequest: Codable, Hashable {
         self.requestedAt = requestedAt
     }
 }
-#endif

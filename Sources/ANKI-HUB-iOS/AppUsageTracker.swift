@@ -28,12 +28,12 @@ class AppUsageTracker: ObservableObject {
     // Weekly target: 120 minutes
     private let weeklyTargetMinutes: Int = 120
     
-    public struct UsageEntry: Codable {
+    struct UsageEntry: Codable {
         var date: String // yyyy-MM-dd
         var usageMinutes: Int
         var sessions: [SessionEntry]
         
-        public struct SessionEntry: Codable {
+        struct SessionEntry: Codable {
             var startTime: Date
             var endTime: Date?
             var duration: Int // minutes
@@ -147,6 +147,8 @@ class AppUsageTracker: ObservableObject {
             todayUsageMinutes = liveMinutes
             weeklyUsageMinutes = calculateWeeklyUsage() + computeLiveSessionMinutesIfNeeded()
         }
+
+        refreshLearningStatsWithLiveSession()
     }
 
     private func computeLiveTodayMinutes() -> Int {
@@ -159,6 +161,17 @@ class AppUsageTracker: ObservableObject {
         guard isAppActive, let start = sessionStartTime else { return 0 }
         let minutes = Int(Date().timeIntervalSince(start) / 60)
         return max(0, minutes)
+    }
+
+    private func refreshLearningStatsWithLiveSession() {
+        LearningStats.shared.refreshStudyMinutesFromSessions(additionalSessions: currentLiveSessions())
+    }
+
+    private func currentLiveSessions() -> [StudySession] {
+        guard isAppActive, let start = sessionStartTime else { return [] }
+        let end = Date()
+        guard end > start else { return [] }
+        return [StudySession(startTime: start, endTime: end, source: .appUsage)]
     }
     
     private func calculateWeeklyUsage() -> Int {
@@ -206,6 +219,8 @@ class AppUsageTracker: ObservableObject {
                 groupDefaults.set(data, forKey: userDefaultsKey)
             }
         }
+
+        LearningStats.shared.refreshStudyMinutesFromSessions()
         
         #if canImport(WidgetKit)
             WidgetCenter.shared.reloadTimelines(ofKind: "StudyWidget")

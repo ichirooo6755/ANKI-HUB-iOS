@@ -175,6 +175,8 @@ struct PaperWordbookSyncView: View {
             words = decoded
         }
         
+        let source = "紙の単語帳"
+
         // Add synced words
         for synced in syncedWords {
             let entry = WordbookEntry(
@@ -182,6 +184,7 @@ struct PaperWordbookSyncView: View {
                 term: synced.term,
                 meaning: synced.meaning,
                 hint: nil,
+                source: source,
                 mastery: .new
             )
             if !words.contains(where: { $0.term == entry.term }) {

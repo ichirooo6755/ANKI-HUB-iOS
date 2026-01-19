@@ -5,6 +5,12 @@ import WebKit
 
 struct KanbunWebView: UIViewRepresentable {
   let kanbunText: String
+  let isCompact: Bool
+
+  init(kanbunText: String, isCompact: Bool = false) {
+      self.kanbunText = kanbunText
+      self.isCompact = isCompact
+  }
 
   class Coordinator {
       var lastSignature: String = ""
@@ -48,21 +54,28 @@ struct KanbunWebView: UIViewRepresentable {
   }
 
   func updateUIView(_ uiView: WKWebView, context: Context) {
-    let signature = "\(kanbunText.hashValue)|\(uiView.traitCollection.userInterfaceStyle.rawValue)"
+    let signature = "\(kanbunText.hashValue)|\(isCompact)|\(uiView.traitCollection.userInterfaceStyle.rawValue)"
     if signature == context.coordinator.lastSignature {
       return
     }
     context.coordinator.lastSignature = signature
 
+    let kanbunFontSize = isCompact ? "1.35rem" : "1.75rem"
+    let kanbunHeight = isCompact ? "10.5em" : "14em"
+    let kanbunPadding = isCompact ? "0.8em 0.2em" : "1.2em 0.2em"
+    let bodyPadding = isCompact ? "8px" : "20px"
+    let bodyAlignment = isCompact ? "flex-start" : "center"
+
     let cssContent = """
       .kanbun {
         writing-mode: vertical-rl;
-        font-size: 1.75rem;
-        line-height: 100%;
+        font-size: \(kanbunFontSize);
+        line-height: 1.1;
         font-weight: 375;
-        height: 14em;
-        padding: 1.2em 0.2em;
+        height: \(kanbunHeight);
+        padding: \(kanbunPadding);
         -webkit-writing-mode: vertical-rl;
+        display: inline-block;
       }
 
       .kanbun,
@@ -72,34 +85,38 @@ struct KanbunWebView: UIViewRepresentable {
           "Hiragino Mincho ProN", "MS Mincho", serif;
       }
 
+      .kanbun ruby {
+        ruby-position: over;
+      }
+
       .kanbun rt,
       .kanbun sup,
       .kanbun sub,
       .kanbun .return {
-        font-size: 60%;
-        line-height: 100%;
+        font-size: 48%;
+        line-height: 1;
         color: inherit;
       }
       
       .kanbun .return {
-         vertical-align: sub; /* Kaeriten usually on the left/bottom in vertical text */
-         font-size: 50%;
-         margin-left: 2px;
+         vertical-align: super;
+         margin-left: 0.15em;
+         position: relative;
+         top: 0.2em;
       }
       
       .kanbun .okurigana {
-         font-size: 80%;
-         /* Okurigana is usually just inline text, maybe slightly smaller */
+         font-size: 75%;
       }
       
       body {
           margin: 0;
-          padding: 20px;
+          padding: \(bodyPadding);
           background-color: transparent;
           height: 100vh;
           display: flex;
           justify-content: center;
-          align-items: center;
+          align-items: \(bodyAlignment);
       }
       
       @media (prefers-color-scheme: dark) {
@@ -133,6 +150,12 @@ struct KanbunWebView: UIViewRepresentable {
 // macOS fallback - simple text display
 struct KanbunWebView: View {
     let kanbunText: String
+    let isCompact: Bool
+
+    init(kanbunText: String, isCompact: Bool = false) {
+        self.kanbunText = kanbunText
+        self.isCompact = isCompact
+    }
     
     var body: some View {
         Text(kanbunText)

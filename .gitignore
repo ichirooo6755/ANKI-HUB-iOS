@@ -29,6 +29,9 @@ build/
 # Backups
 *.bak
 
+# Local verification assets
+25古文単語p.pdf
+
 # Local image folders (user-specific)
 画像/
 

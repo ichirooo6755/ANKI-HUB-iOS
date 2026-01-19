@@ -81,12 +81,16 @@ struct ChapterSelectionView: View {
         } else if subject == .kobun {
             // Kobun: dynamic chapters (50 words/chapter)
             let total = VocabularyData.shared.getVocabulary(for: .kobun).count
-            let totalChapters = max(1, Int(ceil(Double(total) / 50.0)))
+            guard total > 0 else {
+                chapters = []
+                return
+            }
+            let totalChapters = Int(ceil(Double(total) / 50.0))
             chapters = (1...totalChapters).map { i in
                 let start = (i - 1) * 50 + 1
                 let end = min(i * 50, total)
                 return Chapter(
-                    title: "Chapter \(i)",
+                    title: "チャプター \(i)（\(start)-\(end)）",
                     description: "単語 \(start) - \(end)",
                     progress: getProgress(for: subject, chapterId: i),
                     isLocked: false // All chapters unlocked

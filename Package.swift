@@ -21,6 +21,7 @@ let package = Package(
         .target(
             name: "ANKI-HUB-iOS",
             dependencies: [
+                "ANKI-HUB-iOS-Shared",
                 // .product(name: "Supabase", package: "supabase-swift")
             ],
             path: "Sources/ANKI-HUB-iOS",
@@ -30,24 +31,26 @@ let package = Package(
                 "Assets.xcassets",
             ],
             resources: [
-                .copy("Resources/vocab1900.tsv"),
-                .copy("Resources/kobun.json"),
-                .copy("Resources/kanbun.json"),
-                .copy("Resources/constitution.json"),
-                .copy("Resources/kobun_pdf.json"),
-                .copy("Resources/grammar.json"),
-                .copy("Resources/Wallpapers"),
+                .process("Resources")
             ]
         ),
         .target(
+            name: "ANKI-HUB-iOS-Shared",
+            path: "Sources/Shared"
+        ),
+        .target(
             name: "ANKI-HUB-iOS-Widget",
-            dependencies: [],
-            path: "Sources/ANKI-HUB-iOS-Widget",
-            exclude: [
-                "Info.plist",
-                "ANKI-HUB-iOS-Widget.entitlements",
+            dependencies: [
+                "ANKI-HUB-iOS-Shared"
             ],
-            sources: [".", "../Shared"]
+            path: "Sources",
+            exclude: [
+                "ANKI-HUB-iOS-Widget/Info.plist",
+                "ANKI-HUB-iOS-Widget/ANKI-HUB-iOS-Widget.entitlements",
+            ],
+            sources: [
+                "ANKI-HUB-iOS-Widget",
+            ]
         ),
     ]
 )

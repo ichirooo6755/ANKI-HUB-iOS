@@ -42,6 +42,7 @@ struct QuizView: View {
     @State private var timerActive: Bool = false
     @State private var baseTimeLimit: Int = 30  // Base time, increased for blanks
     @State private var showAddToWordbook: Bool = false
+    @State private var wordbookRefreshNonce: Int = 0
     @State private var showFeedbackOverlay: Bool = false
     @State private var lastChosenAnswerText: String = ""
     @State private var revealedSeikeiBlankId: Int?
@@ -80,6 +81,11 @@ struct QuizView: View {
     @State private var rechallengeQuestions: [Question] = []
     @State private var didDecideRechallengeForCurrent: Bool = false
 
+    // Sequential Chapter Mode
+    @State private var isSequentialMode: Bool = false
+    @State private var chapterOrder: [String] = []
+    @State private var currentChapterIndex: Int = 0
+
     private static var seikeiParseCache: [Int: (String, [Int: String])] = [:]
 
     // Initializer param
@@ -102,18 +108,45 @@ struct QuizView: View {
     }
 
     private var bookmarkButton: some View {
-        Button {
+        _ = wordbookRefreshNonce
+        let isBookmarked: Bool = {
+            guard currentIndex < questions.count else { return false }
+            let q = questions[currentIndex]
+
+            if let data = UserDefaults.standard.data(forKey: "anki_hub_wordbook"),
+                let decoded = try? JSONDecoder().decode([WordbookEntry].self, from: data)
+            {
+                return decoded.contains(where: { $0.id == q.id })
+            }
+            return false
+        }()
+
+        return Button {
             addCurrentWordToWordbook()
         } label: {
-            Image(systemName: "bookmark.fill")
-                .font(.title3)
-                .foregroundStyle(
-                    theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-                .frame(width: 44, height: 44)
-                .contentShape(Rectangle())
+            let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+            let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+            let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+
+            Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(accent)
+                .frame(width: 40, height: 40)
+                .background(surface.opacity(theme.effectiveIsDark ? 0.85 : 0.95))
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(border.opacity(0.6), lineWidth: 1)
+                )
+                .shadow(
+                    color: Color.black.opacity(theme.effectiveIsDark ? 0.25 : 0.08),
+                    radius: 4,
+                    x: 0,
+                    y: 2
+                )
+                .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .liquidGlassCircle()
     }
 
     private var retryButtons: some View {
@@ -248,7 +281,11 @@ struct QuizView: View {
                             availableChapters = caps
                         } else if subject == .kobun {
                             let total = VocabularyData.shared.getVocabulary(for: .kobun).count
-                            let blocks = max(1, Int(ceil(Double(total) / 50.0)))
+                            guard total > 0 else {
+                                availableChapters = ["すべて"]
+                                return
+                            }
+                            let blocks = Int(ceil(Double(total) / 50.0))
                             var caps: [String] = ["すべて"]
                             for i in 0..<blocks {
                                 let start = i * 50 + 1
@@ -261,7 +298,15 @@ struct QuizView: View {
                         }
                         if let initChap = initialChapter {
                             selectedChapters = [initChap]
+                            if subject == .kobun, questionCount > 0 {
+                                questionCount = max(questionCount, VocabularyData.shared.chunkSize)
+                            }
                         }
+
+                        // Remove selections that no longer exist (e.g., after word count shrink)
+                        let valid = Set(availableChapters)
+                        let filtered = selectedChapters.filter { valid.contains($0) }
+                        selectedChapters = filtered.isEmpty ? ["すべて"] : filtered
                     }
                     .onChange(of: timerLimitSetting) { _, newValue in
                         // Only sync while quiz has not started
@@ -307,38 +352,47 @@ struct QuizView: View {
         }
         .sheet(isPresented: $showMistakeReportSheet) {
             NavigationStack {
-                Form {
-                    if questions.indices.contains(currentIndex) {
-                        let q = questions[currentIndex]
-                        Section("問題") {
-                            Text(q.questionText)
-                                .textSelection(.enabled)
-                        }
+                let currentQuestion = questions.indices.contains(currentIndex)
+                    ? questions[currentIndex]
+                    : nil
+                VStack(spacing: 0) {
+                    Form {
+                        if let q = currentQuestion {
+                            Section("問題") {
+                                Text(q.questionText)
+                                    .textSelection(.enabled)
+                            }
 
-                        Section("正解") {
-                            Text(q.answerText)
-                                .textSelection(.enabled)
-                        }
+                            Section("正解") {
+                                Text(q.answerText)
+                                    .textSelection(.enabled)
+                            }
 
-                        Section("選んだ回答") {
-                            Text(currentChosenAnswerText() ?? "（未回答）")
-                                .foregroundStyle(.secondary)
-                                .textSelection(.enabled)
-                        }
+                            Section("選んだ回答") {
+                                Text(currentChosenAnswerText() ?? "（未回答）")
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                            }
 
-                        Section("メモ（任意）") {
-                            TextEditor(text: $mistakeReportNote)
-                                .frame(minHeight: 120)
-                        }
+                            Section("メモ（任意）") {
+                                TextEditor(text: $mistakeReportNote)
+                                    .frame(minHeight: 120)
+                            }
 
-                        if !mistakeReportError.isEmpty {
-                            Section {
-                                Text(mistakeReportError)
-                                    .foregroundStyle(
-                                        theme.currentPalette.color(
-                                            .weak, isDark: theme.effectiveIsDark))
+                            if !mistakeReportError.isEmpty {
+                                Section {
+                                    Text(mistakeReportError)
+                                        .foregroundStyle(
+                                            theme.currentPalette.color(
+                                                .weak, isDark: theme.effectiveIsDark))
+                                }
                             }
                         }
+                    }
+
+                    if subject == .kanbun, let question = currentQuestion {
+                        KanbunWebView(kanbunText: kanbunDisplayText(for: question), isCompact: true)
+                            .frame(maxWidth: .infinity, minHeight: 160)
                     }
                 }
                 .navigationTitle("誤答通報")
@@ -478,6 +532,23 @@ struct QuizView: View {
                     }
                     .padding(.top)
 
+                    // Sequential Mode
+                    Toggle(isOn: $isSequentialMode) {
+                        HStack {
+                            Image(systemName: "arrow.right.circle")
+                                .foregroundStyle(
+                                    theme.currentPalette.color(
+                                        .primary, isDark: theme.effectiveIsDark))
+                            VStack(alignment: .leading) {
+                                Text("チャプター順に解く")
+                                Text("選択したチャプターを順に完了")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.top)
+
                     // Question Count
                     Text("問題数")
                         .font(.headline)
@@ -489,6 +560,7 @@ struct QuizView: View {
                         Text("20問").tag(20)
                         Text("50問").tag(50)
                         Text("100問").tag(100)
+                        Text("全問").tag(0)
                     }
                     .pickerStyle(.segmented)
 
@@ -797,17 +869,23 @@ struct QuizView: View {
 
     private var fourChoiceView: some View {
         let question = questions[currentIndex]
+        let isKanbunQuestion = subject == .kanbun
+        let cardSpacing: CGFloat = isKanbunQuestion ? 10 : 12
+        let cardPadding: CGFloat = isKanbunQuestion ? 18 : 24
+        let choiceSpacing: CGFloat = isKanbunQuestion ? 8 : 12
+        let choiceFont: Font = isKanbunQuestion ? .subheadline : .body
+        let choicePadding: CGFloat = isKanbunQuestion ? 12 : 16
 
         return VStack(spacing: 24) {
             // Question Card
-            VStack(spacing: 12) {
+            VStack(spacing: cardSpacing) {
                 HStack {
                     Text("\(currentIndex + 1)/\(questions.count)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
                     Text(question.questionText)
-                        .font(.headline)
+                        .font(isKanbunQuestion ? .subheadline : .headline)
                         .foregroundStyle(.secondary)
                     Spacer()
 
@@ -917,7 +995,7 @@ struct QuizView: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(24)
+            .padding(cardPadding)
             .liquidGlass(cornerRadius: 20)
             .padding(.horizontal)
             .overlay(alignment: .topTrailing) {
@@ -926,15 +1004,18 @@ struct QuizView: View {
             }
 
             // Choices
-            VStack(spacing: 12) {
+            VStack(spacing: choiceSpacing) {
                 ForEach(Array(question.choices.enumerated()), id: \.offset) { index, choice in
                     Button {
                         selectAnswer(index, correctIndex: question.correctIndex)
                     } label: {
                         HStack {
                             Text(choice)
-                                .font(.body)
+                                .font(choiceFont)
                                 .multilineTextAlignment(.leading)
+                                .lineLimit(isKanbunQuestion ? 3 : nil)
+                                .minimumScaleFactor(isKanbunQuestion ? 0.75 : 1.0)
+                                .fixedSize(horizontal: false, vertical: true)
                             Spacer()
 
                             if showResult {
@@ -951,7 +1032,7 @@ struct QuizView: View {
                                 }
                             }
                         }
-                        .padding()
+                        .padding(choicePadding)
                         .background(
                             choiceBackground(index: index, correctIndex: question.correctIndex)
                         )
@@ -1015,9 +1096,19 @@ struct QuizView: View {
                     Spacer()
                 }
 
-                Text(question.questionText)
-                    .font(.title2.bold())
-                    .multilineTextAlignment(.center)
+                if subject == .kanbun {
+                    if let example = question.example, !example.isEmpty {
+                        Text(question.questionText)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    KanbunWebView(kanbunText: kanbunDisplayText(for: question), isCompact: true)
+                        .frame(maxWidth: .infinity, minHeight: 160)
+                } else {
+                    Text(question.questionText)
+                        .font(.title2.bold())
+                        .multilineTextAlignment(.center)
+                }
 
                 if subject == .seikei, let bid = question.seikeiBlankId {
                     Text("空欄 \(bid)")
@@ -1242,9 +1333,13 @@ struct QuizView: View {
                 }
 
                 if subject == .kanbun {
-                    // Kanbun Vertical Text
-                    KanbunVerticalText(text: question.questionText)
-                        .frame(minHeight: 200)
+                    if let example = question.example, !example.isEmpty {
+                        Text(question.questionText)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    KanbunWebView(kanbunText: kanbunDisplayText(for: question))
+                        .frame(maxWidth: .infinity, minHeight: 220)
                 } else {
                     Text(question.questionText)
                         .font(.title.bold())
@@ -1571,17 +1666,32 @@ struct QuizView: View {
                     }
                 }
 
-                Button {
-                    resetQuiz()
-                } label: {
-                    let bg = subject.color
-                    Label("もう一度", systemImage: "arrow.counterclockwise")
-                        .font(.headline)
-                        .foregroundStyle(theme.onColor(for: bg))
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(bg)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                if isSequentialMode, currentChapterIndex < chapterOrder.count - 1 {
+                    Button {
+                        nextChapter()
+                    } label: {
+                        let bg = subject.color
+                        Label("次のチャプターへ", systemImage: "arrow.right")
+                            .font(.headline)
+                            .foregroundStyle(theme.onColor(for: bg))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(bg)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                } else {
+                    Button {
+                        resetQuiz()
+                    } label: {
+                        let bg = subject.color
+                        Label("もう一度", systemImage: "arrow.counterclockwise")
+                            .font(.headline)
+                            .foregroundStyle(theme.onColor(for: bg))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(bg)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
                 }
             }
             .padding(.horizontal)
@@ -1625,15 +1735,64 @@ struct QuizView: View {
         return Color.gray.opacity(0.1)
     }
 
+    private func kanbunDisplayText(for question: Question) -> String {
+        if let example = question.example, !example.isEmpty {
+            return example
+        }
+        return question.questionText
+    }
+
     private func startQuiz() {
         learningManager.incrementSessionCount()
         sessionId = learningManager.currentSessionCount
-
         quizStartTime = CACurrentMediaTime()
 
+        // Sequential mode: solve selected chapters in order
+        if isSequentialMode {
+            // If we're already in a sequential run (nextChapter -> startQuiz), keep current chapter order.
+            if chapterOrder.isEmpty {
+                let selected = selectedChapters
+
+                if selected.contains("すべて") || selected.isEmpty {
+                    // Use all chapters in order (excluding "すべて")
+                    chapterOrder = availableChapters.filter { $0 != "すべて" }
+                } else {
+                    func chapterNumberForSort(_ s: String) -> Int? {
+                        let trimmed = s
+                            .replacingOccurrences(of: "STAGE", with: "")
+                            .replacingOccurrences(of: "Chapter", with: "")
+                            .replacingOccurrences(of: "チャプター", with: "")
+                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                        let digits = trimmed.prefix { $0.isNumber }
+                        return Int(digits)
+                    }
+
+                    chapterOrder = selected.sorted { a, b in
+                        let na = chapterNumberForSort(a)
+                        let nb = chapterNumberForSort(b)
+                        switch (na, nb) {
+                        case let (x?, y?):
+                            if x != y { return x < y }
+                            return a < b
+                        case (_?, nil):
+                            return true
+                        case (nil, _?):
+                            return false
+                        default:
+                            return a < b
+                        }
+                    }
+                }
+                currentChapterIndex = 0
+
+                if let first = chapterOrder.first {
+                    selectedChapters = [first]
+                }
+            }
+        }
+
         questions = generateQuestions(count: questionCount)
-        
-        // Apply shuffle mode if enabled
+
         if isShuffleMode {
             questions.shuffle()
         }
@@ -1658,8 +1817,6 @@ struct QuizView: View {
         revealedSeikeiBlankId = nil
         failedSeikeiArticleIds = []
 
-        failedSeikeiArticleIds = []
-
         // Reset for new session
         sessionIncorrectQuestions = []
         isReviewRound = false
@@ -1669,6 +1826,24 @@ struct QuizView: View {
             timeRemaining = timeLimitForQuestion(at: 0)
             timerActive = true
         }
+    }
+
+    private func nextChapter() {
+        guard isSequentialMode else {
+            resetQuiz()
+            return
+        }
+
+        if currentChapterIndex < chapterOrder.count - 1 {
+            currentChapterIndex += 1
+            selectedChapters = [chapterOrder[currentChapterIndex]]
+            questions = []
+            quizCompleted = false
+            startQuiz()
+            return
+        }
+
+        resetQuiz()
     }
 
     private func startRankUpTest() {
@@ -1710,18 +1885,24 @@ struct QuizView: View {
         }
     }
 
+    private func resolvedQuestionCount(requested: Int, total: Int) -> Int {
+        guard total > 0 else { return 0 }
+        if requested <= 0 {
+            return total
+        }
+        return min(requested, total)
+    }
+
     private func generateQuestions(count: Int) -> [Question] {
         // Get vocabulary based on subject
         var vocab = VocabularyData.shared.getVocabulary(for: subject)
 
-        let desiredCount = min(count, vocab.count)
-
-        if desiredCount <= 0 {
-            print("QuizView: No vocabulary available")
-            return []
-        }
-
         if initialDueOnly {
+            let desiredCount = resolvedQuestionCount(requested: count, total: vocab.count)
+            if desiredCount <= 0 {
+                print("QuizView: No vocabulary available")
+                return []
+            }
             // "テスト日までに回数をこなす"ため、期限到来(due)だけでなく期限直前(dueSoon)も含める
             let candidates = masteryTracker.getReviewCandidates(
                 allItems: vocab, subject: subject.rawValue, includeDueSoon: true)
@@ -1786,7 +1967,9 @@ struct QuizView: View {
             return []
         }
 
-        print("QuizView: Generating \(count) questions from \(vocab.count) vocabulary items")
+        let desiredCount = resolvedQuestionCount(requested: count, total: vocab.count)
+
+        print("QuizView: Generating \(desiredCount) questions from \(vocab.count) vocabulary items")
 
         // Use Spaced Repetition Logic if not filtered by chapter
         var finalSelection: [Vocabulary] = []
@@ -1906,13 +2089,13 @@ struct QuizView: View {
         } else if chapter.hasPrefix("Chapter") || chapter.hasPrefix("チャプター") {
             // Kobun/Kanbun/Seikei: Chapter 1, Chapter 2, etc.
             // Extract number from "Chapter X" or "Chapter X (Y-Z条)"
-            let numStr =
-                chapter
-                .replacingOccurrences(of: "Chapter ", with: "")
-                .replacingOccurrences(of: "チャプター ", with: "")
-                .components(separatedBy: " ")
-                .first ?? ""
-            if let chapterNum = Int(numStr) {
+            let trimmed = chapter
+                .replacingOccurrences(of: "Chapter", with: "")
+                .replacingOccurrences(of: "チャプター", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let digits = trimmed.prefix { $0.isNumber }
+
+            if let chapterNum = Int(digits) {
                 let startIndex = (chapterNum - 1) * chunkSize
                 let endIndex = min(chapterNum * chunkSize, vocab.count)
                 if startIndex < vocab.count {
@@ -1979,6 +2162,7 @@ struct QuizView: View {
                             hint: subject == .kobun
                                 ? word.hint
                                 : (subject == .kanbun ? (word.reading ?? word.hint) : nil),
+                            example: word.example,
                             choices: choices,
                             correctIndex: correctIndex,
                             fullText: word.fullText,
@@ -2031,6 +2215,51 @@ struct QuizView: View {
                         answerText: answer,
                         hint: subject == .kobun
                             ? word.hint : (subject == .kanbun ? (word.reading ?? word.hint) : nil),
+                        example: word.example,
+                        choices: choices,
+                        correctIndex: correctIndex,
+                        fullText: word.fullText
+                    )
+                )
+            } else if subject == .seikei, word.questionType == "era" {
+                // Handle era name questions for nengou
+                let pool: [Vocabulary] = {
+                    let eras = allVocabPool.filter { $0.questionType == "era" }
+                    if let cat = word.category {
+                        let same = eras.filter { $0.category == cat && $0.id != word.id }
+                        if same.count >= 3 { return same }
+                    }
+                    return eras.filter { $0.id != word.id }
+                }()
+                
+                let answer = word.meaning
+                let wrongs = pool
+                    .map { $0.meaning }
+                    .filter { $0 != answer && $0 != "不明" }
+                    .shuffled()
+                
+                var choices = [answer]
+                choices.append(contentsOf: wrongs.prefix(3))
+                choices = Array(Set(choices))
+                if choices.count < 4 {
+                    let fallback = allVocabPool
+                        .filter { $0.questionType == "era" }
+                        .map { $0.meaning }
+                        .filter { $0 != answer && $0 != "不明" }
+                        .shuffled()
+                    choices.append(contentsOf: fallback.prefix(max(0, 4 - choices.count)))
+                    choices = Array(Set(choices))
+                }
+                choices = Array(choices.prefix(4)).shuffled()
+                let correctIndex = choices.firstIndex(of: answer) ?? 0
+                
+                results.append(
+                    Question(
+                        id: word.id,
+                        questionText: word.term,
+                        answerText: answer,
+                        hint: nil,
+                        example: word.example,
                         choices: choices,
                         correctIndex: correctIndex,
                         fullText: word.fullText
@@ -2050,6 +2279,7 @@ struct QuizView: View {
                         answerText: word.meaning,
                         hint: subject == .kobun
                             ? word.hint : (subject == .kanbun ? (word.reading ?? word.hint) : nil),
+                        example: word.example,
                         choices: choices,
                         correctIndex: correctIndex,
                         fullText: word.fullText
@@ -2307,23 +2537,29 @@ struct QuizView: View {
             term: question.questionText,
             meaning: question.answerText,
             hint: question.hint,
+            example: question.example,
+            source: "クイズ",
             mastery: .new,
             subject: subject
         )
 
-        // Avoid duplicates
-        if !words.contains(where: { $0.id == question.id }) {
+        let alreadyAdded = words.contains(where: { $0.id == question.id })
+
+        if alreadyAdded {
+            words.removeAll { $0.id == question.id }
+        } else {
             words.append(newEntry)
-
-            // Save
-            if let data = try? JSONEncoder().encode(words) {
-                UserDefaults.standard.set(data, forKey: "anki_hub_wordbook")
-            }
-
-            Task { @MainActor in
-                SyncManager.shared.requestAutoSync()
-            }
         }
+
+        if let data = try? JSONEncoder().encode(words) {
+            UserDefaults.standard.set(data, forKey: "anki_hub_wordbook")
+        }
+
+        Task { @MainActor in
+            SyncManager.shared.requestAutoSync()
+        }
+
+        wordbookRefreshNonce += 1
     }
 
     private func speakWord(_ text: String) {
@@ -2382,13 +2618,9 @@ struct QuizView: View {
             // Quiz complete
             timerActive = false
             quizCompleted = true
-
-            let elapsedSeconds = max(0.0, CACurrentMediaTime() - quizStartTime)
-            let minutes = max(1, Int(ceil(elapsedSeconds / 60.0)))
-            learningStats.recordStudySession(
+            learningStats.recordStudyWords(
                 subject: subject.rawValue,
-                wordsStudied: questions.count,
-                minutes: minutes
+                wordsStudied: questions.count
             )
 
             if isRankUpMode {
@@ -2494,6 +2726,7 @@ struct Question: Identifiable {
     let questionText: String
     let answerText: String
     let hint: String?
+    let example: String?
     let choices: [String]
     let correctIndex: Int
     var fullText: String? = nil  // For Seikei fill-in-blank questions
@@ -2510,6 +2743,9 @@ private extension QuizView {
         specialTrainingMode = false
         mistakesSessionMode = false
         isShuffleMode = false
+        isSequentialMode = false
+        chapterOrder = []
+        currentChapterIndex = 0
         redSheetMode = false
         selectedChapters = ["すべて"]
         timeLimit = timerLimitSetting

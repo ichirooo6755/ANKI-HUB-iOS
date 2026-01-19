@@ -39,13 +39,23 @@ struct TimerHistoryView: View {
                 }
             }
             .navigationTitle("タイマー履歴")
-            .navigationBarTitleDisplayMode(.inline)
+            #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("閉じる") {
-                        presentationMode.wrappedValue.dismiss()
+                #if os(iOS)
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("閉じる") {
+                            presentationMode.wrappedValue.dismiss()
+                        }
                     }
-                }
+                #else
+                    ToolbarItem(placement: .automatic) {
+                        Button("閉じる") {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }
+                #endif
             }
         }
         .background(theme.background)

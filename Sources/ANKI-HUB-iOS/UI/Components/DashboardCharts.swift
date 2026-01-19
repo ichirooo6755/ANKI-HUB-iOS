@@ -81,14 +81,13 @@ struct DashboardCharts: View {
                 // Legend
                 HStack {
                     ForEach(MasteryLevel.allCases.reversed(), id: \.self) { level in
-                        if level != .new {
-                            HStack(spacing: 4) {
-                                Circle()
-                                    .fill(level.color)
-                                    .frame(width: 8, height: 8)
-                                Text(level.label)
-                                    .font(.caption2)
-                            }
+                        HStack(spacing: 4) {
+                            Circle()
+                                .fill(level.color)
+                                .frame(width: 8, height: 8)
+                            Text(level.label)
+                                .font(.caption2)
+                                .foregroundStyle(theme.primaryText)
                         }
                     }
                 }

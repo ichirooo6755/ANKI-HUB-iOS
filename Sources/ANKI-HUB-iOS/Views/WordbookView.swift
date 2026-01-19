@@ -42,6 +42,20 @@ struct WordbookView: View {
         
         return result
     }
+
+    private var removeBookmarkIconName: String {
+        #if os(iOS)
+        if UIImage(systemName: "bookmark.slash.fill") != nil {
+            return "bookmark.slash.fill"
+        }
+        if UIImage(systemName: "bookmark.slash") != nil {
+            return "bookmark.slash"
+        }
+        return "bookmark"
+        #else
+        return "bookmark.slash.fill"
+        #endif
+    }
     
     var body: some View {
         NavigationStack {
@@ -93,6 +107,13 @@ struct WordbookView: View {
                     List {
                         ForEach(filteredWords) { word in
                             WordRow(word: word)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        removeWord(word)
+                                    } label: {
+                                        Label("外す", systemImage: removeBookmarkIconName)
+                                    }
+                                }
                         }
                         .onDelete(perform: deleteWords)
                     }
@@ -204,7 +225,16 @@ struct WordbookView: View {
     }
     
     private func deleteWords(at offsets: IndexSet) {
-        words.remove(atOffsets: offsets)
+        let ids = offsets.compactMap { index -> String? in
+            guard filteredWords.indices.contains(index) else { return nil }
+            return filteredWords[index].id
+        }
+        words.removeAll { ids.contains($0.id) }
+        saveWords()
+    }
+
+    private func removeWord(_ word: WordbookEntry) {
+        words.removeAll { $0.id == word.id }
         saveWords()
     }
     
@@ -227,7 +257,15 @@ struct WordbookView: View {
 
             let term = components[0].trimmingCharacters(in: .whitespacesAndNewlines)
             let meaning = components[1].trimmingCharacters(in: .whitespacesAndNewlines)
-            let hint = components.count > 2 ? components[2].trimmingCharacters(in: .whitespacesAndNewlines) : nil
+            let hint = components.count > 2
+                ? components[2].trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil
+            let example = components.count > 3
+                ? components[3].trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil
+            let source = components.count > 4
+                ? components[4].trimmingCharacters(in: .whitespacesAndNewlines)
+                : nil
 
             guard !term.isEmpty, !meaning.isEmpty else { continue }
 
@@ -236,6 +274,8 @@ struct WordbookView: View {
                 term: term,
                 meaning: meaning,
                 hint: (hint?.isEmpty ?? true) ? nil : hint,
+                example: (example?.isEmpty ?? true) ? nil : example,
+                source: (source?.isEmpty ?? true) ? nil : source,
                 mastery: .new
             )
 
@@ -253,7 +293,9 @@ struct WordbookView: View {
         var csvContent = ""
         for word in words {
             let hint = word.hint ?? ""
-            csvContent += "\(word.term),\(word.meaning),\(hint)\n"
+            let example = word.example ?? ""
+            let source = word.source ?? ""
+            csvContent += "\(word.term),\(word.meaning),\(hint),\(example),\(source)\n"
         }
         return csvContent
     }
@@ -302,6 +344,18 @@ struct WordRow: View {
                 Text(word.meaning)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                if let example = word.example, !example.isEmpty {
+                    Text("例: \(example)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+                if let source = word.source, !source.isEmpty {
+                    Text("出典: \(source)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
             Spacer()
             Circle()
@@ -319,6 +373,8 @@ struct AddWordSheet: View {
     @State private var term: String = ""
     @State private var meaning: String = ""
     @State private var hint: String = ""
+    @State private var example: String = ""
+    @State private var source: String = ""
     
     var body: some View {
         NavigationStack {
@@ -327,6 +383,17 @@ struct AddWordSheet: View {
                     TextField("単語を入力", text: $term)
                     TextField("意味を入力", text: $meaning)
                     TextField("ヒント（任意）", text: $hint)
+                }
+
+                Section("文脈") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("例文（任意）")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        TextEditor(text: $example)
+                            .frame(minHeight: 80)
+                    }
+                    TextField("出典/URL（任意）", text: $source)
                 }
             }
             .navigationTitle("単語を追加")
@@ -346,6 +413,12 @@ struct AddWordSheet: View {
                             term: term,
                             meaning: meaning,
                             hint: hint.isEmpty ? nil : hint,
+                            example: example.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                ? nil
+                                : example,
+                            source: source.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                                ? nil
+                                : source,
                             mastery: .new
                         )
                         words.append(newWord)

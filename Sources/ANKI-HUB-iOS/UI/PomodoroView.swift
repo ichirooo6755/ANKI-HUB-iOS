@@ -1,7 +1,11 @@
 import SwiftUI
 import UserNotifications
 
-#if canImport(ActivityKit)
+#if canImport(ANKI_HUB_iOS_Shared)
+    import ANKI_HUB_iOS_Shared
+#endif
+
+#if canImport(ActivityKit) && os(iOS)
     import ActivityKit
 #endif
 
@@ -24,17 +28,9 @@ struct PomodoroView: View {
         var timeRemaining: TimeInterval
         var isOvertime: Bool
         var overtimeSeconds: TimeInterval
+        var activeSegmentStart: Date?
+        var segments: [TimerStudySegment]?
         var selectedMode: String
-    }
-
-    private struct TimerStudyLog: Identifiable, Codable {
-        var id: UUID = UUID()
-        var startedAt: Date
-        var endedAt: Date
-        var mode: String
-        var plannedSeconds: Int
-        var overtimeSeconds: Int
-        var studyContent: String
     }
 
     struct TimerHistoryEntry: Identifiable, Codable {
@@ -68,6 +64,8 @@ struct PomodoroView: View {
     @State private var endTime: Date? = nil
 
     @State private var startTime: Date? = nil
+    @State private var activeSegmentStart: Date? = nil
+    @State private var timerSegments: [TimerStudySegment] = []
     @State private var isOvertime = false
     @State private var overtimeSeconds: TimeInterval = 0
 
@@ -280,6 +278,8 @@ struct PomodoroView: View {
         timeRemaining = totalTime
         endTime = nil
         startTime = nil
+        activeSegmentStart = nil
+        timerSegments.removeAll()
         isOvertime = false
         overtimeSeconds = 0
     }
@@ -314,68 +314,92 @@ struct PomodoroView: View {
     // MARK: - Timer View
 
     private var timerView: some View {
-        VStack(spacing: 30) {
-            // Mode Selector
-            HStack(spacing: 12) {
-                ForEach(TimerMode.allCases, id: \.self) { mode in
-                    Button {
-                        selectedMode = mode
-                    } label: {
-                        Text(mode.rawValue)
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(
-                                selectedMode == mode
-                                    ? mode.color.opacity(0.2) : Color.gray.opacity(0.1)
-                            )
-                            .foregroundStyle(
-                                selectedMode == mode ? mode.color : theme.secondaryText
-                            )
-                            .cornerRadius(8)
+        #if os(iOS)
+            let isCompact = verticalSizeClass == .compact
+        #else
+            let isCompact = false
+        #endif
+        let accent = selectedMode.color
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+        let dialSize: CGFloat = isCompact ? 250 : 290
+
+        return VStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("モード")
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
+
+                Picker("モード", selection: $selectedMode) {
+                    ForEach(TimerMode.allCases, id: \.self) { mode in
+                        Text(mode.rawValue).tag(mode)
                     }
                 }
+                .pickerStyle(.segmented)
+                .tint(accent)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             // Clock Dial
             ZStack {
+                Circle()
+                    .stroke(surface.opacity(0.6), lineWidth: 14)
+                    .padding(18)
+
                 // Tick marks
-                TickMarksView()
+                TickMarksView(
+                    majorColor: theme.secondaryText.opacity(0.55),
+                    minorColor: theme.secondaryText.opacity(0.28),
+                    radius: dialSize / 2 - 16
+                )
 
                 // Progress Arc
                 Circle()
                     .trim(from: 0, to: CGFloat(timeRemaining / totalTime))
-                    .stroke(selectedMode.color, style: StrokeStyle(lineWidth: 20, lineCap: .round))
+                    .stroke(
+                        accent,
+                        style: StrokeStyle(lineWidth: 14, lineCap: .round, lineJoin: .round)
+                    )
                     .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 1.0), value: timeRemaining)
-                    .padding(20)
+                    .animation(.linear(duration: 0.9), value: timeRemaining)
+                    .padding(18)
 
                 // Time Display
-                VStack {
+                VStack(spacing: 6) {
+                    Text(isActive ? "残り" : "設定時間")
+                        .font(.caption2)
+                        .foregroundStyle(theme.secondaryText)
                     Text(
                         isOvertime
                             ? "+\(timeString(from: overtimeSeconds))"
                             : timeString(from: timeRemaining)
                     )
-                    .font(.system(size: 60, weight: .thin, design: .monospaced))
+                    .font(.system(size: isCompact ? 52 : 64, weight: .thin, design: .rounded))
+                    .foregroundStyle(theme.primaryText)
                     .contentTransition(.numericText())
+                    .monospacedDigit()
 
                     if isActive, let end = endTime {
                         Text("終了: \(endTimeString(end))")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundStyle(theme.secondaryText)
                             .padding(.top, 4)
+                    } else if !isActive {
+                        Text("ドラッグで調整")
+                            .font(.caption2)
+                            .foregroundStyle(theme.secondaryText)
+                            .padding(.top, 2)
                     }
 
                     if isOvertime {
                         Text("オーバータイム")
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundStyle(theme.secondaryText)
                             .padding(.top, 2)
                     }
                 }
             }
-            .frame(width: 300, height: 300)
+            .frame(width: dialSize, height: dialSize)
             .liquidGlassCircle()
             .gesture(
                 DragGesture(minimumDistance: 0)
@@ -390,26 +414,29 @@ struct PomodoroView: View {
             )
 
             // Controls (Health-like)
-            VStack(spacing: 18) {
-                HStack(spacing: 22) {
+            VStack(spacing: 16) {
+                let sideSize: CGFloat = isCompact ? 46 : 52
+                let mainSize: CGFloat = isCompact ? 82 : 96
+
+                HStack(spacing: 16) {
                     Button {
                         showHistory = true
                     } label: {
                         Image(systemName: "clock.arrow.circlepath")
-                            .font(.title2)
+                            .font(.title3)
                             .foregroundStyle(theme.secondaryText)
-                            .frame(width: 56, height: 56)
+                            .frame(width: sideSize, height: sideSize)
                             .liquidGlassCircle()
                     }
 
                     Button {
                         toggleTimer()
                     } label: {
-                        let bg = selectedMode.color
+                        let bg = accent
                         Image(systemName: isActive ? "pause.fill" : "play.fill")
-                            .font(.system(size: 28, weight: .semibold))
+                            .font(.system(size: isCompact ? 26 : 30, weight: .semibold))
                             .foregroundStyle(theme.onColor(for: bg))
-                            .frame(width: 88, height: 88)
+                            .frame(width: mainSize, height: mainSize)
                             .background(bg)
                             .clipShape(Circle())
                             .shadow(color: bg.opacity(0.35), radius: 14, x: 0, y: 8)
@@ -419,14 +446,14 @@ struct PomodoroView: View {
                         stopTimer(userInitiated: true)
                     } label: {
                         Image(systemName: "stop.fill")
-                            .font(.title2)
+                            .font(.title3)
                             .foregroundStyle(theme.secondaryText)
-                            .frame(width: 56, height: 56)
+                            .frame(width: sideSize, height: sideSize)
                             .liquidGlassCircle()
                     }
                 }
 
-                HStack(spacing: 14) {
+                HStack(spacing: 12) {
                     Button {
                         resetTimer()
                     } label: {
@@ -434,11 +461,16 @@ struct PomodoroView: View {
                             Image(systemName: "arrow.clockwise")
                             Text("リセット")
                         }
-                        .font(.subheadline.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(theme.secondaryText)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .liquidGlass(cornerRadius: 16)
+                        .padding(.vertical, 10)
+                        .background(surface.opacity(0.7))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(border.opacity(0.5), lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .buttonStyle(.plain)
 
@@ -449,20 +481,26 @@ struct PomodoroView: View {
                             Image(systemName: "gearshape.fill")
                             Text("設定")
                         }
-                        .font(.subheadline.weight(.semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(theme.secondaryText)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .liquidGlass(cornerRadius: 16)
+                        .padding(.vertical, 10)
+                        .background(surface.opacity(0.7))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(border.opacity(0.5), lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 4)
             }
 
             Spacer()
         }
-        .padding()
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
         .sheet(isPresented: $showHistory) {
             TimerHistoryView(history: timerHistory) { entry in
                 applyHistoryEntry(entry)
@@ -501,8 +539,9 @@ struct PomodoroView: View {
 
                 VStack {
                     Text(stopwatchString(from: stopwatchTime))
-                        .font(.system(size: 50, weight: .thin, design: .monospaced))
+                        .font(.system(size: 52, weight: .thin, design: .rounded))
                         .contentTransition(.numericText())
+                        .monospacedDigit()
 
                     Text("ストップウォッチ")
                         .font(.caption)
@@ -640,8 +679,50 @@ struct PomodoroView: View {
         timeRemaining = totalTime
     }
 
+    private func isStudyMode(_ mode: TimerMode) -> Bool {
+        mode == .focus || mode == .custom
+    }
+
+    private func startActiveSegmentIfNeeded(at start: Date = Date()) {
+        guard isStudyMode(selectedMode) else { return }
+        if activeSegmentStart == nil {
+            activeSegmentStart = start
+        }
+    }
+
+    private func endActiveSegmentIfNeeded(at end: Date = Date()) {
+        guard let start = activeSegmentStart else { return }
+        guard end > start else {
+            activeSegmentStart = nil
+            return
+        }
+        timerSegments.append(TimerStudySegment(startTime: start, endTime: end))
+        activeSegmentStart = nil
+    }
+
+    private func currentTimerStudySessions(at end: Date = Date()) -> [StudySession] {
+        guard isStudyMode(selectedMode) else { return [] }
+        var segments = timerSegments
+        if let activeStart = activeSegmentStart, end > activeStart {
+            segments.append(TimerStudySegment(startTime: activeStart, endTime: end))
+        }
+        return segments.compactMap { segment in
+            guard segment.endTime > segment.startTime else { return nil }
+            return StudySession(startTime: segment.startTime, endTime: segment.endTime, source: .timer)
+        }
+    }
+
+    private func refreshLearningStatsForTimer(at end: Date = Date()) {
+        let sessions = currentTimerStudySessions(at: end)
+        if sessions.isEmpty {
+            LearningStats.shared.refreshStudyMinutesFromSessions()
+        } else {
+            LearningStats.shared.refreshStudyMinutesFromSessions(additionalSessions: sessions)
+        }
+    }
+
     private func checkExternalControlRequest() {
-        #if canImport(ActivityKit)
+        #if os(iOS)
             guard let defaults = UserDefaults(suiteName: "group.com.ankihub.ios"),
                 let data = defaults.data(forKey: focusTimerControlKey),
                 let req = try? JSONDecoder().decode(FocusTimerControlRequest.self, from: data)
@@ -717,8 +798,10 @@ struct PomodoroView: View {
             return
         }
 
+        let now = Date()
+
         if startTime == nil {
-            startTime = Date()
+            startTime = now
             if suppressHistoryOnNextStart {
                 suppressHistoryOnNextStart = false
             } else {
@@ -726,12 +809,15 @@ struct PomodoroView: View {
             }
         }
 
+        startActiveSegmentIfNeeded(at: now)
+
         isActive = true
         if isOvertime {
             endTime = nil
             startTickingTimer()
             persistTimerState(force: true)
             updateActivityForTimerState()
+            refreshLearningStatsForTimer(at: now)
             return
         }
 
@@ -742,10 +828,13 @@ struct PomodoroView: View {
         startTickingTimer()
         persistTimerState(force: true)
         updateActivityForTimerState()
+        refreshLearningStatsForTimer(at: now)
     }
 
     private func pauseTimer() {
         guard isActive else { return }
+        let pausedAt = Date()
+        endActiveSegmentIfNeeded(at: pausedAt)
         isActive = false
         timer?.invalidate()
         timer = nil
@@ -757,6 +846,7 @@ struct PomodoroView: View {
         cancelTimerEndNotification()
         persistTimerState(force: true)
         updateActivityForTimerState()
+        refreshLearningStatsForTimer(at: pausedAt)
     }
 
     private func startTickingTimer() {
@@ -791,6 +881,8 @@ struct PomodoroView: View {
     }
 
     private func stopTimer(userInitiated: Bool) {
+        let stoppedAt = Date()
+        endActiveSegmentIfNeeded(at: stoppedAt)
         isActive = false
         timer?.invalidate()
         timer = nil
@@ -798,10 +890,11 @@ struct PomodoroView: View {
         cancelTimerEndNotification()
         endActivity()
         persistTimerState(force: true)
+        refreshLearningStatsForTimer(at: stoppedAt)
 
         if userInitiated {
             if let startedAt = startTime {
-                let elapsedSeconds = max(0.0, Date().timeIntervalSince(startedAt))
+                let elapsedSeconds = max(0.0, stoppedAt.timeIntervalSince(startedAt))
                 let shouldRecordMode = (selectedMode == .focus || selectedMode == .custom)
                 if shouldRecordMode, elapsedSeconds >= 60 {
                     shouldResetAfterStudyLog = true
@@ -827,6 +920,8 @@ struct PomodoroView: View {
         updateTimerDuration()
         endTime = nil
         startTime = nil
+        activeSegmentStart = nil
+        timerSegments.removeAll()
         isOvertime = false
         overtimeSeconds = 0
         studyContent = ""
@@ -868,6 +963,7 @@ struct PomodoroView: View {
                         showStudyLogSheet = false
                         if shouldResetAfterStudyLog {
                             resetTimer()
+                            LearningStats.shared.refreshStudyMinutesFromSessions()
                         }
                     }
                 }
@@ -1001,13 +1097,17 @@ struct PomodoroView: View {
     private func saveStudyLogIfPossible(endedAt: Date) {
         guard let startedAt = startTime else { return }
 
+        endActiveSegmentIfNeeded(at: endedAt)
+        let segments = timerSegments
+
         let log = TimerStudyLog(
             startedAt: startedAt,
             endedAt: endedAt,
             mode: selectedMode.rawValue,
             plannedSeconds: Int(totalTime),
             overtimeSeconds: isOvertime ? Int(overtimeSeconds) : 0,
-            studyContent: studyContent.trimmingCharacters(in: .whitespacesAndNewlines)
+            studyContent: studyContent.trimmingCharacters(in: .whitespacesAndNewlines),
+            segments: segments.isEmpty ? nil : segments
         )
 
         var logs: [TimerStudyLog] = []
@@ -1021,13 +1121,7 @@ struct PomodoroView: View {
         if let encoded = try? JSONEncoder().encode(logs) {
             UserDefaults.standard.set(encoded, forKey: timerLogKey)
         }
-
-        if selectedMode == .focus || selectedMode == .custom {
-            let elapsedSeconds = max(0.0, endedAt.timeIntervalSince(startedAt))
-            let minutes = max(1, Int(ceil(elapsedSeconds / 60.0)))
-            LearningStats.shared.recordStudySession(subject: "", wordsStudied: 0, minutes: minutes)
-        }
-
+        LearningStats.shared.refreshStudyMinutesFromSessions()
         SyncManager.shared.requestAutoSync()
     }
 
@@ -1042,9 +1136,18 @@ struct PomodoroView: View {
         selectedMode = TimerMode(rawValue: decoded.selectedMode) ?? selectedMode
         startTime = decoded.startTime
         endTime = decoded.endTime
+        timerSegments = decoded.segments ?? []
+        activeSegmentStart = decoded.activeSegmentStart
+        if !isStudyMode(selectedMode) {
+            timerSegments.removeAll()
+            activeSegmentStart = nil
+        }
 
         if decoded.isActive, let end = decoded.endTime {
             isActive = true
+            if isStudyMode(selectedMode), activeSegmentStart == nil {
+                activeSegmentStart = decoded.startTime ?? Date()
+            }
             let remaining = end.timeIntervalSince(Date())
             if remaining <= 0 {
                 timeRemaining = 0
@@ -1063,6 +1166,9 @@ struct PomodoroView: View {
         isOvertime = decoded.isOvertime
         overtimeSeconds = decoded.overtimeSeconds
         timeRemaining = decoded.timeRemaining
+        if !decoded.isActive {
+            activeSegmentStart = nil
+        }
         return true
     }
 
@@ -1082,6 +1188,8 @@ struct PomodoroView: View {
             timeRemaining: timeRemaining,
             isOvertime: isOvertime,
             overtimeSeconds: overtimeSeconds,
+            activeSegmentStart: activeSegmentStart,
+            segments: timerSegments.isEmpty ? nil : timerSegments,
             selectedMode: selectedMode.rawValue
         )
 
@@ -1261,19 +1369,25 @@ struct PomodoroView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .statusBarHidden(true)
+        #if os(iOS)
+            .statusBarHidden(true)
+        #endif
         .ignoresSafeArea()
     }
 }
 
 private struct TickMarksView: View {
+    let majorColor: Color
+    let minorColor: Color
+    let radius: CGFloat
+
     var body: some View {
         ZStack {
             ForEach(0..<60) { tick in
                 Rectangle()
-                    .fill(Color.primary.opacity(tick % 5 == 0 ? 0.5 : 0.2))
-                    .frame(width: tick % 5 == 0 ? 3 : 1, height: tick % 5 == 0 ? 20 : 10)
-                    .offset(y: -130)
+                    .fill(tick % 5 == 0 ? majorColor : minorColor)
+                    .frame(width: tick % 5 == 0 ? 2 : 1, height: tick % 5 == 0 ? 12 : 6)
+                    .offset(y: -radius)
                     .rotationEffect(.degrees(Double(tick) * 6))
             }
         }

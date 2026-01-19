@@ -98,24 +98,48 @@ class VocabularyData: ObservableObject {
             let reading: String?
             let hint: String?
             let explanation: String?
+            let example: String?
         }
         
+        var baseKanbunItems: [Vocabulary] = []
         if let content = loadResource(name: "kanbun", ext: "json"),
            let items = DataParser.shared.parseJSONData(content, type: [KanbunItem].self) {
-            kanbunData = items.map { item in
+            baseKanbunItems = items.map { item in
                 Vocabulary(
                     id: item.id,
                     term: item.word,
                     meaning: item.meaning,
                     reading: item.reading,
                     hint: item.hint,
+                    example: item.example,
                     explanation: item.explanation
                 )
             }
-            print("📚 Kanbun: \(kanbunData.count) words loaded")
+            print("📚 Kanbun: \(baseKanbunItems.count) words loaded")
         } else {
-            kanbunData = []
             print("⚠️ Kanbun: kanbun.json not found/parse failed. Sample (RawData) fallback is disabled.")
+        }
+
+        var grammarKanbunItems: [Vocabulary] = []
+        if let content = loadResource(name: "kanbun_grammar", ext: "json"),
+           let items = DataParser.shared.parseJSONData(content, type: [KanbunItem].self) {
+            grammarKanbunItems = items.map { item in
+                Vocabulary(
+                    id: item.id,
+                    term: item.word,
+                    meaning: item.meaning,
+                    reading: item.reading,
+                    hint: item.hint,
+                    example: item.example,
+                    explanation: item.explanation
+                )
+            }
+            print("📚 Kanbun Grammar: \(grammarKanbunItems.count) items loaded")
+        }
+
+        kanbunData = baseKanbunItems + grammarKanbunItems
+        if kanbunData.isEmpty {
+            print("⚠️ Kanbun: no items loaded")
         }
         
         // 3. Kobun Data (JSON) from kobun.json
@@ -137,49 +161,149 @@ class VocabularyData: ObservableObject {
         }()
 
         let normalizeKobunKey: (String) -> String = { raw in
-            raw.trimmingCharacters(in: .whitespacesAndNewlines)
-                .replacingOccurrences(of: " ", with: "")
-                .replacingOccurrences(of: "\u{3000}", with: "")
+            var s = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            s = s.replacingOccurrences(of: "\u{3000}", with: "")
+            s = s.replacingOccurrences(of: " ", with: "")
+            s = s.replacingOccurrences(of: "（[^）]*）", with: "", options: .regularExpression)
+            s = s.replacingOccurrences(of: "\\([^\\)]*\\)", with: "", options: .regularExpression)
+            return s
         }
 
-        let baseByWordKey: [String: KobunItem] = Dictionary(
-            baseKobunItems.map { (normalizeKobunKey($0.word), $0) },
-            uniquingKeysWith: { first, _ in first }
-        )
+        let kobunHintKeys: (String?) -> [String] = { rawHint in
+            guard var s = rawHint?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty
+            else {
+                return []
+            }
+
+            s = s.replacingOccurrences(of: "\u{3000}", with: "/")
+            s = s.replacingOccurrences(of: " ", with: "/")
+            s = s.replacingOccurrences(of: "）", with: "/")
+            s = s.replacingOccurrences(of: ")", with: "/")
+            s = s.replacingOccurrences(of: "（", with: "")
+            s = s.replacingOccurrences(of: "(", with: "")
+            s = s.replacingOccurrences(of: "／", with: "/")
+            s = s.replacingOccurrences(of: "・", with: "/")
+            s = s.replacingOccurrences(of: "、", with: "/")
+            s = s.replacingOccurrences(of: ",", with: "/")
+
+            let parts = s.split(whereSeparator: { $0 == "/" }).map(String.init)
+
+            var out: [String] = []
+            out.reserveCapacity(parts.count)
+
+            let kanjiRegex = try? NSRegularExpression(pattern: "[\\u4E00-\\u9FFF]", options: [])
+            for p in parts {
+                let normalized = normalizeKobunKey(p)
+                if normalized.isEmpty { continue }
+                out.append(normalized)
+
+                if let re = kanjiRegex {
+                    let range = NSRange(location: 0, length: normalized.utf16.count)
+                    let hasKanji = re.firstMatch(in: normalized, options: [], range: range) != nil
+                    if hasKanji {
+                        let kanjiOnly = normalized.unicodeScalars.filter { scalar in
+                            scalar.value >= 0x4E00 && scalar.value <= 0x9FFF
+                        }.map(String.init).joined()
+
+                        let hasNonKanji = kanjiOnly != normalized
+                        if hasNonKanji, !kanjiOnly.isEmpty {
+                            out.append(kanjiOnly)
+                        }
+                    }
+                }
+            }
+
+            return Array(Set(out))
+        }
+
+        let kobunKeys: (String) -> [String] = { raw in
+            let cleaned = normalizeKobunKey(raw)
+            if cleaned.isEmpty { return [] }
+            let parts = cleaned.split(whereSeparator: { $0 == "/" || $0 == "／" }).map(String.init)
+            let filtered = parts.filter { !$0.isEmpty }
+
+            let baseParts = filtered.isEmpty ? [cleaned] : filtered
+            return Array(Set(baseParts))
+        }
 
         var mergedKobunItems: [KobunItem] = baseKobunItems
+        let baseCount = baseKobunItems.count
+
+        var keyToIndex: [String: Int] = [:]
+        if !baseKobunItems.isEmpty {
+            for (idx, item) in baseKobunItems.enumerated() {
+                for k in kobunKeys(item.word) {
+                    if keyToIndex[k] == nil {
+                        keyToIndex[k] = idx
+                    }
+                }
+            }
+
+            for (idx, item) in baseKobunItems.enumerated() {
+                for k in kobunHintKeys(item.hint) {
+                    if keyToIndex[k] == nil {
+                        keyToIndex[k] = idx
+                    }
+                }
+            }
+        }
 
         if let pdfContent = loadResource(name: "kobun_pdf", ext: "json"),
             let pdfItems = DataParser.shared.parseJSONData(pdfContent, type: [KobunItem].self),
             !pdfItems.isEmpty
         {
-            let pdfByWordKey: [String: KobunItem] = Dictionary(
-                pdfItems.map { (normalizeKobunKey($0.word), $0) },
-                uniquingKeysWith: { first, _ in first }
-            )
+            for pdfItem in pdfItems {
+                let keys = kobunKeys(pdfItem.word)
+                var matchedIndex: Int?
+                for k in keys {
+                    if let idx = keyToIndex[k] {
+                        matchedIndex = idx
+                        break
+                    }
+                }
 
-            for item in pdfItems {
-                let key = normalizeKobunKey(item.word)
-                if baseByWordKey[key] == nil {
-                    mergedKobunItems.append(item)
+                if let idx = matchedIndex {
+                    let base = mergedKobunItems[idx]
+                    let mergedHint: String? = {
+                        if let h = base.hint, !h.isEmpty { return h }
+                        if let h = pdfItem.hint, !h.isEmpty { return h }
+                        return nil
+                    }()
+                    let mergedExample: String? = {
+                        if let e = base.example, !e.isEmpty { return e }
+                        if let e = pdfItem.example, !e.isEmpty { return e }
+                        return nil
+                    }()
+                    let mergedMeaning: String = base.meaning.isEmpty ? pdfItem.meaning : base.meaning
+
+                    if mergedHint != base.hint || mergedExample != base.example || mergedMeaning != base.meaning {
+                        mergedKobunItems[idx] = KobunItem(
+                            id: base.id,
+                            word: base.word,
+                            meaning: mergedMeaning,
+                            hint: mergedHint,
+                            example: mergedExample
+                        )
+                    }
+                } else {
+                    let newIndex = mergedKobunItems.count
+                    mergedKobunItems.append(pdfItem)
+                    for k in keys {
+                        if keyToIndex[k] == nil {
+                            keyToIndex[k] = newIndex
+                        }
+                    }
                 }
             }
-            kobunData = mergedKobunItems.map { item in
-                let key = normalizeKobunKey(item.word)
-                let isPdfOnly = baseByWordKey[key] == nil
-                let pdf = pdfByWordKey[key]
 
-                let mergedHint: String? = {
-                    if let h = item.hint, !h.isEmpty { return h }
-                    if !isPdfOnly, let h = pdf?.hint, !h.isEmpty { return h }
-                    return nil
-                }()
+            kobunData = mergedKobunItems.enumerated().map { idx, item in
+                let isPdfOnly = idx >= baseCount
                 return Vocabulary(
                     id: isPdfOnly ? "pdf-\(item.id)" : String(item.id),
                     term: item.word,
                     meaning: item.meaning,
                     reading: nil,
-                    hint: mergedHint,
+                    hint: item.hint,
                     example: item.example
                 )
             }
@@ -202,16 +326,32 @@ class VocabularyData: ObservableObject {
         }
         
         // 4. Seikei Data (Constitution JSON) from constitution.json
+        var constitutionItems: [Vocabulary] = []
         if let content = loadResource(name: "constitution", ext: "json") {
-            seikeiData = DataParser.shared.parseConstitutionData(content)
-            if seikeiData.isEmpty {
-                print("⚠️ Seikei: constitution.json parsed but produced 0 items. Sample (RawData) fallback is disabled.")
+            constitutionItems = DataParser.shared.parseConstitutionData(content)
+            if constitutionItems.isEmpty {
+                print("⚠️ Seikei: constitution.json parsed but produced 0 items.")
             }
-            print("📚 Seikei: \(seikeiData.count) items loaded")
+            print("📚 Seikei Constitution: \(constitutionItems.count) items loaded")
         } else {
-            seikeiData = []
-            print("⚠️ Seikei: constitution.json not found in Resources. Sample (RawData) fallback is disabled.")
+            print("⚠️ Seikei: constitution.json not found in Resources.")
         }
+        
+        // 5. Nengou Data (JSON) from nengou.json
+        var nengouItems: [Vocabulary] = []
+        if let content = loadResource(name: "nengou", ext: "json") {
+            nengouItems = DataParser.shared.parseNengouData(content)
+            if nengouItems.isEmpty {
+                print("⚠️ Seikei: nengou.json parsed but produced 0 items.")
+            }
+            print("📚 Seikei Nengou: \(nengouItems.count) items loaded")
+        } else {
+            print("⚠️ Seikei: nengou.json not found in Resources.")
+        }
+        
+        // Merge constitution and nengou data
+        seikeiData = constitutionItems + nengouItems
+        print("📚 Seikei Total: \(seikeiData.count) items loaded")
     }
 }
 

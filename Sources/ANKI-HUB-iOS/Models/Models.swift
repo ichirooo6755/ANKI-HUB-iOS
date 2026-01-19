@@ -1,6 +1,10 @@
 import Foundation
 import SwiftUI
 
+#if os(iOS)
+    import UIKit
+#endif
+
 #if canImport(WidgetKit)
     import WidgetKit
 #endif
@@ -10,6 +14,40 @@ struct PomodoroStartRequest: Identifiable {
     let mode: String
     let minutes: Int
     let open: Bool
+}
+
+struct StudySession: Identifiable, Codable {
+    enum Source: String, Codable {
+        case appUsage
+        case timer
+    }
+
+    var id: UUID = UUID()
+    var startTime: Date
+    var endTime: Date
+    var source: Source
+}
+
+struct TimerStudySegment: Codable {
+    var startTime: Date
+    var endTime: Date
+}
+
+struct TimerStudyLog: Identifiable, Codable {
+    var id: UUID = UUID()
+    var startedAt: Date
+    var endedAt: Date
+    var mode: String
+    var plannedSeconds: Int
+    var overtimeSeconds: Int
+    var studyContent: String
+    var segments: [TimerStudySegment]? = nil
+}
+
+extension TimerStudyLog {
+    var countsAsStudy: Bool {
+        mode == "集中" || mode == "カスタム"
+    }
 }
 
 // MARK: - Vocabulary
@@ -56,14 +94,27 @@ struct WordbookEntry: Identifiable, Codable {
     var term: String
     var meaning: String
     var hint: String?
+    var example: String?
+    var source: String?
     var mastery: MasteryLevel
     var subject: Subject?
     
-    init(id: String, term: String, meaning: String, hint: String? = nil, mastery: MasteryLevel = .new, subject: Subject? = nil) {
+    init(
+        id: String,
+        term: String,
+        meaning: String,
+        hint: String? = nil,
+        example: String? = nil,
+        source: String? = nil,
+        mastery: MasteryLevel = .new,
+        subject: Subject? = nil
+    ) {
         self.id = id
         self.term = term
         self.meaning = meaning
         self.hint = hint
+        self.example = example
+        self.source = source
         self.mastery = mastery
         self.subject = subject
     }
@@ -248,11 +299,14 @@ class LearningStats: ObservableObject {
 
     private let userDefaultsKey = "anki_hub_learning_stats"
     private let appGroupId = "group.com.ankihub.ios"
+    private let timerLogKey = "anki_hub_timer_study_logs_v1"
+    private let appUsageKey = "anki_hub_app_usage"
 
     init() {
         loadStats()
         syncTodayMinutesFromHistory()
         calculateStreak()
+        refreshStudyMinutesFromSessions()
     }
 
     func applyStored(_ stored: StoredStats) {
@@ -313,12 +367,148 @@ class LearningStats: ObservableObject {
         SyncManager.shared.requestAutoSync()
     }
 
+    func refreshStudyMinutesFromSessions(additionalSessions: [StudySession] = []) {
+        let sessions = loadStudySessions() + additionalSessions
+        let aggregated = aggregateStudyMinutesByDay(from: sessions)
+        applyAggregatedMinutes(aggregated)
+    }
+
+    private func loadStudySessions() -> [StudySession] {
+        loadAppUsageSessions() + loadTimerSessions()
+    }
+
+    private func loadAppUsageSessions() -> [StudySession] {
+        let groupDefaults = UserDefaults(suiteName: appGroupId)
+        let data = groupDefaults?.data(forKey: appUsageKey) ?? UserDefaults.standard.data(forKey: appUsageKey)
+        guard let data,
+            let decoded = try? JSONDecoder().decode([String: AppUsageTracker.UsageEntry].self, from: data)
+        else {
+            return []
+        }
+
+        return decoded.values.flatMap { entry in
+            entry.sessions.compactMap { session in
+                guard let endTime = session.endTime else { return nil }
+                guard endTime > session.startTime else { return nil }
+                return StudySession(startTime: session.startTime, endTime: endTime, source: .appUsage)
+            }
+        }
+    }
+
+    private func loadTimerSessions() -> [StudySession] {
+        let groupDefaults = UserDefaults(suiteName: appGroupId)
+        let data = groupDefaults?.data(forKey: timerLogKey) ?? UserDefaults.standard.data(forKey: timerLogKey)
+        guard let data,
+            let decoded = try? JSONDecoder().decode([TimerStudyLog].self, from: data)
+        else {
+            return []
+        }
+
+        return decoded.flatMap { log -> [StudySession] in
+            guard log.countsAsStudy else { return [] }
+            if let segments = log.segments, !segments.isEmpty {
+                return segments.compactMap { segment in
+                    guard segment.endTime > segment.startTime else { return nil }
+                    return StudySession(
+                        startTime: segment.startTime,
+                        endTime: segment.endTime,
+                        source: .timer
+                    )
+                }
+            }
+            guard log.endedAt > log.startedAt else { return [] }
+            return [StudySession(startTime: log.startedAt, endTime: log.endedAt, source: .timer)]
+        }
+    }
+
+    private func aggregateStudyMinutesByDay(from sessions: [StudySession]) -> [String: Int] {
+        let grouped = splitSessionsByDay(sessions)
+        var result: [String: Int] = [:]
+
+        for (key, intervals) in grouped {
+            let merged = mergeIntervals(intervals)
+            let totalSeconds = merged.reduce(0.0) { $0 + $1.duration }
+            let minutes = totalSeconds > 0 ? Int(ceil(totalSeconds / 60.0)) : 0
+            result[key] = minutes
+        }
+        return result
+    }
+
+    private func splitSessionsByDay(_ sessions: [StudySession]) -> [String: [DateInterval]] {
+        var result: [String: [DateInterval]] = [:]
+        let calendar = Calendar.current
+
+        for session in sessions {
+            var start = session.startTime
+            let end = session.endTime
+            guard end > start else { continue }
+
+            while start < end {
+                let dayStart = calendar.startOfDay(for: start)
+                guard let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) else { break }
+                let segmentEnd = min(end, nextDay)
+                let key = dateKey(from: start)
+                result[key, default: []].append(DateInterval(start: start, end: segmentEnd))
+                start = segmentEnd
+            }
+        }
+
+        return result
+    }
+
+    private func mergeIntervals(_ intervals: [DateInterval]) -> [DateInterval] {
+        let sorted = intervals.sorted { $0.start < $1.start }
+        var merged: [DateInterval] = []
+
+        for interval in sorted where interval.duration > 0 {
+            if let last = merged.last, last.end >= interval.start {
+                let mergedInterval = DateInterval(start: last.start, end: max(last.end, interval.end))
+                merged[merged.count - 1] = mergedInterval
+            } else {
+                merged.append(interval)
+            }
+        }
+
+        return merged
+    }
+
+    private func applyAggregatedMinutes(_ aggregated: [String: Int]) {
+        var didChange = false
+        let today = todayKey()
+        var keysToUpdate = Set(aggregated.keys)
+        keysToUpdate.insert(today)
+
+        for key in keysToUpdate {
+            let minutes = aggregated[key] ?? 0
+            var entry = dailyHistory[key] ?? DailyEntry(words: 0, minutes: 0, subjects: [:])
+            if entry.minutes != minutes {
+                entry.minutes = minutes
+                didChange = true
+            }
+            dailyHistory[key] = entry
+        }
+
+        syncTodayMinutesFromHistory()
+        calculateStreak()
+
+        if didChange {
+            saveStats()
+        }
+    }
+
     func recordStudyMinutes(minutes: Int) {
-        guard minutes > 0 else { return }
+        refreshStudyMinutesFromSessions()
+    }
+
+    func recordStudyWords(subject: String, wordsStudied: Int) {
+        guard wordsStudied > 0 else { return }
         let key = todayKey()
 
         var entry = dailyHistory[key] ?? DailyEntry(words: 0, minutes: 0, subjects: [:])
-        entry.minutes += minutes
+        entry.words += wordsStudied
+        if !subject.isEmpty {
+            entry.subjects[subject, default: 0] += wordsStudied
+        }
         dailyHistory[key] = entry
 
         todayMinutes = entry.minutes
@@ -352,24 +542,8 @@ class LearningStats: ObservableObject {
     }
 
     func recordStudySession(subject: String, wordsStudied: Int, minutes: Int) {
-        let key = todayKey()
-
-        var entry = dailyHistory[key] ?? DailyEntry(words: 0, minutes: 0, subjects: [:])
-
-        if wordsStudied > 0 {
-            entry.words += wordsStudied
-            if !subject.isEmpty {
-                entry.subjects[subject, default: 0] += wordsStudied
-            }
-        }
-        if minutes > 0 {
-            entry.minutes += minutes
-        }
-        dailyHistory[key] = entry
-
-        todayMinutes = entry.minutes
-        calculateStreak()
-        saveStats()
+        recordStudyWords(subject: subject, wordsStudied: wordsStudied)
+        refreshStudyMinutesFromSessions()
     }
 
     func setDailyEntry(dateKey: String, words: Int, minutes: Int, subjects: [String: Int]) {
@@ -385,6 +559,12 @@ class LearningStats: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: Date())
+    }
+
+    private func dateKey(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
     }
 
     private func calculateStreak() {
@@ -742,20 +922,28 @@ enum Subject: String, CaseIterable, Identifiable, Codable {
     }
 
     var icon: String {
-        let isJapaneseLocale: Bool = {
-            if #available(iOS 16.0, *) {
-                return Locale.current.language.languageCode?.identifier == "ja"
-            }
-            return Locale.current.identifier.hasPrefix("ja")
-        }()
+        func pick(_ candidates: [String], fallback: String) -> String {
+            #if os(iOS)
+                for name in candidates {
+                    if UIImage(systemName: name) != nil {
+                        return name
+                    }
+                }
+                return fallback
+            #else
+                return candidates.first ?? fallback
+            #endif
+        }
+
         switch self {
         case .english:
-            return isJapaneseLocale ? "character.book.closed" : "book.closed"
+            // Always show an alphabet-cover book icon (avoid locale-dependent glyphs)
+            return pick(["textformat.abc", "a.book.closed", "a.book.closed.fill"], fallback: "textformat.abc")
         case .kobun:
-            // Use generic text book icons as specialized language variants might not exist in all SF Symbols versions
-            return "text.book.closed"
+            return pick(["character.book.closed", "book.closed"], fallback: "book.closed")
         case .kanbun:
-            return "text.book.closed.fill"
+            // Prefer a text/character book icon; fall back to a stable book icon.
+            return pick(["text.book.closed", "text.book.closed.fill", "doc.text"], fallback: "doc.text")
         case .seikei: return "books.vertical"
         }
     }

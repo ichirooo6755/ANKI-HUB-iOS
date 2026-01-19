@@ -50,6 +50,8 @@ struct MasteryPieChart: View {
     @ObservedObject var masteryTracker: MasteryTracker
     @State private var selectedPage: Int = 0
 
+    @ObservedObject private var theme = ThemeManager.shared
+
     private struct MasteryPage {
         enum Kind {
             case combined
@@ -77,10 +79,11 @@ struct MasteryPieChart: View {
             HStack {
                 Text("Total Mastery")
                     .font(.headline)
+                    .foregroundStyle(theme.primaryText)
                 Spacer()
                 Image(systemName: "arrow.left.and.right")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
             }
 
             TabView(selection: $selectedPage) {
@@ -102,18 +105,19 @@ struct MasteryPieChart: View {
                             VStack(spacing: 4) {
                                 Text("覚えた")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(theme.secondaryText)
                                 Text("\(totalMastered)")
                                     .font(.system(.title, design: .rounded).weight(.bold))
                                     .minimumScaleFactor(0.5)
                                     .lineLimit(1)
+                                    .foregroundStyle(theme.primaryText)
                             }
                             .padding(.horizontal, 10)
                         }
 
                         Text(page.subject?.displayName ?? "総合")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(theme.secondaryText)
 
                         // Legend
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -125,6 +129,7 @@ struct MasteryPieChart: View {
                                         .frame(width: 12, height: 12)
                                     Text("\(level.label): \(count)")
                                         .font(.caption)
+                                        .foregroundStyle(theme.primaryText)
                                     Spacer()
                                 }
                             }

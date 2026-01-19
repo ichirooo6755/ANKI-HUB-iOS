@@ -1,0 +1,83 @@
+[
+  {
+    "id": "kg1",
+    "word": "置き字（於・干・焉）",
+    "meaning": "読まない字。前置詞のはたらき",
+    "reading": null,
+    "hint": "送り仮名は「ヲ・ニ・ヨリ・モ」",
+    "explanation": "漢文の中で読まない字を置き字という。於・干・焉が代表で前置詞として働く。",
+    "example": "<ruby>君<rt>くん</rt></ruby><ruby>子<rt>し</rt></ruby><ruby>博<rt>ひろ</rt></ruby><ruby>学<rt>がく</rt></ruby>[レ]<ruby>於<rt>おい</rt></ruby><ruby>文<rt>ぶん</rt></ruby>"
+  },
+  {
+    "id": "kg2",
+    "word": "置き字の送り仮名",
+    "meaning": "ヲ・ニ・ヨリ・モ",
+    "reading": null,
+    "hint": "置き字（於・干・焉）",
+    "explanation": "置き字は送り仮名で「ヲ・ニ・ヨリ・モ」と返す。",
+    "example": "<ruby>於<rt>おい</rt></ruby><ruby>干<rt>かん</rt></ruby><ruby>焉<rt>えん</rt></ruby>"
+  },
+  {
+    "id": "kg3",
+    "word": "再読文字：未",
+    "meaning": "いまだ〜ず（まだ〜ない）",
+    "reading": "いまダ〜ず",
+    "hint": "再読文字",
+    "explanation": "否定を表す再読文字。未聞→いまダ聞かず。",
+    "example": "<ruby>未<rt>いま</rt></ruby>[レ]<ruby>聞<rt>き</rt></ruby>{ず}"
+  },
+  {
+    "id": "kg4",
+    "word": "再読文字：将",
+    "meaning": "まさに〜んとす",
+    "reading": "まさニ〜ントす",
+    "hint": "再読文字",
+    "explanation": "今にも起こりそうなことを表す。",
+    "example": "<ruby>将<rt>まさ</rt></ruby>[レ]<ruby>行<rt>ゆ</rt></ruby>{か}ん"
+  },
+  {
+    "id": "kg5",
+    "word": "再読文字：須",
+    "meaning": "すべからく〜べし",
+    "reading": "すべからク〜ベシ",
+    "hint": "再読文字",
+    "explanation": "当然・義務を表す。",
+    "example": "<ruby>須<rt>すべ</rt></ruby>[レ]<ruby>行<rt>ゆ</rt></ruby>{く}べし"
+  },
+  {
+    "id": "kg6",
+    "word": "再読文字：宜",
+    "meaning": "よろしく〜べし",
+    "reading": "よろしク〜ベシ",
+    "hint": "再読文字",
+    "explanation": "適当・勧めを表す。",
+    "example": "<ruby>宜<rt>よろ</rt></ruby>[レ]<ruby>守<rt>まも</rt></ruby>{る}べし"
+  },
+  {
+    "id": "kg7",
+    "word": "再読文字：当・応",
+    "meaning": "まさに〜べし（当然）",
+    "reading": "まさニ〜ベシ",
+    "hint": "再読文字",
+    "explanation": "当然・義務を表す。",
+    "example": "<ruby>当<rt>まさ</rt></ruby>[レ]<ruby>行<rt>ゆ</rt></ruby>{く}べし"
+  },
+  {
+    "id": "kg8",
+    "word": "猶〜ごとし",
+    "meaning": "ちょうど〜のようだ",
+    "reading": "なほ〜ごとシ",
+    "hint": "比況",
+    "explanation": "比況を表す表現。",
+    "example": "<ruby>猶<rt>なほ</rt></ruby>水のごとし"
+  },
+  {
+    "id": "kg9",
+    "word": "蓋",
+    "meaning": "けだし（おそらく）",
+    "reading": "けだシ",
+    "hint": "副詞",
+    "explanation": "推量・限定を表す副詞。",
+    "example": "<ruby>蓋<rt>けだ</rt></ruby>{し}"
+  }
+]

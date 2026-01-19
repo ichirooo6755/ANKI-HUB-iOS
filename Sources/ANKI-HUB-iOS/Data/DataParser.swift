@@ -148,4 +148,98 @@ class DataParser {
         
         return vocabItems
     }
+    
+    /// Parses Nengou data and generates Seikei questions
+    /// Handles 【...】 as blanks similar to constitution data
+    func parseNengouData(_ jsonString: String) -> [Vocabulary] {
+        struct NengouItem: Codable {
+            let id: String
+            let source: String
+            let number: String
+            let text: String
+        }
+        
+        guard let nengouItems = parseJSONData(jsonString, type: [NengouItem].self) else { return [] }
+        
+        var vocabItems: [Vocabulary] = []
+        
+        for item in nengouItems {
+            // Process text to find blanks 【...】
+            let fullText = item.text
+            let regex = try! NSRegularExpression(pattern: "【(.*?)】", options: [])
+            let nsString = fullText as NSString
+            let matches = regex.matches(in: fullText, options: [], range: NSRange(location: 0, length: nsString.length))
+            
+            var allAnswers: [String] = []
+            var blankMap: [Int] = []
+            
+            // Map unique answers to indices
+            for match in matches {
+                let answer = nsString.substring(with: match.range(at: 1))
+                let trimmed = answer.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmed.isEmpty { continue }
+                if trimmed.contains("回答素材") { continue }
+                if trimmed.contains("空欄") { continue }
+                if let index = allAnswers.firstIndex(of: trimmed) {
+                    blankMap.append(index)
+                } else {
+                    allAnswers.append(trimmed)
+                    blankMap.append(allAnswers.count - 1)
+                }
+            }
+            
+            // Determine Category (Chapter) - All nengou items go to Chapter 9
+            let chapter = "Chapter 9 (年号)"
+            
+            // 1. Create Question for filling blanks (if any blanks exist)
+            if !allAnswers.isEmpty {
+                var vocabItem = Vocabulary(
+                    id: item.id,
+                    term: "年号 \(item.number)",
+                    meaning: "穴埋め（\(allAnswers.count)箇所）",
+                    reading: nil,
+                    explanation: "出典: \(item.source)"
+                )
+                vocabItem.fullText = fullText
+                vocabItem.allAnswers = allAnswers
+                vocabItem.blankMap = blankMap
+                vocabItem.questionType = "blank"
+                vocabItem.category = chapter
+                vocabItems.append(vocabItem)
+            }
+            
+            // 2. Create Question for identifying the era name
+            var eraItem = Vocabulary(
+                id: "\(item.id)-era",
+                term: "この出来事はどの年号の時代？",
+                meaning: extractEraName(from: fullText),
+                reading: nil,
+                explanation: fullText
+            )
+            
+            // Create fullText with blank for era name
+            eraItem.fullText = fullText.replacingOccurrences(of: "【(.*?)】", with: "【 ? 】", options: .regularExpression)
+            eraItem.questionType = "era"
+            eraItem.category = chapter
+            vocabItems.append(eraItem)
+        }
+        
+        return vocabItems
+    }
+    
+    /// Helper function to extract era name from text
+    private func extractEraName(from text: String) -> String {
+        let regex = try! NSRegularExpression(pattern: "【(.*?)】", options: [])
+        let nsString = text as NSString
+        let matches = regex.matches(in: text, options: [], range: NSRange(location: 0, length: nsString.length))
+        
+        for match in matches {
+            let answer = nsString.substring(with: match.range(at: 1))
+            let trimmed = answer.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty && !trimmed.contains("回答素材") && !trimmed.contains("空欄") {
+                return trimmed
+            }
+        }
+        return "不明"
+    }
 }

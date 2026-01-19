@@ -12,7 +12,7 @@ struct SubjectMasteryChart: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("習熟度")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.secondaryText)
 
             HStack(spacing: 16) {
                 // Donut Chart
@@ -37,11 +37,11 @@ struct SubjectMasteryChart: View {
                                 .frame(width: 8, height: 8)
                             Text(level.label)
                                 .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(theme.primaryText)
                             Spacer()
                             Text("\(count)")
                                 .font(.caption2.monospacedDigit())
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(theme.primaryText)
                         }
                     }
                 }

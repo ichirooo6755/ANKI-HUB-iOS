@@ -20,8 +20,6 @@ struct InputModeView: View {
     @State private var startTime = Date()
     @State private var showResult = false
 
-    @State private var sessionStartTime = Date()
-
     // Day 2 Flip State
     @State private var isCardFlipped = false
 
@@ -31,8 +29,10 @@ struct InputModeView: View {
     // Shuffle mode
     @State private var isShuffleMode: Bool = false
 
+    @State private var wordbookRefreshNonce: Int = 0
+
     // Day 2 Timer
-    @State private var timeRemaining: CGFloat = 1.0
+    @State private var timeRemaining: Double = 1.0
     @State private var limitSeconds: Double = 3.0
 
     private struct RecentMistake: Codable {
@@ -86,16 +86,33 @@ struct InputModeView: View {
                             }
                             return filteredWords
                         }()
-                        let totalBlocks = max(1, Int(ceil(Double(cappedWords.count) / 50.0)))
-                        Picker("チャプター", selection: $selectedBlockIndex) {
-                            ForEach(0..<totalBlocks, id: \.self) { i in
-                                let start = i * 50 + 1
-                                let end = min((i + 1) * 50, cappedWords.count)
-                                Text("チャプター \(i + 1)（\(start)-\(end)）").tag(i)
+                        let totalBlocks = Int(ceil(Double(cappedWords.count) / 50.0))
+                        if cappedWords.isEmpty {
+                            Text("チャプターを表示できません（単語が0件）")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.bottom, 8)
+                        } else {
+                            Picker("チャプター", selection: $selectedBlockIndex) {
+                                ForEach(0..<totalBlocks, id: \.self) { i in
+                                    let start = i * 50 + 1
+                                    let end = min((i + 1) * 50, cappedWords.count)
+                                    Text("チャプター \(i + 1)（\(start)-\(end)）").tag(i)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .padding(.bottom, 8)
+                            .onAppear {
+                                if selectedBlockIndex >= totalBlocks {
+                                    selectedBlockIndex = max(0, totalBlocks - 1)
+                                }
+                            }
+                            .onChange(of: totalBlocks) { _, newValue in
+                                if selectedBlockIndex >= newValue {
+                                    selectedBlockIndex = max(0, newValue - 1)
+                                }
                             }
                         }
-                        .pickerStyle(.menu)
-                        .padding(.bottom, 8)
 
                         Picker("教科", selection: $selectedSubject) {
                             ForEach(Subject.allCases) { s in
@@ -180,19 +197,6 @@ struct InputModeView: View {
 
                         Spacer()
 
-                        Button {
-                            addCurrentWordToWordbook()
-                        } label: {
-                            Image(systemName: "bookmark.fill")
-                                .font(.title2)
-                                .foregroundStyle(
-                                    theme.currentPalette.color(
-                                        .accent, isDark: theme.effectiveIsDark))
-                                .frame(width: 56, height: 56)
-                                .liquidGlassCircle()
-                        }
-                        .buttonStyle(.plain)
-
                         Text(selectedSubject.displayName)
                             .font(.caption)
                             .padding(6)
@@ -239,28 +243,48 @@ struct InputModeView: View {
                                 .foregroundStyle(theme.primaryText)
                                 .opacity(theme.effectiveIsDark ? 0.95 : 0.85)
 
-                            HStack(spacing: 40) {
-                                let danger = theme.currentPalette.color(
-                                    .weak, isDark: theme.effectiveIsDark)
-                                let ok = theme.currentPalette.color(
-                                    .mastered, isDark: theme.effectiveIsDark)
-                                Button(action: { processDay1(known: false) }) {
-                                    VStack {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 50))
-                                            .foregroundColor(danger)
-                                        Text("わからない")
+                            VStack(spacing: 12) {
+                                HStack(spacing: 40) {
+                                    let danger = theme.currentPalette.color(
+                                        .weak, isDark: theme.effectiveIsDark)
+                                    let ok = theme.currentPalette.color(
+                                        .mastered, isDark: theme.effectiveIsDark)
+                                    Button(action: { processDay1(known: false) }) {
+                                        VStack {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.system(size: 50))
+                                                .foregroundColor(danger)
+                                            Text("わからない")
+                                        }
+                                    }
+
+                                    Button(action: { processDay1(known: true) }) {
+                                        VStack {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.system(size: 50))
+                                                .foregroundColor(ok)
+                                            Text("わかる")
+                                        }
                                     }
                                 }
 
-                                Button(action: { processDay1(known: true) }) {
-                                    VStack {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 50))
-                                            .foregroundColor(ok)
-                                        Text("わかる")
+                                Button {
+                                    addCurrentWordToWordbook()
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: isCurrentWordBookmarked ? "bookmark.fill" : "bookmark")
+                                            .foregroundStyle(
+                                                theme.currentPalette.color(
+                                                    .accent, isDark: theme.effectiveIsDark))
+                                        Text("単語帳に追加")
+                                            .foregroundStyle(theme.primaryText)
                                     }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.gray.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding()
@@ -281,12 +305,14 @@ struct InputModeView: View {
                             },
                             onSwipeRight: {
                                 processDay2(correct: true)
-                            }
+                            },
+                            onBookmark: {
+                                addCurrentWordToWordbook()
+                            },
+                            isBookmarked: isCurrentWordBookmarked
                         )
 
                     } else {
-                        // Day 3: Check/Fixation
-                        // Similar to Day 1 but for "weak" words
                         VStack(spacing: 30) {
                             Text(word.term)
                                 .font(.system(size: 40, weight: .bold))
@@ -321,42 +347,62 @@ struct InputModeView: View {
                                 }
                             }
 
-                            HStack(spacing: 40) {
-                                let danger = theme.currentPalette.color(
-                                    .weak, isDark: theme.effectiveIsDark)
-                                let ok = theme.currentPalette.color(
-                                    .mastered, isDark: theme.effectiveIsDark)
-                                Button(action: { processDay3(correct: false) }) {
-                                    HStack(spacing: 8) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .foregroundStyle(danger)
-                                        Text("まだ苦手")
-                                            .foregroundStyle(theme.primaryText)
+                            VStack(spacing: 12) {
+                                HStack(spacing: 40) {
+                                    let danger = theme.currentPalette.color(
+                                        .weak, isDark: theme.effectiveIsDark)
+                                    let ok = theme.currentPalette.color(
+                                        .mastered, isDark: theme.effectiveIsDark)
+                                    Button(action: { processDay3(correct: false) }) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundStyle(danger)
+                                            Text("まだ苦手")
+                                                .foregroundStyle(theme.primaryText)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .liquidGlass(cornerRadius: 14)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .stroke(danger.opacity(0.35), lineWidth: 2)
+                                        )
                                     }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .liquidGlass(cornerRadius: 14)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .stroke(danger.opacity(0.35), lineWidth: 2)
-                                    )
+
+                                    Button(action: { processDay3(correct: true) }) {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundStyle(ok)
+                                            Text("覚えた")
+                                                .foregroundStyle(theme.primaryText)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .liquidGlass(cornerRadius: 14)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .stroke(ok.opacity(0.35), lineWidth: 2)
+                                        )
+                                    }
                                 }
 
-                                Button(action: { processDay3(correct: true) }) {
+                                Button {
+                                    addCurrentWordToWordbook()
+                                } label: {
                                     HStack(spacing: 8) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundStyle(ok)
-                                        Text("覚えた")
+                                        Image(systemName: isCurrentWordBookmarked ? "bookmark.fill" : "bookmark")
+                                            .foregroundStyle(
+                                                theme.currentPalette.color(
+                                                    .accent, isDark: theme.effectiveIsDark))
+                                        Text("単語帳に追加")
                                             .foregroundStyle(theme.primaryText)
                                     }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .liquidGlass(cornerRadius: 14)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .stroke(ok.opacity(0.35), lineWidth: 2)
-                                    )
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color.gray.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
                                 }
+                                .buttonStyle(.plain)
                             }
                         }
                         .padding()
@@ -412,7 +458,6 @@ struct InputModeView: View {
         showResult = false
         currentIndex = 0
         showDay3Answer = false
-        sessionStartTime = Date()
         let allWordsRaw = vocabData.getVocabulary(for: selectedSubject)
         let filteredWords: [Vocabulary] = {
             if inputModeMistakesOnly {
@@ -488,13 +533,9 @@ struct InputModeView: View {
                 }
             } else {
                 showResult = true
-
-                let elapsed = max(0.0, Date().timeIntervalSince(sessionStartTime))
-                let minutes = max(1, Int(ceil(elapsed / 60.0)))
-                LearningStats.shared.recordStudySession(
+                LearningStats.shared.recordStudyWords(
                     subject: selectedSubject.rawValue,
-                    wordsStudied: words.count,
-                    minutes: minutes
+                    wordsStudied: words.count
                 )
             }
         }
@@ -534,6 +575,8 @@ struct InputModeView: View {
             term: vocab.term,
             meaning: vocab.meaning,
             hint: vocab.hint,
+            example: vocab.example,
+            source: "インプットモード",
             mastery: .new,
             subject: selectedSubject
         )
@@ -543,10 +586,24 @@ struct InputModeView: View {
             if let data = try? JSONEncoder().encode(stored) {
                 UserDefaults.standard.set(data, forKey: "anki_hub_wordbook")
             }
+            wordbookRefreshNonce += 1
             Task { @MainActor in
                 SyncManager.shared.requestAutoSync()
             }
         }
+    }
+
+    private var isCurrentWordBookmarked: Bool {
+        _ = wordbookRefreshNonce
+        guard words.indices.contains(currentIndex) else { return false }
+        let vocab = words[currentIndex]
+
+        if let data = UserDefaults.standard.data(forKey: "anki_hub_wordbook"),
+            let decoded = try? JSONDecoder().decode([WordbookEntry].self, from: data)
+        {
+            return decoded.contains(where: { $0.id == vocab.id })
+        }
+        return false
     }
 }
 

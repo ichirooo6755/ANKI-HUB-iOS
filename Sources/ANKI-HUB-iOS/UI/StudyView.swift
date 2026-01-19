@@ -192,6 +192,7 @@ struct KobunParticleQuizView: View {
     @State private var showFeedbackOverlay = false
     @State private var isCorrect = false
     @State private var isAnswerLocked: Bool = false
+    @State private var wordbookRefreshNonce: Int = 0
 
     var body: some View {
         ZStack {
@@ -239,13 +240,14 @@ struct KobunParticleQuizView: View {
                 ZStack {
                     VStack(spacing: 24) {
                         // Header
-                        HStack {
+                        HStack(spacing: 12) {
                             Text(
                                 "Question \(viewModel.currentIndex + 1) / \(viewModel.totalQuestions)"
                             )
                             .font(.headline)
                             Spacer()
                             Text("Score: \(viewModel.score)")
+                            bookmarkButton
                         }
                         .padding()
 
@@ -305,6 +307,79 @@ struct KobunParticleQuizView: View {
                 viewModel.submitAnswer(correct: correct)
             }
         }
+    }
+
+    private var bookmarkButton: some View {
+        _ = wordbookRefreshNonce
+        let isBookmarked = isCurrentParticleBookmarked()
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+
+        return Button {
+            toggleCurrentParticleBookmark()
+        } label: {
+            Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(accent)
+                .frame(width: 36, height: 36)
+                .background(surface.opacity(theme.effectiveIsDark ? 0.85 : 0.95))
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(border.opacity(0.6), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(viewModel.currentQuestion == nil)
+    }
+
+    private func isCurrentParticleBookmarked() -> Bool {
+        guard let question = viewModel.currentQuestion else { return false }
+        guard let data = UserDefaults.standard.data(forKey: "anki_hub_wordbook"),
+              let decoded = try? JSONDecoder().decode([WordbookEntry].self, from: data) else {
+            return false
+        }
+        return decoded.contains(where: { $0.id == question.particle.id })
+    }
+
+    private func toggleCurrentParticleBookmark() {
+        guard let question = viewModel.currentQuestion else { return }
+        var words: [WordbookEntry] = []
+        if let data = UserDefaults.standard.data(forKey: "anki_hub_wordbook"),
+           let decoded = try? JSONDecoder().decode([WordbookEntry].self, from: data) {
+            words = decoded
+        }
+
+        let particle = question.particle
+        let exampleText = particle.examples?.first
+        let newEntry = WordbookEntry(
+            id: particle.id,
+            term: particle.particle,
+            meaning: particle.meaning,
+            hint: particle.type,
+            example: exampleText,
+            source: "古文助詞クイズ",
+            mastery: .new,
+            subject: .kobun
+        )
+
+        let alreadyAdded = words.contains(where: { $0.id == particle.id })
+        if alreadyAdded {
+            words.removeAll { $0.id == particle.id }
+        } else {
+            words.append(newEntry)
+        }
+
+        if let data = try? JSONEncoder().encode(words) {
+            UserDefaults.standard.set(data, forKey: "anki_hub_wordbook")
+        }
+
+        Task { @MainActor in
+            SyncManager.shared.requestAutoSync()
+        }
+
+        wordbookRefreshNonce += 1
     }
 }
 

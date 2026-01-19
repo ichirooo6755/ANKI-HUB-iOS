@@ -227,9 +227,30 @@ struct ThemeSelectionCard: View {
         // For now, I'll rely on ThemeManager having `getPalette(id: String) -> ThemePalette?`.
 
         let palette = themeManager.getPalette(id: themeId)
+        let isDark = colorScheme == .dark
         let primary = Color(
             hex: palette?.hexString(for: .primary, isDark: colorScheme == .dark)
                 ?? themeManager.color(.primary, scheme: colorScheme).toHexString()
+        )
+        let accent = Color(
+            hex: palette?.hexString(for: .accent, isDark: isDark)
+                ?? themeManager.color(.accent, scheme: colorScheme).toHexString()
+        )
+        let mastered = Color(
+            hex: palette?.hexString(for: .mastered, isDark: isDark)
+                ?? themeManager.color(.mastered, scheme: colorScheme).toHexString()
+        )
+        let learning = Color(
+            hex: palette?.hexString(for: .learning, isDark: isDark)
+                ?? themeManager.color(.learning, scheme: colorScheme).toHexString()
+        )
+        let weak = Color(
+            hex: palette?.hexString(for: .weak, isDark: isDark)
+                ?? themeManager.color(.weak, scheme: colorScheme).toHexString()
+        )
+        let newColor = Color(
+            hex: palette?.hexString(for: .new, isDark: isDark)
+                ?? themeManager.color(.new, scheme: colorScheme).toHexString()
         )
         let bg = Color(
             hex: palette?.hexString(for: .surface, isDark: colorScheme == .dark)
@@ -247,6 +268,16 @@ struct ThemeSelectionCard: View {
                     Spacer()
                 }
                 .padding(.bottom, 8)
+
+                HStack(spacing: 6) {
+                    Circle().fill(accent).frame(width: 10, height: 10)
+                    Circle().fill(mastered).frame(width: 10, height: 10)
+                    Circle().fill(learning).frame(width: 10, height: 10)
+                    Circle().fill(weak).frame(width: 10, height: 10)
+                    Circle().fill(newColor).frame(width: 10, height: 10)
+                    Spacer()
+                }
+                .padding(.bottom, 6)
 
                 Text(themeManager.getThemeName(themeId))
                     .font(.subheadline)

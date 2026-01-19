@@ -124,7 +124,9 @@ import Foundation
 
             let decoded = try JSONDecoder().decode(SupabaseSession.self, from: data)
             session = decoded
-            print("[SupabaseAuth] Sign-in successful, user: \(decoded.user.email ?? "unknown")")
+            #if DEBUG
+                print("[SupabaseAuth] Sign-in successful")
+            #endif
 
             let encoded = try JSONEncoder().encode(decoded)
             try KeychainService.set(encoded, service: keychainService, account: sessionAccount)

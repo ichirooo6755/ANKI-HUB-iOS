@@ -7,8 +7,10 @@ import SwiftUI
 
 struct ScanView: View {
     @ObservedObject var theme = ThemeManager.shared
+    let startScanning: Bool
     @State private var showScanner = false
     @State private var showScannerUnsupportedAlert = false
+    @State private var didAutoStartScanner = false
 
     #if os(iOS)
         @State private var scannedImages: [UIImage] = []
@@ -22,6 +24,10 @@ struct ScanView: View {
         let id = UUID()
         let term: String
         let meaning: String
+    }
+
+    init(startScanning: Bool = false) {
+        self.startScanning = startScanning
     }
 
     var body: some View {
@@ -47,11 +53,7 @@ struct ScanView: View {
                             .padding(.horizontal)
 
                             Button {
-                                if VNDocumentCameraViewController.isSupported {
-                                    showScanner = true
-                                } else {
-                                    showScannerUnsupportedAlert = true
-                                }
+                                openScanner()
                             } label: {
                                 let bg = theme.currentPalette.color(
                                     .primary, isDark: theme.effectiveIsDark)
@@ -203,11 +205,7 @@ struct ScanView: View {
                         .overlay(alignment: .bottom) {
                             HStack(spacing: 12) {
                                 Button {
-                                    if VNDocumentCameraViewController.isSupported {
-                                        showScanner = true
-                                    } else {
-                                        showScannerUnsupportedAlert = true
-                                    }
+                                    openScanner()
                                 } label: {
                                     Label("追加でスキャン", systemImage: "plus")
                                         .font(.headline)
@@ -260,6 +258,31 @@ struct ScanView: View {
             }
         }
         .applyAppTheme()
+        .onAppear {
+            attemptAutoStart()
+        }
+    }
+
+    private func attemptAutoStart() {
+        guard startScanning, !didAutoStartScanner else { return }
+        didAutoStartScanner = true
+        #if os(iOS)
+            DispatchQueue.main.async {
+                openScanner()
+            }
+        #endif
+    }
+
+    private func openScanner() {
+        #if os(iOS)
+            if VNDocumentCameraViewController.isSupported {
+                showScanner = true
+            } else {
+                showScannerUnsupportedAlert = true
+            }
+        #else
+            showScannerUnsupportedAlert = true
+        #endif
     }
 }
 
@@ -418,12 +441,15 @@ struct ScanView: View {
                 words = decoded
             }
 
+            let source = "スキャン"
+
             for extracted in extractedWords {
                 let entry = WordbookEntry(
                     id: UUID().uuidString,
                     term: extracted.term,
                     meaning: extracted.meaning,
                     hint: nil,
+                    source: source,
                     mastery: .new
                 )
                 if !words.contains(where: { $0.term == entry.term }) {

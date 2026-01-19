@@ -10,6 +10,10 @@ import SwiftUI
     import Speech
 #endif
 
+#if canImport(AVFoundation)
+    import AVFoundation
+#endif
+
 // MARK: - Data Models
 
 /// ToDoアイテム
@@ -104,6 +108,168 @@ struct TodoTemplate: Identifiable, Codable {
     var tasks: [TodoItem]
     var createdAt: Date = Date()
 }
+
+// MARK: - Speech Transcriber
+
+#if os(iOS) && canImport(Speech)
+@MainActor
+final class SpeechTranscriber: NSObject, ObservableObject {
+    @Published var transcript: String = ""
+    @Published var isRecording = false
+    @Published var isAuthorized = false
+    @Published var errorMessage: String?
+
+    private let audioEngine = AVAudioEngine()
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "ja-JP"))
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+
+    func ensureAuthorization() async -> Bool {
+        let speechAllowed = await requestSpeechAuthorization()
+        let micAllowed = await requestMicrophoneAuthorization()
+        let allowed = speechAllowed && micAllowed
+        isAuthorized = allowed
+        if !allowed, errorMessage == nil {
+            errorMessage = "音声認識とマイクのアクセスを許可してください。"
+        }
+        return allowed
+    }
+
+    func startTranscribing() {
+        guard !isRecording else { return }
+        errorMessage = nil
+        transcript = ""
+
+        guard speechRecognizer?.isAvailable == true else {
+            errorMessage = "音声認識が利用できません。"
+            return
+        }
+
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.record, mode: .measurement, options: [.duckOthers])
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+
+            let request = SFSpeechAudioBufferRecognitionRequest()
+            request.shouldReportPartialResults = true
+            recognitionRequest = request
+
+            let inputNode = audioEngine.inputNode
+            inputNode.removeTap(onBus: 0)
+            let recordingFormat = inputNode.outputFormat(forBus: 0)
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) {
+                [weak request] buffer, _ in
+                request?.append(buffer)
+            }
+
+            recognitionTask = speechRecognizer?.recognitionTask(with: request) { [weak self] result, error in
+                guard let self else { return }
+                if let result {
+                    Task { @MainActor in
+                        self.transcript = result.bestTranscription.formattedString
+                    }
+                    if result.isFinal {
+                        Task { @MainActor in
+                            self.stopTranscribing()
+                        }
+                    }
+                }
+                if let error {
+                    Task { @MainActor in
+                        self.errorMessage = error.localizedDescription
+                        self.stopTranscribing()
+                    }
+                }
+            }
+
+            audioEngine.prepare()
+            try audioEngine.start()
+            isRecording = true
+        } catch {
+            errorMessage = "録音を開始できませんでした。"
+            stopTranscribing()
+        }
+    }
+
+    func stopTranscribing() {
+        if audioEngine.isRunning {
+            audioEngine.stop()
+        }
+        audioEngine.inputNode.removeTap(onBus: 0)
+        recognitionRequest?.endAudio()
+        recognitionTask?.cancel()
+        recognitionRequest = nil
+        recognitionTask = nil
+        isRecording = false
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    private func requestSpeechAuthorization() async -> Bool {
+        switch SFSpeechRecognizer.authorizationStatus() {
+        case .authorized:
+            return true
+        case .notDetermined:
+            return await withCheckedContinuation { continuation in
+                SFSpeechRecognizer.requestAuthorization { status in
+                    let allowed = status == .authorized
+                    Task { @MainActor in
+                        if !allowed {
+                            self.errorMessage = "音声認識の許可が必要です。"
+                        }
+                        continuation.resume(returning: allowed)
+                    }
+                }
+            }
+        case .denied:
+            errorMessage = "音声認識の許可が拒否されています。"
+            return false
+        case .restricted:
+            errorMessage = "音声認識が制限されています。"
+            return false
+        @unknown default:
+            errorMessage = "音声認識の許可状態を確認できません。"
+            return false
+        }
+    }
+
+    private func requestMicrophoneAuthorization() async -> Bool {
+        let session = AVAudioSession.sharedInstance()
+        switch session.recordPermission {
+        case .granted:
+            return true
+        case .denied:
+            errorMessage = "マイクの許可が拒否されています。"
+            return false
+        case .undetermined:
+            return await withCheckedContinuation { continuation in
+                session.requestRecordPermission { allowed in
+                    Task { @MainActor in
+                        if !allowed {
+                            self.errorMessage = "マイクの許可が必要です。"
+                        }
+                        continuation.resume(returning: allowed)
+                    }
+                }
+            }
+        @unknown default:
+            errorMessage = "マイクの許可状態を確認できません。"
+            return false
+        }
+    }
+}
+#else
+@MainActor
+final class SpeechTranscriber: ObservableObject {
+    @Published var transcript: String = ""
+    @Published var isRecording = false
+    @Published var isAuthorized = false
+    @Published var errorMessage: String? = "このデバイスでは音声認識を利用できません。"
+
+    func ensureAuthorization() async -> Bool { false }
+    func startTranscribing() {}
+    func stopTranscribing() {}
+}
+#endif
 
 // MARK: - TodoManager
 
@@ -518,6 +684,7 @@ struct TodoView: View {
     @State private var viewMode: ViewMode = .list
     @State private var showTemplates = false
     @State private var showCategories = false
+    @State private var showVoiceSheet = false
 
     @State private var selectedCategoryFilter: String? = nil
 
@@ -627,6 +794,12 @@ struct TodoView: View {
                     }
 
                     Button {
+                        showVoiceSheet = true
+                    } label: {
+                        Label("音声メモ", systemImage: "waveform")
+                    }
+
+                    Button {
                         showTemplates = true
                     } label: {
                         Label("テンプレート", systemImage: "doc.on.doc")
@@ -644,6 +817,9 @@ struct TodoView: View {
         }
         .sheet(isPresented: $showAddSheet) {
             AddTodoSheet(manager: manager)
+        }
+        .sheet(isPresented: $showVoiceSheet) {
+            VoiceTodoSheet(manager: manager)
         }
         .sheet(item: $editingItem) { item in
             TodoDetailSheet(manager: manager, item: item)
@@ -1140,6 +1316,111 @@ struct TodoRow: View {
 
     private func isOverdue(_ date: Date) -> Bool {
         !Calendar.current.isDateInToday(date) && date < Date()
+    }
+}
+
+// MARK: - Voice Todo Sheet
+
+struct VoiceTodoSheet: View {
+    @ObservedObject var manager: TodoManager
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var transcriber = SpeechTranscriber()
+
+    @State private var title: String = ""
+    @State private var showPermissionAlert = false
+    @State private var permissionMessage = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("音声メモ") {
+                    TextEditor(text: $title)
+                        .frame(minHeight: 120)
+
+                    Button {
+                        toggleRecording()
+                    } label: {
+                        Label(
+                            transcriber.isRecording ? "録音停止" : "録音開始",
+                            systemImage: transcriber.isRecording ? "stop.fill" : "mic.fill"
+                        )
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    if transcriber.isRecording {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                            Text("録音中...")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
+                if let error = transcriber.errorMessage {
+                    Section {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                }
+
+                Section {
+                    Text("録音ボタンを押すと音声メモを文字起こしします。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("音声メモ")
+            #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+            #endif
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("キャンセル") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("追加") {
+                        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmed.isEmpty else { return }
+                        manager.addItem(title: trimmed, dueDate: nil, priority: .medium)
+                        dismiss()
+                    }
+                    .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+            .onChange(of: transcriber.transcript) {
+                title = transcriber.transcript
+            }
+            .onDisappear {
+                transcriber.stopTranscribing()
+            }
+            .alert("音声認識の許可が必要です", isPresented: $showPermissionAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(permissionMessage)
+            }
+        }
+        .applyAppTheme()
+    }
+
+    private func toggleRecording() {
+        if transcriber.isRecording {
+            transcriber.stopTranscribing()
+        } else {
+            Task {
+                let allowed = await transcriber.ensureAuthorization()
+                if allowed {
+                    transcriber.startTranscribing()
+                } else {
+                    permissionMessage = transcriber.errorMessage
+                        ?? "音声認識とマイクの許可を設定してください。"
+                    showPermissionAlert = true
+                }
+            }
+        }
     }
 }
 

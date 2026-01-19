@@ -18,6 +18,8 @@ struct FlashcardView: View {
     
     var onSwipeLeft: () -> Void
     var onSwipeRight: () -> Void
+    var onBookmark: (() -> Void)? = nil
+    var isBookmarked: Bool = false
     
     var body: some View {
         ZStack {
@@ -76,6 +78,27 @@ struct FlashcardView: View {
                         isFront: true
                     )
                         .opacity(isFlipped ? 0 : 1)
+                }
+
+                // Bookmark Button Overlay
+                VStack {
+                    HStack {
+                        Spacer()
+                        if let onBookmark {
+                            Button {
+                                onBookmark()
+                            } label: {
+                                Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                                    .font(.title3)
+                                    .foregroundStyle(
+                                        theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            .padding(8)
+                        }
+                    }
+                    Spacer()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: 400)

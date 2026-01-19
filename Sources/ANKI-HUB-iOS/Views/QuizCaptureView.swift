@@ -221,6 +221,8 @@ struct QuizCaptureView: View {
             words = decoded
         }
         
+        let source = "クイズキャプチャ"
+
         // Add extracted words
         for extracted in extractedWords {
             let entry = WordbookEntry(
@@ -228,6 +230,7 @@ struct QuizCaptureView: View {
                 term: extracted.term,
                 meaning: extracted.meaning,
                 hint: nil,
+                source: source,
                 mastery: .new
             )
             if !words.contains(where: { $0.term == entry.term }) {

@@ -1,7 +1,13 @@
 import SwiftUI
 import WidgetKit
 
-#if canImport(ActivityKit)
+import Foundation
+
+#if canImport(ANKI_HUB_iOS_Shared)
+    import ANKI_HUB_iOS_Shared
+#endif
+
+#if canImport(ActivityKit) && os(iOS)
     import ActivityKit
 #endif
 
@@ -22,6 +28,21 @@ private let widgetShowTodoKey = "anki_hub_widget_show_todo_v1"
 private let widgetTodoCountKey = "anki_hub_widget_todo_count_v1"
 private let widgetStyleKey = "anki_hub_widget_style_v1"
 private let widgetTimerMinutesKey = "anki_hub_widget_timer_minutes_v1"
+private let widgetThemePrimaryLightKey = "anki_hub_widget_theme_primary_light_v1"
+private let widgetThemePrimaryDarkKey = "anki_hub_widget_theme_primary_dark_v1"
+private let widgetThemeAccentLightKey = "anki_hub_widget_theme_accent_light_v1"
+private let widgetThemeAccentDarkKey = "anki_hub_widget_theme_accent_dark_v1"
+private let widgetThemeSurfaceLightKey = "anki_hub_widget_theme_surface_light_v1"
+private let widgetThemeSurfaceDarkKey = "anki_hub_widget_theme_surface_dark_v1"
+private let widgetThemeBackgroundLightKey = "anki_hub_widget_theme_background_light_v1"
+private let widgetThemeBackgroundDarkKey = "anki_hub_widget_theme_background_dark_v1"
+private let widgetThemeTextLightKey = "anki_hub_widget_theme_text_light_v1"
+private let widgetThemeTextDarkKey = "anki_hub_widget_theme_text_dark_v1"
+private let widgetThemeSchemeOverrideKey = "anki_hub_widget_theme_color_scheme_override_v1"
+private let scanStartRequestKey = "anki_hub_scan_start_request_v1"
+private let frontCameraStartRequestKey = "anki_hub_front_camera_start_request_v1"
+
+private let widgetAccent = Color(red: 0.96, green: 0.36, blue: 0.20)
 
 private let todoItemsKey = "anki_hub_todo_items_v1"
 
@@ -47,6 +68,159 @@ fileprivate struct WidgetSettings {
         self.style = defaults?.string(forKey: widgetStyleKey) ?? "system"
         let rawMinutes = defaults?.integer(forKey: widgetTimerMinutesKey) ?? 25
         self.timerMinutes = max(1, min(180, rawMinutes))
+    }
+
+}
+
+private struct WidgetThemeSnapshot {
+    let primaryLight: Color
+    let primaryDark: Color
+    let accentLight: Color
+    let accentDark: Color
+    let surfaceLight: Color
+    let surfaceDark: Color
+    let backgroundLight: Color
+    let backgroundDark: Color
+    let textLight: Color
+    let textDark: Color
+    let schemeOverride: Int
+
+    static func load(defaults: UserDefaults?) -> WidgetThemeSnapshot? {
+        guard let defaults else { return nil }
+        guard let primaryLight = defaults.string(forKey: widgetThemePrimaryLightKey),
+            let primaryDark = defaults.string(forKey: widgetThemePrimaryDarkKey),
+            let accentLight = defaults.string(forKey: widgetThemeAccentLightKey),
+            let accentDark = defaults.string(forKey: widgetThemeAccentDarkKey),
+            let surfaceLight = defaults.string(forKey: widgetThemeSurfaceLightKey),
+            let surfaceDark = defaults.string(forKey: widgetThemeSurfaceDarkKey),
+            let backgroundLight = defaults.string(forKey: widgetThemeBackgroundLightKey),
+            let backgroundDark = defaults.string(forKey: widgetThemeBackgroundDarkKey),
+            let textLight = defaults.string(forKey: widgetThemeTextLightKey),
+            let textDark = defaults.string(forKey: widgetThemeTextDarkKey)
+        else { return nil }
+
+        return WidgetThemeSnapshot(
+            primaryLight: Color(hex: primaryLight),
+            primaryDark: Color(hex: primaryDark),
+            accentLight: Color(hex: accentLight),
+            accentDark: Color(hex: accentDark),
+            surfaceLight: Color(hex: surfaceLight),
+            surfaceDark: Color(hex: surfaceDark),
+            backgroundLight: Color(hex: backgroundLight),
+            backgroundDark: Color(hex: backgroundDark),
+            textLight: Color(hex: textLight),
+            textDark: Color(hex: textDark),
+            schemeOverride: defaults.integer(forKey: widgetThemeSchemeOverrideKey)
+        )
+    }
+
+    func resolvedScheme(for scheme: ColorScheme) -> ColorScheme {
+        switch schemeOverride {
+        case 1:
+            return .light
+        case 2:
+            return .dark
+        default:
+            return scheme
+        }
+    }
+
+    func resolvedPrimary(for scheme: ColorScheme) -> Color {
+        resolvedScheme(for: scheme) == .dark ? primaryDark : primaryLight
+    }
+
+    func resolvedAccent(for scheme: ColorScheme) -> Color {
+        resolvedScheme(for: scheme) == .dark ? accentDark : accentLight
+    }
+
+    func resolvedSurface(for scheme: ColorScheme) -> Color {
+        resolvedScheme(for: scheme) == .dark ? surfaceDark : surfaceLight
+    }
+
+    func resolvedBackground(for scheme: ColorScheme) -> Color {
+        resolvedScheme(for: scheme) == .dark ? backgroundDark : backgroundLight
+    }
+
+    func resolvedText(for scheme: ColorScheme) -> Color {
+        resolvedScheme(for: scheme) == .dark ? textDark : textLight
+    }
+}
+
+private extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a: UInt64
+        let r: UInt64
+        let g: UInt64
+        let b: UInt64
+        switch hex.count {
+        case 3:
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6:
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8:
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+
+private struct FocusBadge: View {
+    let size: CGFloat
+    let fontSize: CGFloat
+    let accent: Color
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.primary.opacity(0.08))
+            Circle()
+                .stroke(accent.opacity(0.45), lineWidth: 1)
+            Text("學")
+                .font(.system(size: fontSize, weight: .bold, design: .serif))
+                .foregroundStyle(accent)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+private struct FocusRing: View {
+    let progress: Double
+    let size: CGFloat
+    let lineWidth: CGFloat
+    let accent: Color
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color.white.opacity(0.2), lineWidth: lineWidth)
+            Circle()
+                .trim(from: 0, to: max(0, min(1, progress)))
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: [
+                            accent.opacity(0.5),
+                            accent,
+                            accent.opacity(0.35)
+                        ]),
+                        center: .center
+                    ),
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+        }
+        .frame(width: size, height: size)
     }
 }
 
@@ -200,106 +374,206 @@ struct StudyWidgetEntryView: View {
     var entry: Provider.Entry
 
     @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var themeSnapshot: WidgetThemeSnapshot? {
+        WidgetThemeSnapshot.load(defaults: UserDefaults(suiteName: appGroupId))
+    }
+
+    private var accentColor: Color {
+        themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+    }
 
     var body: some View {
+        switch family {
+        case .systemMedium:
+            mediumWidget
+        case .systemSmall:
+            smallWidget
+        #if os(iOS)
+        case .accessoryRectangular:
+            accessoryRectangular
+        case .accessoryInline:
+            accessoryInline
+        #endif
+        default:
+            smallWidget
+        }
+    }
+
+    private var header: some View {
+        HStack(spacing: 6) {
+            FocusBadge(size: 22, fontSize: 11, accent: accentColor)
+            Text("集中")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+    }
+
+    private var smallWidget: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("sugwrAnki")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
+            header
+
+            if entry.settings.showTodayMinutes {
+                metricBlock(title: "今日", value: entry.todayMinutes, unit: "分")
             }
 
             if entry.settings.showStreak {
                 Text("連続 \(entry.streak)日")
-                    .font(.title2.bold())
+                    .font(.subheadline.weight(.semibold))
             }
 
-            if entry.settings.showTodayMinutes {
-                Text("今日 \(entry.todayMinutes)分")
-                    .font(.headline)
+            if let m = entry.mistakes.first {
+                Text(m)
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
 
-            if family == .systemMedium {
+            if entry.settings.showTodo, let t = entry.todos.first {
+                Text(t)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            timerLink
+
+            Spacer(minLength: 0)
+        }
+        .padding(12)
+        .background(kanjiWatermark(size: 110, opacity: 0.08), alignment: .bottomTrailing)
+    }
+
+    private var mediumWidget: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
+                    header
+                    if entry.settings.showTodayMinutes {
+                        metricBlock(title: "今日", value: entry.todayMinutes, unit: "分")
+                    }
+                }
+                Spacer()
+                if entry.settings.showStreak {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("連続")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("\(entry.streak)日")
+                            .font(.title3.weight(.semibold))
+                    }
+                }
+            }
+
+            if !entry.mistakes.isEmpty || !entry.todos.isEmpty {
+                VStack(alignment: .leading, spacing: 3) {
                     ForEach(entry.mistakes.prefix(2), id: \.self) { m in
                         Text(m)
-                            .font(.caption)
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
 
-                    if entry.settings.showTodo {
-                        ForEach(entry.todos.prefix(entry.settings.todoCount), id: \.self) { t in
-                            Text("• \(t)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                }
-            }
-
-            if family == .systemSmall {
-                if let m = entry.mistakes.first {
-                    Text(m)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-
-                if entry.settings.showTodo, let t = entry.todos.first {
-                    Text(t)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-            }
-
-            if family == .systemSmall || family == .systemMedium {
-                if let url = timerURL(minutes: entry.settings.timerMinutes) {
-                    Link(destination: url) {
-                        Label("タイマー開始", systemImage: "play.fill")
-                            .font(.caption.bold())
+                    ForEach(entry.todos.prefix(entry.settings.todoCount), id: \.self) { t in
+                        Text("• \(t)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
                 }
             }
 
-            #if os(iOS)
-                if family == .accessoryRectangular {
-                    VStack(alignment: .leading, spacing: 2) {
-                        if entry.settings.showStreak {
-                            Text("連続 \(entry.streak)日")
-                                .font(.headline)
-                        }
-                        if let m = entry.mistakes.first {
-                            Text(m)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                }
-
-                if family == .accessoryInline {
-                    HStack(spacing: 6) {
-                        if entry.settings.showStreak {
-                            Text("\(entry.streak)日")
-                        }
-                        if let m = entry.mistakes.first {
-                            Text(m)
-                        }
-                    }
-                    .font(.caption2)
-                    .lineLimit(1)
-                }
-            #endif
-
-            Spacer()
+            timerLink
         }
-        .padding(14)
+        .padding(12)
+        .background(kanjiWatermark(size: 150, opacity: 0.06), alignment: .bottomTrailing)
+    }
+
+    #if os(iOS)
+    private var accessoryRectangular: some View {
+        HStack(spacing: 6) {
+            FocusBadge(size: 22, fontSize: 11, accent: accentColor)
+            VStack(alignment: .leading, spacing: 2) {
+                if entry.settings.showStreak {
+                    Text("連続 \(entry.streak)日")
+                        .font(.headline)
+                }
+                if let m = entry.mistakes.first {
+                    Text(m)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                } else if entry.settings.showTodayMinutes {
+                    Text("今日 \(entry.todayMinutes)分")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 2)
+    }
+
+    private var accessoryInline: some View {
+        HStack(spacing: 6) {
+            Text("學")
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(accentColor)
+            if entry.settings.showStreak {
+                Text("\(entry.streak)日")
+            } else if entry.settings.showTodayMinutes {
+                Text("\(entry.todayMinutes)分")
+            }
+        }
+        .font(.caption2)
+        .lineLimit(1)
+    }
+    #endif
+
+    private func metricBlock(title: String, value: Int, unit: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text("\(value)")
+                    .font(.system(size: 30, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(accentColor)
+                Text(unit)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var timerLink: some View {
+        Group {
+            if family == .systemSmall || family == .systemMedium {
+                if let url = timerURL(minutes: entry.settings.timerMinutes) {
+                    Link(destination: url) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "play.fill")
+                            Text("タイマー開始")
+                        }
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(accentColor)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(accentColor.opacity(0.16)))
+                    }
+                }
+            }
+        }
+    }
+
+    private func kanjiWatermark(size: CGFloat, opacity: Double) -> some View {
+        Text("學")
+            .font(.system(size: size, weight: .bold, design: .serif))
+            .foregroundStyle(accentColor.opacity(opacity))
+            .offset(x: 14, y: 18)
     }
 
     private func timerURL(minutes: Int) -> URL? {
@@ -337,11 +611,12 @@ struct StudyWidget: Widget {
     }
 
     private func backgroundColor(for style: String) -> Color {
+        let snapshot = WidgetThemeSnapshot.load(defaults: UserDefaults(suiteName: appGroupId))
         switch style {
         case "dark":
-            return Color.black.opacity(0.75)
+            return (snapshot?.backgroundDark ?? Color.black).opacity(0.8)
         case "accent":
-            return Color.blue.opacity(0.25)
+            return (snapshot?.accentLight ?? widgetAccent).opacity(0.22)
         default:
             return Color.clear
         }
@@ -352,13 +627,15 @@ struct StudyWidget: Widget {
 struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
     var body: some Widget {
         StudyWidget()
-        #if canImport(ActivityKit)
-            StudyLiveActivity()
+        #if canImport(ActivityKit) && os(iOS)
+            if #available(iOS 16.1, *) {
+                StudyLiveActivity()
+            }
         #endif
     }
 }
 
-#if canImport(ActivityKit)
+#if canImport(ActivityKit) && os(iOS)
     #if canImport(AppIntents)
         struct FocusTimerTogglePauseIntent: AppIntent {
             static var title: LocalizedStringResource = "Toggle Pause"
@@ -430,103 +707,209 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                 return .result()
             }
         }
+
+        struct FocusTimerOpenFrontCameraIntent: AppIntent {
+            static var title: LocalizedStringResource = "Open Front Camera"
+            static var description = IntentDescription("Open front camera")
+            static var openAppWhenRun: Bool = true
+
+            func perform() async throws -> some IntentResult {
+                if let defaults = UserDefaults(suiteName: appGroupId) {
+                    defaults.set(Date().timeIntervalSince1970, forKey: frontCameraStartRequestKey)
+                }
+                return .result()
+            }
+        }
     #endif
 
+    @available(iOS 16.1, *)
     struct StudyLiveActivity: Widget {
+        @Environment(\.colorScheme) private var colorScheme
+
+        private var themeSnapshot: WidgetThemeSnapshot? {
+            WidgetThemeSnapshot.load(defaults: UserDefaults(suiteName: appGroupId))
+        }
+
+        private var accentColor: Color {
+            themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+        }
+
+        private var activityBackgroundColor: Color {
+            if let snapshot = themeSnapshot {
+                let resolvedScheme = snapshot.resolvedScheme(for: colorScheme)
+                let opacity = resolvedScheme == .dark ? 0.9 : 0.88
+                return snapshot.resolvedBackground(for: colorScheme).opacity(opacity)
+            }
+            return Color.black.opacity(0.85)
+        }
+
+        private var primaryTextColor: Color {
+            themeSnapshot?.resolvedText(for: colorScheme) ?? .white
+        }
+
         var body: some WidgetConfiguration {
             ActivityConfiguration(for: FocusTimerAttributes.self) { context in
-                // Lock Screen / Banner UI
-                VStack {
-                    HStack(alignment: .lastTextBaseline) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "stopwatch.fill")
-                                .foregroundStyle(.yellow)
+                let remaining = remainingSeconds(for: context)
+                let progress = progressValue(remaining: remaining, total: context.state.totalSeconds)
+                let statusText = context.state.isPaused ? "一時停止" : "集中"
+
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack(spacing: 10) {
+                        FocusBadge(size: 28, fontSize: 13, accent: accentColor)
+                        VStack(alignment: .leading, spacing: 2) {
                             Text(context.attributes.timerName)
                                 .font(.headline)
-                                .foregroundStyle(.white)
+                            Text(statusText)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                         Spacer()
-
-                        if context.state.isPaused {
-                            let remaining = max(0, context.state.pausedRemainingSeconds ?? 0)
-                            Text(Date().addingTimeInterval(TimeInterval(remaining)), style: .timer)
-                                .font(.system(size: 32, weight: .semibold).monospacedDigit())
-                                .foregroundStyle(Color.yellow)
-                        } else {
-                            Text(context.state.targetTime, style: .timer)
-                                .font(.system(size: 32, weight: .semibold).monospacedDigit())
-                                .foregroundStyle(Color.yellow)
-                        }
+                        Text("残り")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
-                    .padding()
 
-                    if context.state.isPaused {
-                        let remaining = max(0, context.state.pausedRemainingSeconds ?? 0)
-                        ProgressView(value: Double(context.state.totalSeconds - remaining), total: Double(context.state.totalSeconds))
-                            .tint(.yellow)
-                            .padding([.leading, .trailing, .bottom])
-                    } else {
-                        ProgressView(timerInterval: Date()...context.state.targetTime, countsDown: true)
-                            .tint(.yellow)
-                            .padding([.leading, .trailing, .bottom])
+                    HStack(spacing: 16) {
+                        ZStack {
+                            FocusRing(progress: progress, size: 96, lineWidth: 8, accent: accentColor)
+                            timerText(for: context, remaining: remaining)
+                                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                .monospacedDigit()
+                                .foregroundStyle(primaryTextColor)
+                        }
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("合計 \(max(1, context.state.totalSeconds / 60))分")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(context.state.isPaused ? "再開できます" : "集中を継続中")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer(minLength: 0)
                     }
 
                     #if canImport(AppIntents)
-                        HStack(spacing: 14) {
+                        HStack(spacing: 10) {
                             Button(intent: FocusTimerTogglePauseIntent()) {
                                 Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
                             }
                             .buttonStyle(.borderedProminent)
-                            .tint(.yellow)
+                            .tint(accentColor)
 
                             Button(intent: FocusTimerStopIntent()) {
                                 Image(systemName: "stop.fill")
                             }
                             .buttonStyle(.bordered)
-                            .tint(.white.opacity(0.25))
+                            .tint(Color.white.opacity(0.25))
+
+                            Button(intent: FocusTimerOpenFrontCameraIntent()) {
+                                Image(systemName: "camera.fill")
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(accentColor.opacity(0.35))
                         }
-                        .padding(.bottom, 8)
                     #endif
                 }
-                .activityBackgroundTint(Color.black.opacity(0.8))
-                .activitySystemActionForegroundColor(Color.yellow)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 14)
+                .activityBackgroundTint(activityBackgroundColor)
+                .activitySystemActionForegroundColor(accentColor)
 
             } dynamicIsland: { context in
-                DynamicIsland {
-                    // Expanded UI
+                let remaining = remainingSeconds(for: context)
+                let progress = progressValue(remaining: remaining, total: context.state.totalSeconds)
+                let statusText = context.state.isPaused ? "一時停止" : "集中"
+
+                return DynamicIsland {
                     DynamicIslandExpandedRegion(.leading) {
-                        Text(context.attributes.timerName)
-                            .font(.caption)
-                            .padding(.leading)
-                    }
-                    DynamicIslandExpandedRegion(.trailing) {
-                        Text(context.state.targetTime, style: .timer)
-                            .font(.title2.monospacedDigit())
-                            .padding(.trailing)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(context.attributes.timerName)
+                                .font(.caption)
+                            Text(statusText)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.leading, 4)
                     }
                     DynamicIslandExpandedRegion(.center) {
-                        Text("Focus")
-                            .font(.caption)
+                        ZStack {
+                            Circle()
+                                .fill(Color.black.opacity(0.4))
+                            FocusRing(progress: progress, size: 72, lineWidth: 6, accent: accentColor)
+                            timerText(for: context, remaining: remaining)
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .monospacedDigit()
+                                .foregroundStyle(primaryTextColor)
+                        }
+                        .frame(width: 72, height: 72)
+                    }
+                    DynamicIslandExpandedRegion(.trailing) {
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("残り")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                            timerText(for: context, remaining: remaining)
+                                .font(.headline)
+                                .monospacedDigit()
+                        }
+                        .padding(.trailing, 4)
                     }
                     DynamicIslandExpandedRegion(.bottom) {
-                        ProgressView(
-                            timerInterval: Date()...context.state.targetTime, countsDown: true
-                        )
-                        .tint(.yellow)
-                        .padding([.leading, .trailing])
+                        #if canImport(AppIntents)
+                            HStack(spacing: 10) {
+                                Button(intent: FocusTimerTogglePauseIntent()) {
+                                    Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .tint(accentColor)
+
+                                Button(intent: FocusTimerStopIntent()) {
+                                    Image(systemName: "stop.fill")
+                                }
+                                .buttonStyle(.bordered)
+                                .tint(Color.white.opacity(0.25))
+                            }
+                        #endif
                     }
                 } compactLeading: {
-                    Image(systemName: "stopwatch.fill")
-                        .tint(.yellow)
+                    FocusBadge(size: 18, fontSize: 9, accent: accentColor)
                 } compactTrailing: {
-                    Text(context.state.targetTime, style: .timer)
+                    timerText(for: context, remaining: remaining)
+                        .font(.caption2)
                         .monospacedDigit()
-                        .frame(maxWidth: 40)
+                        .frame(maxWidth: 46)
                 } minimal: {
-                    Image(systemName: "stopwatch.fill")
-                        .tint(.yellow)
+                    Text("學")
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(accentColor)
                 }
             }
+        }
+
+        private func remainingSeconds(for context: ActivityViewContext<FocusTimerAttributes>) -> Int {
+            if context.state.isPaused {
+                return max(0, context.state.pausedRemainingSeconds ?? 0)
+            }
+            return max(0, Int(context.state.targetTime.timeIntervalSince(Date())))
+        }
+
+        private func progressValue(remaining: Int, total: Int) -> Double {
+            guard total > 0 else { return 0 }
+            return Double(max(0, total - remaining)) / Double(total)
+        }
+
+        private func timerText(for context: ActivityViewContext<FocusTimerAttributes>, remaining: Int) -> Text {
+            if context.state.isPaused {
+                return Text(timeString(from: remaining))
+            }
+            return Text(context.state.targetTime, style: .timer)
+        }
+
+        private func timeString(from seconds: Int) -> String {
+            let minutes = seconds / 60
+            let secs = seconds % 60
+            return String(format: "%02d:%02d", minutes, secs)
         }
     }
 #endif

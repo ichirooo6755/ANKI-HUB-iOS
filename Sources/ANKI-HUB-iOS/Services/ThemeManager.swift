@@ -6,6 +6,23 @@ import SwiftUI
     import AppKit
 #endif
 
+#if canImport(WidgetKit)
+    import WidgetKit
+#endif
+
+private let widgetAppGroupId = "group.com.ankihub.ios"
+private let widgetThemePrimaryLightKey = "anki_hub_widget_theme_primary_light_v1"
+private let widgetThemePrimaryDarkKey = "anki_hub_widget_theme_primary_dark_v1"
+private let widgetThemeAccentLightKey = "anki_hub_widget_theme_accent_light_v1"
+private let widgetThemeAccentDarkKey = "anki_hub_widget_theme_accent_dark_v1"
+private let widgetThemeSurfaceLightKey = "anki_hub_widget_theme_surface_light_v1"
+private let widgetThemeSurfaceDarkKey = "anki_hub_widget_theme_surface_dark_v1"
+private let widgetThemeBackgroundLightKey = "anki_hub_widget_theme_background_light_v1"
+private let widgetThemeBackgroundDarkKey = "anki_hub_widget_theme_background_dark_v1"
+private let widgetThemeTextLightKey = "anki_hub_widget_theme_text_light_v1"
+private let widgetThemeTextDarkKey = "anki_hub_widget_theme_text_dark_v1"
+private let widgetThemeSchemeOverrideKey = "anki_hub_widget_theme_color_scheme_override_v1"
+
 // MARK: - Liquid Glass UI Extensions (Moved to top for visibility)
 public struct LiquidGlassModifier: ViewModifier {
     @ObservedObject private var theme = ThemeManager.shared
@@ -297,7 +314,11 @@ class ThemeManager: ObservableObject {
     @AppStorage("anki_hub_wallpaper_value") var wallpaperValue: String = ""
 
     // 0: system, 1: light, 2: dark
-    @AppStorage("anki_hub_color_scheme_override_v1") var colorSchemeOverride: Int = 0
+    @AppStorage("anki_hub_color_scheme_override_v1") var colorSchemeOverride: Int = 0 {
+        didSet {
+            syncWidgetThemeSnapshot()
+        }
+    }
 
     @AppStorage("anki_hub_use_liquid_glass_v1") var useLiquidGlass: Bool = true {
         didSet {
@@ -1686,6 +1707,7 @@ class ThemeManager: ObservableObject {
             selectedThemeId = id
             UserDefaults.standard.set(id, forKey: "selectedThemeId")
             requestAutoSyncOnMainActor()
+            syncWidgetThemeSnapshot()
         }
     }
 
@@ -1693,6 +1715,26 @@ class ThemeManager: ObservableObject {
         wallpaperKind = kind
         wallpaperValue = value
         requestAutoSyncOnMainActor()
+    }
+
+    private func syncWidgetThemeSnapshot() {
+        guard let defaults = UserDefaults(suiteName: widgetAppGroupId) else { return }
+        let palette = currentPalette
+        defaults.set(palette.primary, forKey: widgetThemePrimaryLightKey)
+        defaults.set(palette.primaryDark, forKey: widgetThemePrimaryDarkKey)
+        defaults.set(palette.accent, forKey: widgetThemeAccentLightKey)
+        defaults.set(palette.accent, forKey: widgetThemeAccentDarkKey)
+        defaults.set(palette.surface, forKey: widgetThemeSurfaceLightKey)
+        defaults.set(palette.surfaceDark, forKey: widgetThemeSurfaceDarkKey)
+        defaults.set(palette.background, forKey: widgetThemeBackgroundLightKey)
+        defaults.set(palette.backgroundDark, forKey: widgetThemeBackgroundDarkKey)
+        defaults.set(palette.text, forKey: widgetThemeTextLightKey)
+        defaults.set(palette.textDark, forKey: widgetThemeTextDarkKey)
+        defaults.set(colorSchemeOverride, forKey: widgetThemeSchemeOverrideKey)
+
+        #if canImport(WidgetKit)
+            WidgetCenter.shared.reloadTimelines(ofKind: "StudyWidget")
+        #endif
     }
 
     func applyMasteryColors(
