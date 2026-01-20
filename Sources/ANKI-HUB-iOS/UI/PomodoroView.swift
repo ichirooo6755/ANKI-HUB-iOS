@@ -173,16 +173,10 @@ struct TimerView: View {
             if showStandby {
                 standbyTimerView
             } else {
-                VStack(spacing: 24) {
-                    // Tab Selector
-                    Picker("", selection: $selectedTab) {
-                        ForEach(TimerTab.allCases, id: \.self) { tab in
-                            Text(tab.rawValue).tag(tab)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.top, 20)
+                VStack(spacing: 20) {
+                    watchTabSelector
+                        .padding(.horizontal)
+                        .padding(.top, 16)
 
                     if selectedTab == .timer {
                         timerView
@@ -313,6 +307,58 @@ struct TimerView: View {
             timeRemaining = totalTime
             dragStartAngle = angle
         }
+    }
+
+    private var watchTabSelector: some View {
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+
+        return HStack(spacing: 16) {
+            watchTabButton(tab: .timer, icon: "timer", color: selectedMode.color)
+            watchTabButton(tab: .stopwatch, icon: "stopwatch", color: accent)
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(surface.opacity(theme.effectiveIsDark ? 0.92 : 0.98))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(border.opacity(0.4), lineWidth: 1)
+        )
+    }
+
+    private func watchTabButton(tab: TimerTab, icon: String, color: Color) -> some View {
+        let isSelected = selectedTab == tab
+        let ringColor = isSelected ? color : theme.secondaryText
+        let fill = isSelected ? color.opacity(0.16) : Color.clear
+        let textColor = isSelected ? theme.primaryText : theme.secondaryText
+
+        return Button {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                selectedTab = tab
+            }
+        } label: {
+            VStack(spacing: 6) {
+                ZStack {
+                    Circle()
+                        .stroke(ringColor.opacity(0.45), lineWidth: 3)
+                    Circle()
+                        .fill(fill)
+                    Image(systemName: icon)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(ringColor)
+                }
+                .frame(width: 42, height: 42)
+
+                Text(tab.rawValue)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(textColor)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Timer View

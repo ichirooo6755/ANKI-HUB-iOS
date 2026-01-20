@@ -4,20 +4,25 @@ struct StudyView: View {
     @EnvironmentObject var masteryTracker: MasteryTracker
 
     @ObservedObject private var theme = ThemeManager.shared
+    @ObservedObject private var stats = LearningStats.shared
 
     var body: some View {
         NavigationStack {
             ZStack {
-                ThemeManager.shared.background
+                theme.background
 
                 ScrollView {
-                    VStack(spacing: 25) {
-                        // Subject Selection Section
+                    VStack(spacing: 24) {
+                        SectionHeader(
+                            title: "学習ダッシュボード",
+                            subtitle: "今日の学習を開始しましょう",
+                            trailing: "\(stats.streak)日連続"
+                        )
+
+                        summaryMetrics
+
                         VStack(alignment: .leading, spacing: 15) {
-                            Text("学習科目")
-                                .font(.title3)
-                                .bold()
-                                .padding(.horizontal)
+                            SectionHeader(title: "学習科目", subtitle: "科目を選んでスタート", trailing: nil)
 
                             LazyVGrid(
                                 columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 15
@@ -26,54 +31,83 @@ struct StudyView: View {
                                     SubjectGridItem(subject: subject)
                                 }
                             }
-                            .padding(.horizontal)
                         }
 
-                        // Tools Section
                         VStack(alignment: .leading, spacing: 15) {
-                            Text("ツール")
-                                .font(.title3)
-                                .bold()
-                                .padding(.horizontal)
+                            SectionHeader(title: "ツール", subtitle: "学習を支える機能", trailing: nil)
 
                             ToolsGridView()
-                                .padding(.horizontal)
 
-                            // Past Exam Analysis (Full Width)
                             NavigationLink(destination: PastExamAnalysisView()) {
-                                HStack {
+                                HStack(spacing: 12) {
                                     let bg = theme.currentPalette.color(
                                         .primary, isDark: theme.effectiveIsDark)
-                                    Image(systemName: "chart.xyaxis.line")
-                                        .foregroundStyle(theme.onColor(for: bg))
-                                        .padding(10)
-                                        .background(bg)
-                                        .clipShape(Circle())
+                                    ZStack {
+                                        Circle()
+                                            .fill(bg.opacity(0.18))
+                                            .frame(width: 46, height: 46)
+                                        Image(systemName: "chart.xyaxis.line")
+                                            .foregroundStyle(bg)
+                                    }
 
-                                    VStack(alignment: .leading) {
+                                    VStack(alignment: .leading, spacing: 4) {
                                         Text("過去問解析")
                                             .font(.headline)
-                                            .foregroundColor(ThemeManager.shared.primaryText)
+                                            .foregroundStyle(theme.primaryText)
                                         Text("スコア管理・傾向分析")
                                             .font(.caption)
-                                            .foregroundColor(ThemeManager.shared.secondaryText)
+                                            .foregroundStyle(theme.secondaryText)
                                     }
                                     Spacer()
                                     Image(systemName: "chevron.right")
-                                        .foregroundColor(theme.secondaryText)
+                                        .foregroundStyle(theme.secondaryText)
                                 }
-                                .padding()
-                                .liquidGlass()
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+                                        .opacity(theme.effectiveIsDark ? 0.95 : 0.98)
+                                )
                             }
-                            .padding(.horizontal)
+                            .buttonStyle(.plain)
                         }
                         .padding(.bottom, 20)
                     }
-                    .padding(.top)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
                 }
             }
             .navigationTitle("学習")
             .applyAppTheme()
+        }
+    }
+
+    private var summaryMetrics: some View {
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+        let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+        return HStack(spacing: 12) {
+            HealthMetricCard(
+                title: "今日の学習",
+                value: "\(stats.todayMinutes)",
+                unit: "分",
+                icon: "clock.fill",
+                color: accent
+            )
+            HealthMetricCard(
+                title: "習得語彙",
+                value: "\(stats.masteredCount)",
+                unit: "語",
+                icon: "checkmark.seal.fill",
+                color: mastered
+            )
+            HealthMetricCard(
+                title: "総単語数",
+                value: "\(stats.totalWords)",
+                unit: "語",
+                icon: "books.vertical.fill",
+                color: primary
+            )
         }
     }
 }

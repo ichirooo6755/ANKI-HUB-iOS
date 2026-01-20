@@ -45,7 +45,6 @@
 		5E683C49A7985DA3FC111444 /* QuizView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E166FB010CA8011EB0B52DD /* QuizView.swift */; };
 		636593DE3315688809423807 /* SubjectMasteryChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B12AA2DE6A4F80C244FD7C8 /* SubjectMasteryChart.swift */; };
 		6370B8FABF3205781D7727D6 /* constitution.json in Resources */ = {isa = PBXBuildFile; fileRef = 17B11C72B418B82E87B2C9BB /* constitution.json */; };
-		65A8DDF391065197C9A54AB8 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D71C9CE0CC6415B865512E1 /* CalendarView.swift */; };
 		69E1F82B074E84DD2FB75E84 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 492F8BE2D7FB4AACD581EC01 /* TimelineView.swift */; };
 		6BE34690F097DDDB5A56C53A /* InputModeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72781903D422A43C1827C20E /* InputModeManager.swift */; };
 		6E545F3F3F01D42FB13BDBF4 /* FocusTimerAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34C205FA228416CEF67DAA8F /* FocusTimerAttributes.swift */; };
@@ -97,6 +96,8 @@
 		F7661290D5F29B04BB747D57 /* WidgetSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78B7752570DC6C4E5D928C3D /* WidgetSettingsView.swift */; };
 		F7F0D63DD84E50398C7CE511 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB6C4627E4259AC39C79F97B /* ScanView.swift */; };
 		FBA0CB665E38ADFE48A7BE85 /* CalendarComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D80E99C7CA4AA2FDEC78B19 /* CalendarComponents.swift */; };
+		E6A9F2E5C3D4B5A697887767 /* HealthComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2E4C3D4B5A697887766 /* HealthComponents.swift */; };
+		E6A9F2EDC3D4B5A697887771 /* AppCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2ECC3D4B5A697887770 /* AppCalendarView.swift */; };
 		FEDF02D06C6EF680639C553D /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E47B989230174E6185BFE75 /* KeychainService.swift */; };
 /* End PBXBuildFile section */
 
@@ -163,6 +164,8 @@
 		4ECF5D5AFADBDD2F0E0962E4 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		53FD2A057ACA26E1B86B75DF /* KanbunWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbunWebView.swift; sourceTree = "<group>"; };
 		54AEB8D38B6CE12F06BE3358 /* DashboardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardComponents.swift; sourceTree = "<group>"; };
+		E6A9F2E4C3D4B5A697887766 /* HealthComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthComponents.swift; sourceTree = "<group>"; };
+		E6A9F2ECC3D4B5A697887770 /* AppCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCalendarView.swift; sourceTree = "<group>"; };
 		551E2ADD61CAB99F6B29C362 /* TimelineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineManager.swift; sourceTree = "<group>"; };
 		5818B7DD4E6D94E86C1C51A0 /* VocabularyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyData.swift; sourceTree = "<group>"; };
 		59065F29958F253BC78B88F8 /* ANKIHUBApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ANKIHUBApp.swift; sourceTree = "<group>"; };
@@ -325,6 +328,7 @@
 				490FB40BEE416D935DF6646D /* CircularProgressView.swift */,
 				339AB4910D5268AA3D376674 /* DashboardCharts.swift */,
 				54AEB8D38B6CE12F06BE3358 /* DashboardComponents.swift */,
+				E6A9F2E4C3D4B5A697887766 /* HealthComponents.swift */,
 				E4140A4BEBEE9BEF65F7CABF /* FlashcardView.swift */,
 				B3222FD2A99E8F8D6054ECD8 /* KanbunVerticalView.swift */,
 				53FD2A057ACA26E1B86B75DF /* KanbunWebView.swift */,
@@ -406,7 +410,7 @@
 			isa = PBXGroup;
 			children = (
 				175DF687B5B72F0A1287D7C8 /* AuthView.swift */,
-				1D71C9CE0CC6415B865512E1 /* CalendarView.swift */,
+				E6A9F2ECC3D4B5A697887770 /* AppCalendarView.swift */,
 				4E4398A49B466FC3993E8172 /* CustomVocabView.swift */,
 				B9232EA102F7E337B552FD5F /* DashboardView.swift */,
 				06122B34B24999861C8946E4 /* FrontCameraView.swift */,
@@ -494,7 +498,8 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
+				LastSwiftUpdateCheck = 2620;
 				TargetAttributes = {
 					032C2D7DFD65E8BF42D3C001 = {
 						DevelopmentTeam = K5D7GVJFG7;
@@ -507,7 +512,7 @@
 				};
 			};
 			buildConfigurationList = 216FCDFCD9343637B1BF82F8 /* Build configuration list for PBXProject "ANKI-HUB-iOS" */;
-			compatibilityVersion = "Xcode 14.0";
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -571,7 +576,8 @@
 				3313FBF795251E8BA0E3145E /* BookshelfView.swift in Sources */,
 				4500E76D5666EACABDC47001 /* CSVTextDocument.swift in Sources */,
 				FBA0CB665E38ADFE48A7BE85 /* CalendarComponents.swift in Sources */,
-				65A8DDF391065197C9A54AB8 /* CalendarView.swift in Sources */,
+				E6A9F2E5C3D4B5A697887767 /* HealthComponents.swift in Sources */,
+				E6A9F2EDC3D4B5A697887771 /* AppCalendarView.swift in Sources */,
 				0526B9C7AB081531A56B84D8 /* ChapterSelectionView.swift in Sources */,
 				47A624BE427238B7D1178910 /* CircularProgressView.swift in Sources */,
 				23D6245B68DE4BB723F84A60 /* CustomVocabView.swift in Sources */,

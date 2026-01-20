@@ -428,14 +428,8 @@ struct QuizView: View {
     private var quizSettingsView: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Spacer()
-
-                Image(systemName: subject.icon)
-                    .font(.system(size: 60))
-                    .foregroundStyle(subject.color)
-
-                Text(subject.displayName)
-                    .font(.largeTitle.bold())
+                watchSettingsHeader
+                    .padding(.top, 8)
 
                 // 習熟度グラフ
                 SubjectMasteryChart(subject: subject, masteryTracker: masteryTracker)
@@ -730,7 +724,6 @@ struct QuizView: View {
                     .padding(.horizontal)
                 }
 
-                Spacer()
             }
             .padding(.bottom, 100)  // Extra padding for scrolling past the start button
         }
@@ -738,47 +731,241 @@ struct QuizView: View {
         .contentMargins(.bottom, 40, for: .scrollIndicators)
     }
 
-    // MARK: - Quiz Content View
+    // MARK: - Watch Style
 
-    private var quizContentView: some View {
-        VStack(spacing: 0) {
-            // Progress
-            ProgressView(value: Double(currentIndex + 1), total: Double(questions.count))
-                .tint(subject.color)
-                .padding()
+    private var watchSettingsHeader: some View {
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+        let masteredColor = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+        let stats = masteryTracker.getStats(for: subject.rawValue)
+        let totalWords = VocabularyData.shared.getVocabulary(for: subject).count
+        let mastered = stats[.mastered] ?? 0
+        let tracked = stats.values.reduce(0, +)
+        let masteryRate = totalWords == 0
+            ? 0
+            : Int((Double(mastered) / Double(totalWords) * 100.0).rounded())
+        let studiedCount = min(totalWords, tracked)
 
-            HStack {
-                Text("\(currentIndex + 1) / \(questions.count)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        return VStack(spacing: 16) {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(subject.color.opacity(0.18))
+                        .frame(width: 52, height: 52)
+                    Image(systemName: subject.icon)
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(subject.color)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(subject.displayName)
+                        .font(.title2.bold())
+                        .foregroundStyle(theme.primaryText)
+                    Text("全\(totalWords)語")
+                        .font(.caption)
+                        .foregroundStyle(theme.secondaryText)
+                }
 
                 Spacer()
+            }
 
-                // Mistake Report
+            HStack(spacing: 16) {
+                watchRingCard(
+                    title: "習得率",
+                    value: "\(masteryRate)%",
+                    progress: Double(masteryRate) / 100.0,
+                    color: masteredColor,
+                    size: 70
+                )
+                watchRingCard(
+                    title: "学習済み",
+                    value: "\(studiedCount)語",
+                    progress: totalWords == 0 ? 0 : Double(studiedCount) / Double(totalWords),
+                    color: primary,
+                    size: 70
+                )
+                watchRingCard(
+                    title: "今日",
+                    value: "\(learningStats.todayMinutes)分",
+                    progress: min(Double(learningStats.todayMinutes) / 60.0, 1),
+                    color: accent,
+                    size: 70
+                )
+            }
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(surface.opacity(theme.effectiveIsDark ? 0.95 : 0.98))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(border.opacity(0.4), lineWidth: 1)
+        )
+        .padding(.horizontal)
+    }
+
+    private var quizProgressHeader: some View {
+        let totalQuestions = max(questions.count, 1)
+        let progress = Double(currentIndex + 1) / Double(totalQuestions)
+        let answered = correctCount + wrongCount
+        let accuracy = answered > 0
+            ? Int((Double(correctCount) / Double(answered) * 100.0).rounded())
+            : 0
+        let timeLimitForCurrent = timeLimitForQuestion(at: currentIndex)
+        let timeProgress = timeLimitForCurrent > 0
+            ? Double(timeRemaining) / Double(timeLimitForCurrent)
+            : 0
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+        let weak = theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
+        let ringSize: CGFloat = 64
+
+        return VStack(spacing: 12) {
+            HStack(spacing: 16) {
+                watchRingCard(
+                    title: "進行",
+                    value: "\(currentIndex + 1)/\(questions.count)",
+                    progress: progress,
+                    color: subject.color,
+                    size: ringSize
+                )
+                watchRingCard(
+                    title: "正答率",
+                    value: "\(accuracy)%",
+                    progress: Double(accuracy) / 100.0,
+                    color: mastered,
+                    size: ringSize
+                )
+                if timeLimit > 0 {
+                    let timeColor = timeRemaining <= 5 ? weak : accent
+                    watchRingCard(
+                        title: "残り",
+                        value: "\(timeRemaining)s",
+                        progress: timeProgress,
+                        color: timeColor,
+                        size: ringSize
+                    )
+                }
+            }
+
+            HStack(spacing: 8) {
+                PillBadge(title: "正解 \(correctCount)", color: mastered)
+                PillBadge(title: "不正解 \(wrongCount)", color: weak)
+                PillBadge(title: "全\(questions.count)問", color: accent)
+                Spacer()
                 Button {
                     mistakeReportNote = ""
                     mistakeReportError = ""
                     showMistakeReportSheet = true
                 } label: {
                     Image(systemName: "exclamationmark.bubble.fill")
-                        .font(.caption)
-                        .foregroundStyle(
-                            theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(weak)
+                        .padding(8)
+                        .background(weak.opacity(0.16), in: Circle())
                 }
-
-                Spacer()
-
-                HStack(spacing: 16) {
-                    Label("\(correctCount)", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(
-                            theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark))
-                    Label("\(wrongCount)", systemImage: "xmark.circle.fill")
-                        .foregroundStyle(
-                            theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark))
-                }
-                .font(.subheadline)
+                .buttonStyle(.plain)
             }
-            .padding(.horizontal)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(surface.opacity(theme.effectiveIsDark ? 0.95 : 0.98))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(border.opacity(0.4), lineWidth: 1)
+        )
+        .padding(.horizontal)
+    }
+
+    private var quizResultsSummary: some View {
+        let totalQuestions = max(correctCount + wrongCount, 1)
+        let accuracy = totalQuestions > 0
+            ? Int((Double(correctCount) / Double(totalQuestions) * 100.0).rounded())
+            : 0
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+        let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+        let weak = theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
+        let ringSize: CGFloat = 72
+
+        return VStack(spacing: 12) {
+            HStack(spacing: 16) {
+                watchRingCard(
+                    title: "正答率",
+                    value: "\(accuracy)%",
+                    progress: Double(accuracy) / 100.0,
+                    color: subject.color,
+                    size: ringSize
+                )
+                watchRingCard(
+                    title: "正解",
+                    value: "\(correctCount)",
+                    progress: Double(correctCount) / Double(totalQuestions),
+                    color: mastered,
+                    size: ringSize
+                )
+                watchRingCard(
+                    title: "不正解",
+                    value: "\(wrongCount)",
+                    progress: Double(wrongCount) / Double(totalQuestions),
+                    color: weak,
+                    size: ringSize
+                )
+            }
+
+            Text("全\(correctCount + wrongCount)問")
+                .font(.caption)
+                .foregroundStyle(theme.secondaryText)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(surface.opacity(theme.effectiveIsDark ? 0.95 : 0.98))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(border.opacity(0.4), lineWidth: 1)
+        )
+    }
+
+    private func watchRingCard(
+        title: String,
+        value: String,
+        progress: Double,
+        color: Color,
+        size: CGFloat
+    ) -> some View {
+        VStack(spacing: 6) {
+            ZStack {
+                HealthRingView(progress: progress, color: color, lineWidth: 8, size: size)
+                Text(value)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(theme.primaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .monospacedDigit()
+            }
+
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(theme.secondaryText)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - Quiz Content View
+
+    private var quizContentView: some View {
+        VStack(spacing: 0) {
+            quizProgressHeader
+                .padding(.top, 12)
 
             Spacer()
 
@@ -1614,38 +1801,8 @@ struct QuizView: View {
                     .foregroundStyle(.secondary)
             }
 
-            // Stats
-            HStack(spacing: 32) {
-                VStack {
-                    Text("\(correctCount)")
-                        .font(.title.bold())
-                        .foregroundStyle(
-                            theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark))
-                    Text("正解")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                VStack {
-                    Text("\(wrongCount)")
-                        .font(.title.bold())
-                        .foregroundStyle(
-                            theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark))
-                    Text("不正解")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                VStack {
-                    Text("\(total)")
-                        .font(.title.bold())
-                    Text("出題数")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding()
-            .liquidGlass(cornerRadius: 16)
+            quizResultsSummary
+                .padding(.horizontal)
 
             Spacer()
 

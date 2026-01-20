@@ -115,7 +115,9 @@ open ANKI-HUB-iOS.xcodeproj
 | Widget拡張インストール失敗 | `CFBundleExecutable`未設定、不要キー存在 | Info.plist修正 |
 | CodeSign失敗 | resource fork/xattr | `SYMROOT/OBJROOT`をDerivedData側に |
 | `startActiveSegmentIfNeeded`が見つからない | タイマーリファクタで補助関数が欠落 | `TimerView`に補助関数を復旧 |
-| `CalendarView`が見つからない | `UI/CalendarView.swift`が空/重複していた | `Views/CalendarView.swift`を`AppCalendarView`として実装し参照を統一、SPMでUI側を除外 |
+| `AppCalendarView`が見つからない | `UI/CalendarView.swift`が空でターゲットに含まれていなかった | `UI/CalendarView.swift`に`AppCalendarView`を実装し、SPMでは`Views/CalendarView.swift`を除外 |
+| `StudyView`で`SectionHeader`/`HealthMetricCard`/`AppCalendarView`が見つからない | `HealthComponents.swift`/`AppCalendarView.swift`がターゲット未登録、カレンダー画面の定義が分散 | `HealthComponents.swift`と`AppCalendarView.swift`をSourcesに追加し、カレンダー画面を`AppCalendarView.swift`に統一 |
+| `TodoView`で`summaryMetrics`が未定義 | `summaryMetrics`が`TodoItem`に混入してスコープ外 | `TodoView`内に移動して整理 |
 | `TimelineView`が見つからない | 画面ファイルが欠落 | `Views/TimelineView.swift`を追加しDashboardから参照 |
 | `InputModeView`の型チェック失敗 | View構造破損と`SpeechTranscriber`名競合 | `InputModeSessionView`に分割し`CustomSpeechTranscriber`で統一 |
 | macOSビルドでiOS専用APIエラー | `.topBarTrailing`/`textInputAutocapitalization`/`AVAudioSession`が未対応 | `#if os(iOS)`でガードしmacOSでは`.automatic`等に切替 |

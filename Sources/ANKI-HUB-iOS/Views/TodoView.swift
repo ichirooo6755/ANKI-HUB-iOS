@@ -41,7 +41,6 @@ struct TodoItem: Identifiable, Codable {
             }
         }
     }
-
     enum BoardColumn: String, Codable, CaseIterable {
         case backlog = "バックログ"
         case todo = "ToDo"
@@ -594,6 +593,53 @@ struct TodoView: View {
                     .cornerRadius(12)
             }
         }
+    }
+
+    private var summaryMetrics: some View {
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+        let weak = theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
+
+        return HStack(spacing: 12) {
+            HealthMetricCard(
+                title: "未完了",
+                value: "\(pendingCount)",
+                unit: "件",
+                icon: "circle",
+                color: accent
+            )
+            HealthMetricCard(
+                title: "完了",
+                value: "\(completedCount)",
+                unit: "件",
+                icon: "checkmark.circle.fill",
+                color: primary
+            )
+            HealthMetricCard(
+                title: "期限間近",
+                value: "\(dueSoonCount)",
+                unit: "件",
+                icon: "exclamationmark.triangle.fill",
+                color: weak
+            )
+        }
+    }
+
+    private var pendingCount: Int {
+        manager.pendingItems.count
+    }
+
+    private var completedCount: Int {
+        manager.completedItems.count
+    }
+
+    private var dueSoonCount: Int {
+        let now = Date()
+        let soon = Calendar.current.date(byAdding: .day, value: 2, to: now) ?? now
+        return manager.pendingItems.filter { item in
+            guard let due = item.dueDate else { return false }
+            return due <= soon
+        }.count
     }
 
     private var todoList: some View {
