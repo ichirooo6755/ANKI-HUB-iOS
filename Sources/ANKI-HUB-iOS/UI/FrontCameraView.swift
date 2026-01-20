@@ -60,7 +60,7 @@ struct FrontCameraView: View {
                 .clipShape(Circle())
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("フロントカメラ")
+                Text("ミラー")
                     .font(.headline)
                 Text("ロック画面コントロール対応")
                     .font(.caption2)
@@ -120,9 +120,20 @@ struct FrontCameraView: View {
                 }
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
 
-                Text("ロック画面のコントロールから起動できます")
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("ロック画面のコントロールから起動できます")
+                        .font(.caption)
+                        .foregroundStyle(theme.secondaryText)
+
+                    Text("アプリと同じUIでミラーを表示します")
+                        .font(.caption2)
+                        .foregroundStyle(theme.secondaryText)
+
+                    Text("ミラー表示のため撮影・保存は行いません")
+                        .font(.caption2)
+                        .foregroundStyle(theme.secondaryText)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 VStack(spacing: 16) {
                     Image(systemName: "camera.viewfinder")
@@ -257,11 +268,21 @@ struct FrontCameraPreview: UIViewRepresentable {
         let view = PreviewView()
         view.videoPreviewLayer.session = session
         view.videoPreviewLayer.videoGravity = .resizeAspectFill
+        applyMirror(to: view.videoPreviewLayer)
         return view
     }
 
     func updateUIView(_ uiView: PreviewView, context: Context) {
         uiView.videoPreviewLayer.session = session
+        applyMirror(to: uiView.videoPreviewLayer)
+    }
+
+    private func applyMirror(to layer: AVCaptureVideoPreviewLayer) {
+        guard let connection = layer.connection, connection.isVideoMirroringSupported else {
+            return
+        }
+        connection.automaticallyAdjustsVideoMirroring = false
+        connection.isVideoMirrored = true
     }
 
     final class PreviewView: UIView {

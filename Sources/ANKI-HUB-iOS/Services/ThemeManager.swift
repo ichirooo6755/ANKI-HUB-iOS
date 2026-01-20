@@ -38,60 +38,36 @@ public struct LiquidGlassModifier: ViewModifier {
         let needsExtraContrast = theme.wallpaperKind == "photo" || theme.wallpaperKind == "bundle"
         let surface = theme.currentPalette.color(.surface, isDark: isDark)
         let border = theme.currentPalette.color(.border, isDark: isDark)
-        let primary = theme.currentPalette.color(.primary, isDark: isDark)
 
-        let useMaterial = theme.useLiquidGlass && needsExtraContrast
-        let surfaceOpacity: Double = {
-            if useMaterial {
-                return isDark ? 0.78 : 0.62
-            }
-            return isDark ? 0.88 : 0.96
-        }()
+        let useMaterial =
+            theme.useLiquidGlass
+            && needsExtraContrast
+            && theme.colorSchemeOverride == 0
 
-        let borderPrimaryOpacity: Double = {
-            if useMaterial {
-                return isDark ? 0.28 : 0.42
-            }
-            return isDark ? 0.14 : 0.25
-        }()
-
-        let borderSecondaryOpacity: Double = {
-            if useMaterial {
-                return isDark ? 0.5 : 0.7
-            }
-            return isDark ? 0.35 : 0.55
-        }()
+        let surfaceOpacity: Double = isDark ? 0.94 : 0.98
+        let borderOpacity: Double = isDark ? 0.32 : 0.2
+        let shadowOpacity: Double = isDark ? 0.2 : 0.08
+        let shadowRadius: CGFloat = 8
+        let shadowYOffset: CGFloat = 4
 
         Group {
             if useMaterial {
-                content.background(.ultraThinMaterial)
+                content.background(.regularMaterial)
             } else {
                 content
             }
         }
         .background(surface.opacity(surfaceOpacity))
-        .cornerRadius(cornerRadius)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            primary.opacity(borderPrimaryOpacity),
-                            border.opacity(borderSecondaryOpacity),
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(border.opacity(borderOpacity), lineWidth: 1)
         )
         .shadow(
-            color: Color.black.opacity(
-                isDark ? (needsExtraContrast ? 0.34 : 0.28) : (needsExtraContrast ? 0.16 : 0.12)
-            ),
-            radius: needsExtraContrast ? 18 : 15,
+            color: Color.black.opacity(shadowOpacity),
+            radius: shadowRadius,
             x: 0,
-            y: 10
+            y: shadowYOffset
         )
     }
 }
@@ -111,37 +87,28 @@ private struct AdaptiveLiquidGlassModifier: ViewModifier {
         }
 
         let isDark = theme.effectiveIsDark
-        let needsExtraContrast = theme.wallpaperKind == "photo" || theme.wallpaperKind == "bundle"
+        let borderOpacity: Double = isDark ? 0.32 : 0.2
+        let shadowOpacity: Double = isDark ? 0.2 : 0.08
         return AnyView(
             content
                 .background(
                     theme.currentPalette.color(.surface, isDark: isDark)
-                        .opacity(
-                            isDark
-                                ? (needsExtraContrast ? 0.92 : 0.85)
-                                : (needsExtraContrast ? 0.98 : 0.95))
+                        .opacity(isDark ? 0.94 : 0.98)
                 )
-                .cornerRadius(cornerRadius)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius)
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                         .stroke(
                             theme.currentPalette.color(.border, isDark: isDark)
-                                .opacity(
-                                    isDark
-                                        ? (needsExtraContrast ? 0.62 : 0.5)
-                                        : (needsExtraContrast ? 0.8 : 0.7)),
+                                .opacity(borderOpacity),
                             lineWidth: 1
                         )
                 )
                 .shadow(
-                    color: Color.black.opacity(
-                        isDark
-                            ? (needsExtraContrast ? 0.26 : 0.22)
-                            : (needsExtraContrast ? 0.1 : 0.08)
-                    ),
-                    radius: needsExtraContrast ? 12 : 10,
+                    color: Color.black.opacity(shadowOpacity),
+                    radius: 8,
                     x: 0,
-                    y: 6
+                    y: 4
                 )
         )
     }
@@ -156,39 +123,33 @@ private struct LiquidGlassCircleModifier: ViewModifier {
         let surface = theme.currentPalette.color(.surface, isDark: isDark)
         let border = theme.currentPalette.color(.border, isDark: isDark)
 
-        let useMaterial = theme.useLiquidGlass && needsExtraContrast
-        let surfaceOpacity: Double = {
-            if useMaterial {
-                return isDark ? 0.55 : 0.32
-            }
-            return isDark ? 0.88 : 0.96
-        }()
+        let useMaterial =
+            theme.useLiquidGlass
+            && needsExtraContrast
+            && theme.colorSchemeOverride == 0
 
-        let borderOpacity: Double = {
-            if useMaterial {
-                return isDark ? 0.5 : 0.7
-            }
-            return isDark ? 0.35 : 0.55
-        }()
+        let surfaceOpacity: Double = isDark ? 0.94 : 0.98
+        let borderOpacity: Double = isDark ? 0.32 : 0.2
+        let shadowOpacity: Double = isDark ? 0.2 : 0.08
+        let shadowRadius: CGFloat = 8
+        let shadowYOffset: CGFloat = 4
 
         return
             content
             .background(
                 Group {
                     if useMaterial {
-                        Circle().fill(.ultraThinMaterial)
+                        Circle().fill(.regularMaterial)
                     }
                 }
             )
             .background(Circle().fill(surface.opacity(surfaceOpacity)))
             .overlay(Circle().stroke(border.opacity(borderOpacity), lineWidth: 1))
             .shadow(
-                color: Color.black.opacity(
-                    isDark ? (needsExtraContrast ? 0.34 : 0.28) : (needsExtraContrast ? 0.16 : 0.12)
-                ),
-                radius: needsExtraContrast ? 18 : 15,
+                color: Color.black.opacity(shadowOpacity),
+                radius: shadowRadius,
                 x: 0,
-                y: 10
+                y: shadowYOffset
             )
     }
 }
@@ -2004,6 +1965,10 @@ struct AppThemeModifier: ViewModifier {
         content
             .preferredColorScheme(theme.effectivePreferredColorScheme)
             .tint(tintColor)
+            #if os(iOS)
+                .scrollContentBackground(.hidden)
+                .background(theme.background)
+            #endif
             .onAppear {
                 theme.updateSystemColorScheme(colorScheme)
             }

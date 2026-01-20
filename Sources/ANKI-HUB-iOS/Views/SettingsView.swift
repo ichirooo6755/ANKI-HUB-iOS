@@ -14,6 +14,8 @@ struct SettingsView: View {
     @EnvironmentObject var learningStats: LearningStats
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("anki_hub_target_date_timestamp_v2") private var targetDateTimestamp: Double = 0
+    @AppStorage("anki_hub_target_start_timestamp_v1") private var targetStartTimestamp: Double = 0
+    @AppStorage("anki_hub_target_study_minutes_v1") private var targetStudyMinutes: Int = 600
     @AppStorage("anki_hub_widget_subject_filter_v1") private var widgetSubjectFilter: String = ""
     @AppStorage("anki_hub_widget_show_streak_v1") private var widgetShowStreak: Bool = true
     @AppStorage("anki_hub_widget_show_today_minutes_v1") private var widgetShowTodayMinutes: Bool = true
@@ -35,7 +37,12 @@ struct SettingsView: View {
                 return Date(timeIntervalSince1970: targetDateTimestamp)
             },
             set: { newValue in
-                targetDateTimestamp = newValue.timeIntervalSince1970
+                let previousTimestamp = targetDateTimestamp
+                let newTimestamp = newValue.timeIntervalSince1970
+                targetDateTimestamp = newTimestamp
+                if previousTimestamp != newTimestamp {
+                    targetStartTimestamp = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
+                }
 
                 // Clear V1 to ensure V2 is used
                 // UserDefaults.standard.removeObject(forKey: "anki_hub_retention_target_days_v1")
@@ -43,6 +50,18 @@ struct SettingsView: View {
                 SyncManager.shared.requestAutoSync()
             }
         )
+    }
+
+    private var targetStudyMinutesText: String {
+        let hours = targetStudyMinutes / 60
+        let minutes = targetStudyMinutes % 60
+        if minutes == 0 {
+            return "\(hours)時間"
+        }
+        if hours == 0 {
+            return "\(minutes)分"
+        }
+        return "\(hours)時間\(minutes)分"
     }
 
     private func migrateRetentionSettings() {
@@ -61,6 +80,9 @@ struct SettingsView: View {
         // Set V2
         let date = Calendar.current.date(byAdding: .day, value: defaultDays, to: Date()) ?? Date()
         targetDateTimestamp = date.timeIntervalSince1970
+        if targetStartTimestamp == 0 {
+            targetStartTimestamp = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
+        }
     }
     @AppStorage("anki_hub_kobun_inputmode_use_all_v1") private var kobunInputModeUseAll: Bool =
         false
@@ -95,21 +117,36 @@ struct SettingsView: View {
         let rowBg = themeManager.color(.surface, scheme: colorScheme)
         Section("学習統計") {
             HStack {
-                Label("連続学習日数", systemImage: "flame.fill")
+                SettingsIcon(
+                    icon: "flame.fill",
+                    color: .orange,
+                    foregroundColor: .white
+                )
+                Text("連続学習日数")
                 Spacer()
                 Text("\(learningStats.streak) 日")
                     .foregroundStyle(themeManager.color(.accent, scheme: colorScheme))
             }
             .listRowBackground(rowBg)
             HStack {
-                Label("今日の学習", systemImage: "clock.fill")
+                SettingsIcon(
+                    icon: "clock.fill",
+                    color: .blue,
+                    foregroundColor: .white
+                )
+                Text("今日の学習")
                 Spacer()
                 Text("\(learningStats.todayMinutes) 分")
                     .foregroundStyle(themeManager.color(.primary, scheme: colorScheme))
             }
             .listRowBackground(rowBg)
             HStack {
-                Label("覚えた単語", systemImage: "checkmark.circle.fill")
+                SettingsIcon(
+                    icon: "checkmark.circle.fill",
+                    color: .green,
+                    foregroundColor: .white
+                )
+                Text("覚えた単語")
                 Spacer()
                 Text("\(learningStats.masteredCount) 語")
                     .foregroundStyle(themeManager.color(.mastered, scheme: colorScheme))
@@ -181,19 +218,39 @@ struct SettingsView: View {
                     Button {
                         showInviteSheet = true
                     } label: {
-                        Label("招待コードを入力", systemImage: "ticket.fill")
+                        HStack {
+                            SettingsIcon(
+                                icon: "ticket.fill",
+                                color: .orange,
+                                foregroundColor: .white
+                            )
+                            Text("招待コードを入力")
+                        }
                     }
                 }
 
-                Button("ログアウト", role: .destructive) {
+                Button(role: .destructive) {
                     Task { await authManager.signOut() }
+                } label: {
+                    HStack {
+                        SettingsIcon(
+                            icon: "rectangle.portrait.and.arrow.right.fill",
+                            color: .red,
+                            foregroundColor: .white
+                        )
+                        Text("ログアウト")
+                    }
                 }
             } else {
                 Button {
                     Task { await authManager.signInWithGoogle() }
                 } label: {
                     HStack {
-                        Image(systemName: "person.circle")
+                        SettingsIcon(
+                            icon: "person.badge.plus.fill",
+                            color: .green,
+                            foregroundColor: .white
+                        )
                         Text("Googleでログイン")
                         Spacer()
                         if authManager.isLoading {
@@ -211,6 +268,15 @@ struct SettingsView: View {
         Section("学習") {
             DatePicker("目標日", selection: targetDateBinding, displayedComponents: [.date])
                 .environment(\.locale, Locale(identifier: "ja_JP"))
+
+            Stepper(value: $targetStudyMinutes, in: 30...20000, step: 30) {
+                HStack {
+                    Text("目標時間")
+                    Spacer()
+                    Text(targetStudyMinutesText)
+                        .foregroundStyle(themeManager.secondaryText)
+                }
+            }
 
             Toggle(isOn: $kobunInputModeUseAll) {
                 Text("古文インプットモードを全単語で行う")
@@ -233,7 +299,14 @@ struct SettingsView: View {
                     applySetting: applyDailyReminderSetting
                 )
             } label: {
-                Label("学習リマインド設定", systemImage: "bell.badge")
+                HStack {
+                    SettingsIcon(
+                        icon: "bell.badge.fill",
+                        color: .red,
+                        foregroundColor: .white
+                    )
+                    Text("学習リマインド設定")
+                }
             }
         }
         .listRowBackground(rowBg)
@@ -247,7 +320,28 @@ struct SettingsView: View {
                 WidgetSettingsView()
                     .environmentObject(themeManager)
             } label: {
-                Label("ウィジェット設定", systemImage: "square.grid.2x2")
+                HStack {
+                    SettingsIcon(
+                        icon: "square.grid.2x2.fill",
+                        color: .purple,
+                        foregroundColor: .white
+                    )
+                    Text("ウィジェット設定")
+                }
+            }
+
+            NavigationLink {
+                LockScreenMirrorGuideView()
+            } label: {
+                HStack {
+                    SettingsIcon(
+                        icon: "camera.viewfinder",
+                        color: themeManager.color(.primary, scheme: colorScheme),
+                        foregroundColor: themeManager.onColor(
+                            for: themeManager.color(.primary, scheme: colorScheme))
+                    )
+                    Text("ロック画面ミラー")
+                }
             }
         }
         .listRowBackground(rowBg)
@@ -273,12 +367,11 @@ struct SettingsView: View {
                 Label {
                     Text("テーマ設定")
                 } icon: {
-                    let bg = themeManager.color(.primary, scheme: colorScheme)
-                    Image(systemName: "paintpalette.fill")
-                        .foregroundStyle(themeManager.onColor(for: bg))
-                        .frame(width: 28, height: 28)
-                        .background(bg)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    SettingsIcon(
+                        icon: "paintpalette.fill",
+                        color: themeManager.color(.primary, scheme: colorScheme),
+                        foregroundColor: themeManager.onColor(for: themeManager.color(.primary, scheme: colorScheme))
+                    )
                 }
             }
         }
@@ -302,12 +395,11 @@ struct SettingsView: View {
                                 }
                             }
                         } icon: {
-                            let bg = themeManager.color(.primary, scheme: colorScheme)
-                            Image(systemName: "icloud.fill")
-                                .foregroundStyle(themeManager.onColor(for: bg))
-                                .frame(width: 28, height: 28)
-                                .background(bg)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            SettingsIcon(
+                                icon: "icloud.fill",
+                                color: themeManager.color(.primary, scheme: colorScheme),
+                                foregroundColor: themeManager.onColor(for: themeManager.color(.primary, scheme: colorScheme))
+                            )
                         }
                         Spacer()
                         Image(systemName: "chevron.right")
@@ -324,21 +416,36 @@ struct SettingsView: View {
     private var infoSection: some View {
         Section("情報") {
             HStack {
-                Label("バージョン", systemImage: "info.circle")
+                SettingsIcon(
+                    icon: "info.circle.fill",
+                    color: .gray,
+                    foregroundColor: .white
+                )
+                Text("バージョン")
                 Spacer()
                 Text("2.0.0")
                     .foregroundStyle(themeManager.secondaryText)
             }
 
             HStack {
-                Label("ビルド", systemImage: "hammer.fill")
+                SettingsIcon(
+                    icon: "hammer.fill",
+                    color: .gray,
+                    foregroundColor: .white
+                )
+                Text("ビルド")
                 Spacer()
                 Text("SwiftUI Native")
                     .foregroundStyle(themeManager.secondaryText)
             }
 
             HStack {
-                Label("開発", systemImage: "person.2.fill")
+                SettingsIcon(
+                    icon: "person.2.fill",
+                    color: .gray,
+                    foregroundColor: .white
+                )
+                Text("開発")
                 Spacer()
                 Text("ANKI-HUB Team")
                     .foregroundStyle(themeManager.secondaryText)
@@ -504,6 +611,9 @@ struct SettingsView: View {
             loadReminderTimesIfNeeded()
             migrateRetentionSettings()
             saveWidgetSettingsToAppGroup()
+        }
+        .onChange(of: targetStudyMinutes) { _, _ in
+            SyncManager.shared.requestAutoSync()
         }
         .onChange(of: kobunInputModeUseAll) { _, _ in
             SyncManager.shared.requestAutoSync()

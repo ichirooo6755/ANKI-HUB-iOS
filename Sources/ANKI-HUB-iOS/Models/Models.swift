@@ -9,44 +9,146 @@ import SwiftUI
     import WidgetKit
 #endif
 
-struct PomodoroStartRequest: Identifiable {
-    let id = UUID()
-    let mode: String
-    let minutes: Int
-    let open: Bool
+public struct TimerStartRequest: Identifiable {
+    public let id = UUID()
+    public let mode: String
+    public let minutes: Int
+    public let open: Bool
+    
+    public init(mode: String, minutes: Int, open: Bool) {
+        self.mode = mode
+        self.minutes = minutes
+        self.open = open
+    }
 }
 
-struct StudySession: Identifiable, Codable {
-    enum Source: String, Codable {
+public struct StudySession: Identifiable, Codable {
+    public enum Source: String, Codable {
         case appUsage
         case timer
     }
 
-    var id: UUID = UUID()
-    var startTime: Date
-    var endTime: Date
-    var source: Source
+    public var id: UUID = UUID()
+    public var startTime: Date
+    public var endTime: Date
+    public var source: Source
+    
+    public init(id: UUID = UUID(), startTime: Date, endTime: Date, source: Source) {
+        self.id = id
+        self.startTime = startTime
+        self.endTime = endTime
+        self.source = source
+    }
 }
 
-struct TimerStudySegment: Codable {
-    var startTime: Date
-    var endTime: Date
+public struct TimerStudySegment: Codable {
+    public var startTime: Date
+    public var endTime: Date
+    
+    public init(startTime: Date, endTime: Date) {
+        self.startTime = startTime
+        self.endTime = endTime
+    }
 }
 
-struct TimerStudyLog: Identifiable, Codable {
-    var id: UUID = UUID()
-    var startedAt: Date
-    var endedAt: Date
-    var mode: String
-    var plannedSeconds: Int
-    var overtimeSeconds: Int
-    var studyContent: String
-    var segments: [TimerStudySegment]? = nil
+public struct TimerStudyLog: Identifiable, Codable {
+    public var id: UUID = UUID()
+    public var startedAt: Date
+    public var endedAt: Date
+    public var mode: String
+    public var plannedSeconds: Int
+    public var overtimeSeconds: Int
+    public var studyContent: String
+    public var materialId: UUID? = nil
+    public var segments: [TimerStudySegment]? = nil
+    
+    public init(id: UUID = UUID(), startedAt: Date, endedAt: Date, mode: String, plannedSeconds: Int, overtimeSeconds: Int, studyContent: String, materialId: UUID? = nil, segments: [TimerStudySegment]? = nil) {
+        self.id = id
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.mode = mode
+        self.plannedSeconds = plannedSeconds
+        self.overtimeSeconds = overtimeSeconds
+        self.studyContent = studyContent
+        self.materialId = materialId
+        self.segments = segments
+    }
 }
 
 extension TimerStudyLog {
     var countsAsStudy: Bool {
-        mode == "集中" || mode == "カスタム"
+        mode == "ポモドーロ" || mode == "集中" || mode == "カスタム"
+    }
+}
+
+// MARK: - Study Materials
+
+public struct StudyMaterial: Identifiable, Codable, Hashable {
+    public enum MaterialType: String, Codable, CaseIterable {
+        case book = "書籍"
+        case video = "動画"
+        case app = "アプリ"
+        case classWork = "授業"
+        case other = "その他"
+
+        public var icon: String {
+            switch self {
+            case .book: return "book.closed.fill"
+            case .video: return "play.rectangle.fill"
+            case .app: return "apps.iphone"
+            case .classWork: return "graduationcap.fill"
+            case .other: return "square.stack.fill"
+            }
+        }
+    }
+
+    public var id: UUID = UUID()
+    public var title: String
+    public var subject: Subject?
+    public var type: MaterialType
+    public var notes: String
+    public var imageFilename: String?
+    public var createdAt: Date = Date()
+    public var lastStudiedAt: Date?
+    public var totalMinutes: Int = 0
+    
+    public init(id: UUID = UUID(), title: String, subject: Subject?, type: MaterialType, notes: String, imageFilename: String? = nil, createdAt: Date = Date(), lastStudiedAt: Date? = nil, totalMinutes: Int = 0) {
+        self.id = id
+        self.title = title
+        self.subject = subject
+        self.type = type
+        self.notes = notes
+        self.imageFilename = imageFilename
+        self.createdAt = createdAt
+        self.lastStudiedAt = lastStudiedAt
+        self.totalMinutes = totalMinutes
+    }
+}
+
+public struct StudyMaterialRecord: Identifiable, Codable, Hashable {
+    public enum Source: String, Codable {
+        case timer
+        case manual
+    }
+
+    public var id: UUID = UUID()
+    public var materialId: UUID
+    public var materialTitle: String
+    public var minutes: Int
+    public var note: String
+    public var startedAt: Date
+    public var endedAt: Date
+    public var source: Source
+    
+    public init(id: UUID = UUID(), materialId: UUID, materialTitle: String, minutes: Int, note: String, startedAt: Date, endedAt: Date, source: Source) {
+        self.id = id
+        self.materialId = materialId
+        self.materialTitle = materialTitle
+        self.minutes = minutes
+        self.note = note
+        self.startedAt = startedAt
+        self.endedAt = endedAt
+        self.source = source
     }
 }
 
@@ -148,7 +250,7 @@ class AuthManager: ObservableObject {
     struct User: Codable, Equatable {
         let id: String
         let email: String
-        var displayName: String {
+        public var displayName: String {
             // Extract name from email or return default
             email.components(separatedBy: "@").first?.capitalized ?? "ユーザー"
         }
@@ -291,10 +393,47 @@ class LearningStats: ObservableObject {
 
     @Published var dailyHistory: [String: DailyEntry] = [:]
 
+    @Published var journals: [String: JournalEntry] = [:]
+
     struct DailyEntry: Codable {
         var words: Int
         var minutes: Int
         var subjects: [String: Int]
+    }
+
+    struct JournalEntry: Codable {
+        var mood: Mood
+        var note: String
+    }
+
+    enum Mood: String, Codable, CaseIterable, Identifiable {
+        case veryBad
+        case bad
+        case neutral
+        case good
+        case veryGood
+
+        public var id: String { rawValue }
+
+        var label: String {
+            switch self {
+            case .veryBad: return "最悪"
+            case .bad: return "悪い"
+            case .neutral: return "普通"
+            case .good: return "良い"
+            case .veryGood: return "最高"
+            }
+        }
+
+        var symbol: String {
+            switch self {
+            case .veryBad: return "exclamationmark.triangle.fill"
+            case .bad: return "cloud.rain.fill"
+            case .neutral: return "minus.circle.fill"
+            case .good: return "sun.max.fill"
+            case .veryGood: return "sparkles"
+            }
+        }
     }
 
     private let userDefaultsKey = "anki_hub_learning_stats"
@@ -316,6 +455,7 @@ class LearningStats: ObservableObject {
         learningCount = stored.learningCount
         masteryRate = stored.masteryRate
         dailyHistory = stored.dailyHistory
+        journals = stored.journals
         syncTodayMinutesFromHistory()
         calculateStreak()
     }
@@ -334,6 +474,7 @@ class LearningStats: ObservableObject {
             learningCount = decoded.learningCount
             masteryRate = decoded.masteryRate
             dailyHistory = decoded.dailyHistory
+            journals = decoded.journals
             syncTodayMinutesFromHistory()
             calculateStreak()
         }
@@ -351,7 +492,8 @@ class LearningStats: ObservableObject {
             masteredCount: masteredCount,
             learningCount: learningCount,
             masteryRate: masteryRate,
-            dailyHistory: dailyHistory
+            dailyHistory: dailyHistory,
+            journals: journals
         )
         if let data = try? JSONEncoder().encode(stored) {
             UserDefaults.standard.set(data, forKey: userDefaultsKey)
@@ -607,6 +749,18 @@ class LearningStats: ObservableObject {
         var learningCount: Int
         var masteryRate: Int
         var dailyHistory: [String: DailyEntry]
+
+        var journals: [String: JournalEntry] = [:]
+    }
+
+    func setJournalEntry(dateKey: String, mood: Mood, note: String) {
+        let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            journals[dateKey] = JournalEntry(mood: mood, note: "")
+        } else {
+            journals[dateKey] = JournalEntry(mood: mood, note: trimmed)
+        }
+        saveStats()
     }
 }
 
@@ -740,6 +894,7 @@ class MasteryTracker: ObservableObject {
     ) {
         if items[subject] == nil { items[subject] = [:] }
         var item = items[subject]?[wordId] ?? MasteryItem(id: wordId)
+        let previousMastery = item.mastery
 
         item.lastSeen = Date()
         item.lastChosenAnswerText = chosenAnswerText
@@ -882,8 +1037,22 @@ class MasteryTracker: ObservableObject {
             item.fluencyScore = max(0, item.fluencyScore - 20)
         }
 
+        let shouldPostMastered = previousMastery != .mastered && item.mastery == .mastered
+
         items[subject]?[wordId] = item
         saveData()
+
+        if shouldPostMastered, let subjectEnum = Subject(rawValue: subject) {
+            let vocab = VocabularyData.shared.getVocabulary(for: subjectEnum)
+            let word = vocab.first(where: { $0.id == wordId })
+            TimelineManager.shared.addMasteredEntry(
+                subject: subjectEnum,
+                wordId: wordId,
+                term: word?.term ?? wordId,
+                meaning: word?.meaning ?? "",
+                date: item.lastSeen
+            )
+        }
     }
 
     func getStats(for subject: String) -> [MasteryLevel: Int] {
@@ -904,15 +1073,15 @@ class MasteryTracker: ObservableObject {
 
 // MARK: - Subject
 
-enum Subject: String, CaseIterable, Identifiable, Codable {
+public enum Subject: String, CaseIterable, Identifiable, Codable {
     case english = "english"
     case kobun = "kobun"
     case kanbun = "kanbun"
     case seikei = "seikei"
 
-    var id: String { rawValue }
+    public var id: String { rawValue }
 
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .english: return "英単語"
         case .kobun: return "古文"
@@ -921,7 +1090,7 @@ enum Subject: String, CaseIterable, Identifiable, Codable {
         }
     }
 
-    var icon: String {
+    public var icon: String {
         func pick(_ candidates: [String], fallback: String) -> String {
             #if os(iOS)
                 for name in candidates {

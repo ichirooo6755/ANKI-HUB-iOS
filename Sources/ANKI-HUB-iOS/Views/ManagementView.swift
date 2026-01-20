@@ -1,10 +1,15 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ManagementView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.colorScheme) var colorScheme
     @State private var syncStatus = ""
     @State private var showClearConfirmation = false
+
+    @State private var showBackupExporter = false
+    @State private var backupDocument = JSONTextDocument()
+    @State private var backupErrorMessage = ""
     
     var body: some View {
         NavigationStack {
@@ -33,13 +38,11 @@ struct ManagementView: View {
                                         .foregroundStyle(.secondary)
                                 }
                             } icon: {
-                                Image(systemName: "icloud.fill")
-                                    .foregroundStyle(
-                                        themeManager.onColor(for: themeManager.color(.primary, scheme: colorScheme))
-                                    )
-                                    .frame(width: 28, height: 28)
-                                    .background(themeManager.color(.primary, scheme: colorScheme))
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                SettingsIcon(
+                                    icon: "icloud.fill",
+                                    color: themeManager.color(.primary, scheme: colorScheme),
+                                    foregroundColor: themeManager.onColor(for: themeManager.color(.primary, scheme: colorScheme))
+                                )
                             }
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -61,13 +64,11 @@ struct ManagementView: View {
                                         .foregroundStyle(.secondary)
                                 }
                             } icon: {
-                                Image(systemName: "square.and.arrow.down.fill")
-                                    .foregroundStyle(
-                                        themeManager.onColor(for: themeManager.color(.mastered, scheme: colorScheme))
-                                    )
-                                    .frame(width: 28, height: 28)
-                                    .background(themeManager.color(.mastered, scheme: colorScheme))
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                SettingsIcon(
+                                    icon: "square.and.arrow.down.fill",
+                                    color: themeManager.color(.mastered, scheme: colorScheme),
+                                    foregroundColor: themeManager.onColor(for: themeManager.color(.mastered, scheme: colorScheme))
+                                )
                             }
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -89,13 +90,11 @@ struct ManagementView: View {
                                     .foregroundStyle(.secondary)
                             }
                         } icon: {
-                            Image(systemName: "trash.fill")
-                                .foregroundStyle(
-                                    themeManager.onColor(for: themeManager.color(.weak, scheme: colorScheme))
-                                )
-                                .frame(width: 28, height: 28)
-                                .background(themeManager.color(.weak, scheme: colorScheme))
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            SettingsIcon(
+                                icon: "trash.fill",
+                                color: themeManager.color(.weak, scheme: colorScheme),
+                                foregroundColor: themeManager.onColor(for: themeManager.color(.weak, scheme: colorScheme))
+                            )
                         }
                     }
                 }
@@ -130,6 +129,27 @@ struct ManagementView: View {
             } message: {
                 Text("この操作は取り消せません。")
             }
+            .fileExporter(
+                isPresented: $showBackupExporter,
+                document: backupDocument,
+                contentType: .json,
+                defaultFilename: "anki_hub_backup"
+            ) { result in
+                if case .failure = result {
+                    backupErrorMessage = "バックアップの保存に失敗しました"
+                }
+            }
+            .alert(
+                "バックアップ",
+                isPresented: Binding(
+                    get: { !backupErrorMessage.isEmpty },
+                    set: { if !$0 { backupErrorMessage = "" } }
+                )
+            ) {
+                Button("OK") { backupErrorMessage = "" }
+            } message: {
+                Text(backupErrorMessage)
+            }
         }
     }
     
@@ -144,13 +164,72 @@ struct ManagementView: View {
     }
     
     private func exportBackup() {
-        // Export UserDefaults data as JSON
+        let formatter = ISO8601DateFormatter()
+        let allDefaults = UserDefaults.standard.dictionaryRepresentation()
+
+        let filtered = allDefaults.filter { key, _ in
+            key.hasPrefix("anki_hub_") || key == "selectedThemeId"
+        }
+
+        guard !filtered.isEmpty else {
+            backupErrorMessage = "バックアップ対象のデータがありません"
+            return
+        }
+
+        var payload: [String: Any] = [:]
+        for (key, value) in filtered {
+            if let data = value as? Data {
+                if let json = try? JSONSerialization.jsonObject(with: data) {
+                    payload[key] = json
+                } else {
+                    payload[key] = data.base64EncodedString()
+                }
+            } else if let date = value as? Date {
+                payload[key] = formatter.string(from: date)
+            } else {
+                payload[key] = value
+            }
+        }
+
+        guard JSONSerialization.isValidJSONObject(payload),
+            let data = try? JSONSerialization.data(
+                withJSONObject: payload,
+                options: [.prettyPrinted, .sortedKeys])
+        else {
+            backupErrorMessage = "バックアップの作成に失敗しました"
+            return
+        }
+
+        backupDocument = JSONTextDocument(text: String(data: data, encoding: .utf8) ?? "")
+        showBackupExporter = true
     }
     
     private func clearAllData() {
         if let bundleID = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
         }
+    }
+}
+
+private struct JSONTextDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json, .plainText] }
+
+    var text: String
+
+    init(text: String = "") {
+        self.text = text
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents else {
+            self.text = ""
+            return
+        }
+        self.text = String(data: data, encoding: .utf8) ?? ""
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: Data(text.utf8))
     }
 }
 

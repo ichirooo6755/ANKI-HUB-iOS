@@ -82,6 +82,9 @@ class SyncManager: ObservableObject {
         case examScores = "exam_scores"
         case retention = "retention"
         case todo = "todo"
+        case timeline = "timeline"
+        case studyMaterials = "study_materials"
+        case studyMaterialRecords = "study_material_records"
         case inputMode = "input_mode"
     }
 
@@ -176,7 +179,8 @@ class SyncManager: ObservableObject {
             masteredCount: stats.masteredCount,
             learningCount: stats.learningCount,
             masteryRate: stats.masteryRate,
-            dailyHistory: stats.dailyHistory
+            dailyHistory: stats.dailyHistory,
+            journals: stats.journals
         )
         let statsData = try JSONEncoder().encode(storedStats)
         let statsAny = try JSONSerialization.jsonObject(with: statsData, options: [])
@@ -252,7 +256,34 @@ class SyncManager: ObservableObject {
                 accessToken: accessToken)
         }
 
-        // 8) Input Mode
+        // 8) Timeline
+        if let data = UserDefaults.standard.data(forKey: "anki_hub_timeline_entries_v1"),
+            let any = try? JSONSerialization.jsonObject(with: data, options: [])
+        {
+            try await SupabaseStudyService.shared.upsert(
+                userId: userId, appId: AppID.timeline.rawValue, data: any,
+                accessToken: accessToken)
+        }
+
+        // 9) Study materials
+        if let data = UserDefaults.standard.data(forKey: "anki_hub_study_materials_v1"),
+            let any = try? JSONSerialization.jsonObject(with: data, options: [])
+        {
+            try await SupabaseStudyService.shared.upsert(
+                userId: userId, appId: AppID.studyMaterials.rawValue, data: any,
+                accessToken: accessToken)
+        }
+
+        // 10) Study material records
+        if let data = UserDefaults.standard.data(forKey: "anki_hub_study_material_records_v1"),
+            let any = try? JSONSerialization.jsonObject(with: data, options: [])
+        {
+            try await SupabaseStudyService.shared.upsert(
+                userId: userId, appId: AppID.studyMaterialRecords.rawValue, data: any,
+                accessToken: accessToken)
+        }
+
+        // 11) Input Mode
         if let data = UserDefaults.standard.data(forKey: "anki_hub_input_mode_v1"),
             let any = try? JSONSerialization.jsonObject(with: data, options: [])
         {
@@ -261,7 +292,7 @@ class SyncManager: ObservableObject {
                 accessToken: accessToken)
         }
 
-        // 9) Retention target days
+        // 12) Retention target days
         let storedDays = UserDefaults.standard.integer(forKey: "anki_hub_retention_target_days_v1")
         let fallbackDays = storedDays == 0 ? 7 : storedDays
         let kobunInputModeUseAll = UserDefaults.standard.bool(
@@ -270,6 +301,8 @@ class SyncManager: ObservableObject {
         let day2UnknownOnly = UserDefaults.standard.bool(forKey: "anki_hub_inputmode_day2_unknown_only_v1")
         let inputModeMistakesOnly = UserDefaults.standard.bool(forKey: "anki_hub_inputmode_mistakes_only_v1")
         let storedTimestamp = UserDefaults.standard.double(forKey: "anki_hub_target_date_timestamp_v2")
+        let storedStartTimestamp = UserDefaults.standard.double(forKey: "anki_hub_target_start_timestamp_v1")
+        let storedTargetMinutes = UserDefaults.standard.integer(forKey: "anki_hub_target_study_minutes_v1")
 
         // Prefer v2 timestamp. If missing, derive from v1 days.
         let targetDateTimestamp: Double = {
@@ -288,6 +321,11 @@ class SyncManager: ObservableObject {
             let diff = calendar.dateComponents([.day], from: start, to: end).day ?? fallbackDays
             return max(1, diff)
         }()
+        let targetStudyMinutes = storedTargetMinutes == 0 ? 600 : storedTargetMinutes
+        let targetStartTimestamp = storedStartTimestamp == 0
+            ? Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
+            : storedStartTimestamp
+
         let retentionAny: [String: Any] = [
             "targetDays": targetDays,
             "kobunInputModeUseAll": kobunInputModeUseAll,
@@ -295,6 +333,8 @@ class SyncManager: ObservableObject {
             "day2UnknownOnly": day2UnknownOnly,
             "inputModeMistakesOnly": inputModeMistakesOnly,
             "targetDateTimestamp": targetDateTimestamp,
+            "targetStudyMinutes": targetStudyMinutes,
+            "targetStartTimestamp": targetStartTimestamp,
         ]
         try await SupabaseStudyService.shared.upsert(
             userId: userId, appId: AppID.retention.rawValue, data: retentionAny,
@@ -457,7 +497,37 @@ class SyncManager: ObservableObject {
                 NotificationCenter.default.post(name: Notification.Name("anki_hub_todo_items_updated"), object: nil)
             }
 
-            // 8) Input Mode
+            // 8) Timeline
+            if let any = try await SupabaseStudyService.shared.fetch(
+                userId: userId, appId: AppID.timeline.rawValue, accessToken: accessToken),
+                JSONSerialization.isValidJSONObject(any),
+                let data = try? JSONSerialization.data(withJSONObject: any, options: [])
+            {
+                UserDefaults.standard.set(data, forKey: "anki_hub_timeline_entries_v1")
+                TimelineManager.shared.loadEntries()
+            }
+
+            // 9) Study materials
+            if let any = try await SupabaseStudyService.shared.fetch(
+                userId: userId, appId: AppID.studyMaterials.rawValue, accessToken: accessToken),
+                JSONSerialization.isValidJSONObject(any),
+                let data = try? JSONSerialization.data(withJSONObject: any, options: [])
+            {
+                UserDefaults.standard.set(data, forKey: "anki_hub_study_materials_v1")
+                StudyMaterialManager.shared.load()
+            }
+
+            // 10) Study material records
+            if let any = try await SupabaseStudyService.shared.fetch(
+                userId: userId, appId: AppID.studyMaterialRecords.rawValue, accessToken: accessToken),
+                JSONSerialization.isValidJSONObject(any),
+                let data = try? JSONSerialization.data(withJSONObject: any, options: [])
+            {
+                UserDefaults.standard.set(data, forKey: "anki_hub_study_material_records_v1")
+                StudyMaterialManager.shared.load()
+            }
+
+            // 11) Input Mode
             if let any = try await SupabaseStudyService.shared.fetch(
                 userId: userId, appId: AppID.inputMode.rawValue, accessToken: accessToken),
                 JSONSerialization.isValidJSONObject(any),
@@ -467,7 +537,7 @@ class SyncManager: ObservableObject {
                 InputModeManager.shared.loadData()
             }
 
-            // 9) Retention target days
+            // 12) Retention target days
             if let any = try await SupabaseStudyService.shared.fetch(
                 userId: userId, appId: AppID.retention.rawValue, accessToken: accessToken)
                 as? [String: Any]
@@ -490,6 +560,14 @@ class SyncManager: ObservableObject {
 
                 if let ts = any["targetDateTimestamp"] as? Double, ts != 0 {
                     UserDefaults.standard.set(ts, forKey: "anki_hub_target_date_timestamp_v2")
+                }
+
+                if let startTs = any["targetStartTimestamp"] as? Double, startTs != 0 {
+                    UserDefaults.standard.set(startTs, forKey: "anki_hub_target_start_timestamp_v1")
+                }
+
+                if let targetMinutes = any["targetStudyMinutes"] as? Int, targetMinutes != 0 {
+                    UserDefaults.standard.set(targetMinutes, forKey: "anki_hub_target_study_minutes_v1")
                 }
 
                 // Backward compatibility: if only days exist, persist v1 and derive v2.

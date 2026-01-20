@@ -3,7 +3,7 @@ import SwiftUI
 struct MainTabView: View {
     @State private var selectedTab: Tab = .home
 
-    @State private var timerStartRequest: PomodoroStartRequest?
+    @State private var timerStartRequest: TimerStartRequest?
     @State private var showScanSheet = false
     @State private var showFrontCameraSheet = false
 
@@ -37,7 +37,7 @@ struct MainTabView: View {
                     }
                     .tag(Tab.home)
 
-                CalendarView()
+                AppCalendarView()
                     .tabItem {
                         Label("カレンダー", systemImage: "calendar")
                     }
@@ -78,7 +78,7 @@ struct MainTabView: View {
             consumeFrontCameraRequest()
         }
         .sheet(item: $timerStartRequest) { req in
-            PomodoroView(startRequest: req)
+            TimerView(startRequest: req)
         }
         .sheet(isPresented: $showScanSheet) {
             ScanView(startScanning: true)
@@ -98,7 +98,7 @@ struct MainTabView: View {
             let safeMinutes = max(1, min(180, parsedMinutes ?? 25))
 
             if url.path == "/start" {
-                timerStartRequest = PomodoroStartRequest(mode: "custom", minutes: safeMinutes, open: true)
+                timerStartRequest = TimerStartRequest(mode: "custom", minutes: safeMinutes, open: true)
             }
         case "scan":
             if url.path == "/start" {

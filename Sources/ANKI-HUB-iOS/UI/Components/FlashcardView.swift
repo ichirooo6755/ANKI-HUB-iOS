@@ -102,25 +102,10 @@ struct FlashcardView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: 400)
-            .background(
-                theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-                    .opacity(
-                        theme.effectiveIsDark ? 0.9 : 0.98
-                    )
-            )
-            .cornerRadius(16)
-            .shadow(radius: 8)
+            .liquidGlass(cornerRadius: 16)
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(color, lineWidth: 4)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(
-                        theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
-                            .opacity(theme.effectiveIsDark ? 0.55 : 0.35),
-                        lineWidth: 1
-                    )
             )
             .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
             .offset(x: offset.width, y: 0)

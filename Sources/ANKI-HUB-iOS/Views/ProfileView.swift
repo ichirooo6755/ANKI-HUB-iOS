@@ -66,13 +66,29 @@ struct ProfileView: View {
                 // Theme Settings
                 Section("テーマ") {
                     NavigationLink(destination: ThemeSettingsView()) {
-                        Label("テーマ設定", systemImage: "paintpalette")
+                        Label {
+                            Text("テーマ設定")
+                        } icon: {
+                            SettingsIcon(
+                                icon: "paintpalette.fill",
+                                color: themeManager.color(.primary, scheme: colorScheme),
+                                foregroundColor: themeManager.onColor(for: themeManager.color(.primary, scheme: colorScheme))
+                            )
+                        }
                     }
                 }
 
                 Section("学習") {
                     NavigationLink(destination: WeakWordsView()) {
-                        Label("苦手一括復習", systemImage: "exclamationmark.triangle.fill")
+                        Label {
+                            Text("苦手一括復習")
+                        } icon: {
+                            SettingsIcon(
+                                icon: "exclamationmark.triangle.fill",
+                                color: themeManager.color(.weak, scheme: colorScheme),
+                                foregroundColor: themeManager.onColor(for: themeManager.color(.weak, scheme: colorScheme))
+                            )
+                        }
                     }
                 }
 
@@ -88,7 +104,15 @@ struct ProfileView: View {
                             }
                         } label: {
                             HStack {
-                                Label("クラウド同期", systemImage: "icloud")
+                                Label {
+                                    Text("クラウド同期")
+                                } icon: {
+                                    SettingsIcon(
+                                        icon: "icloud.fill",
+                                        color: themeManager.color(.primary, scheme: colorScheme),
+                                        foregroundColor: themeManager.onColor(for: themeManager.color(.primary, scheme: colorScheme))
+                                    )
+                                }
                                 Spacer()
                                 if !syncStatus.isEmpty {
                                     Text(syncStatus)
@@ -97,6 +121,7 @@ struct ProfileView: View {
                                 }
                             }
                         }
+                        .foregroundStyle(.primary)
                     }
                 }
                 
@@ -106,11 +131,27 @@ struct ProfileView: View {
                         Button(role: .destructive) {
                             showLogoutConfirm = true
                         } label: {
-                            Label("ログアウト", systemImage: "rectangle.portrait.and.arrow.right")
+                            Label {
+                                Text("ログアウト")
+                            } icon: {
+                                SettingsIcon(
+                                    icon: "rectangle.portrait.and.arrow.right.fill",
+                                    color: .red,
+                                    foregroundColor: .white
+                                )
+                            }
                         }
                     } else {
                         NavigationLink(destination: AuthView()) {
-                            Label("ログイン", systemImage: "person.badge.plus")
+                            Label {
+                                Text("ログイン")
+                            } icon: {
+                                SettingsIcon(
+                                    icon: "person.badge.plus.fill",
+                                    color: .green,
+                                    foregroundColor: .white
+                                )
+                            }
                         }
                     }
                 }
@@ -129,6 +170,11 @@ struct ProfileView: View {
         }
         .scrollContentBackground(.hidden)
         .listRowBackground(themeManager.color(.surface, scheme: colorScheme))
+        #if os(iOS)
+        .listStyle(.insetGrouped)
+        #else
+        .listStyle(.inset)
+        #endif
         .background(ThemeManager.shared.background)
         .onAppear {
             #if os(iOS)

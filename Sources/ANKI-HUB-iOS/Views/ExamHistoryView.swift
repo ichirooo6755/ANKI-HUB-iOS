@@ -132,6 +132,11 @@ struct ExamHistoryView: View {
         }
         .scrollContentBackground(.hidden)
         .listRowBackground(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+        #if os(iOS)
+        .listStyle(.insetGrouped)
+        #else
+        .listStyle(.inset)
+        #endif
     }
 }
 

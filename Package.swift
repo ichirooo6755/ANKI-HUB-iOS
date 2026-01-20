@@ -29,6 +29,7 @@ let package = Package(
                 "Info.plist",
                 "ANKI-HUB-iOS.entitlements",
                 "Assets.xcassets",
+                "UI/CalendarView.swift",
             ],
             resources: [
                 .process("Resources")

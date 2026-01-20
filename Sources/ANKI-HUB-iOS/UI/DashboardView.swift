@@ -7,6 +7,9 @@ struct DashboardView: View {
     @EnvironmentObject var themeManager: ThemeManager
 
     @AppStorage("anki_hub_last_review_prompt_date") private var lastReviewPromptDate: String = ""
+    @AppStorage("anki_hub_target_date_timestamp_v2") private var targetDateTimestamp: Double = 0
+    @AppStorage("anki_hub_target_start_timestamp_v1") private var targetStartTimestamp: Double = 0
+    @AppStorage("anki_hub_target_study_minutes_v1") private var targetStudyMinutes: Int = 600
     @State private var showReviewPrompt: Bool = false
 
     private enum Destination: Hashable {
@@ -15,6 +18,7 @@ struct DashboardView: View {
         case todo
         case examHistory
         case timer
+        case timeline
     }
 
     @State private var navigationPath = NavigationPath()
@@ -35,6 +39,49 @@ struct DashboardView: View {
                 allItems: vocab, subject: subject.rawValue)
             return partial + due.count
         }
+    }
+
+    private var goalTargetDate: Date {
+        if targetDateTimestamp == 0 {
+            return Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+        }
+        return Date(timeIntervalSince1970: targetDateTimestamp)
+    }
+
+    private var goalStartDate: Date {
+        if targetStartTimestamp == 0 {
+            return Calendar.current.startOfDay(for: Date())
+        }
+        return Date(timeIntervalSince1970: targetStartTimestamp)
+    }
+
+    private var goalDaysRemaining: Int {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: Date())
+        let end = calendar.startOfDay(for: goalTargetDate)
+        let diff = calendar.dateComponents([.day], from: start, to: end).day ?? 0
+        return max(0, diff)
+    }
+
+    private var goalStudiedMinutes: Int {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: goalStartDate)
+        let end = calendar.startOfDay(for: Date())
+        return learningStats.dailyHistory.compactMap { key, entry in
+            guard let date = dateFromKey(key) else { return nil }
+            let day = calendar.startOfDay(for: date)
+            return (day >= start && day <= end) ? entry.minutes : nil
+        }
+        .reduce(0, +)
+    }
+
+    private var goalProgress: Double {
+        guard targetStudyMinutes > 0 else { return 0 }
+        return min(1.0, Double(goalStudiedMinutes) / Double(targetStudyMinutes))
+    }
+
+    private var goalProgressText: String {
+        "\(formatMinutes(goalStudiedMinutes)) / \(formatMinutes(targetStudyMinutes))"
     }
 
     var body: some View {
@@ -59,6 +106,14 @@ struct DashboardView: View {
                                 title: "今日", value: "\(learningStats.todayMinutes)",
                                 icon: "clock.fill", color: .blue)
                         }
+                        .padding(.horizontal)
+
+                        GoalCountdownCard(
+                            daysRemaining: goalDaysRemaining,
+                            targetDate: goalTargetDate,
+                            progress: goalProgress,
+                            progressText: goalProgressText
+                        )
                         .padding(.horizontal)
 
                         // Charts
@@ -98,6 +153,29 @@ struct DashboardView: View {
                                 }
                                 .buttonStyle(.plain)
                             }
+
+                            Button {
+                                navigationPath.append(Destination.timeline)
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text("タイムライン")
+                                            .font(.title3.bold())
+                                        Text("学習ログを投稿")
+                                            .font(.subheadline)
+                                            .foregroundStyle(themeManager.secondaryText)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "sparkles")
+                                        .foregroundStyle(
+                                            themeManager.currentPalette.color(
+                                                .primary, isDark: themeManager.effectiveIsDark))
+                                }
+                                .padding()
+                                .liquidGlass()
+                                .padding(.horizontal)
+                            }
+                            .buttonStyle(.plain)
 
                             if totalWeakCount > 0 {
                                 NavigationLink(destination: WeakWordsView()) {
@@ -250,7 +328,9 @@ struct DashboardView: View {
                 case .examHistory:
                     ExamHistoryView()
                 case .timer:
-                    PomodoroView()
+                    TimerView()
+                case .timeline:
+                    TimelineView()
                 }
             }
         }
@@ -273,85 +353,19 @@ struct DashboardView: View {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: Date())
     }
-}
 
-// Subcomponents
+    private func dateFromKey(_ key: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: key)
+    }
 
-struct StatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-
-    @ObservedObject private var theme = ThemeManager.shared
-
-    var body: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                Text(title)
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
-            }
-            Text(value)
-                .font(.title2)
-                .bold()
-                .foregroundStyle(theme.primaryText)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .liquidGlass()
+    private func formatMinutes(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let remainder = minutes % 60
+        if hours == 0 { return "\(remainder)分" }
+        if remainder == 0 { return "\(hours)時間" }
+        return "\(hours)時間\(remainder)分"
     }
 }
 
-struct SubjectCard: View {
-    let subject: Subject
-
-    @ObservedObject private var theme = ThemeManager.shared
-
-    var body: some View {
-        VStack {
-            Image(systemName: subject.icon)
-                .font(.system(size: 40))
-                .foregroundColor(subject.color)
-                .padding(.bottom, 10)
-
-            Text(subject.displayName)
-                .font(.headline)
-                .foregroundStyle(theme.primaryText)
-
-            Text(subject.description)
-                .font(.caption)
-                .foregroundStyle(theme.secondaryText)
-                .multilineTextAlignment(.center)
-        }
-        .padding()
-        .frame(minHeight: 150)
-        .frame(maxWidth: .infinity)
-        .liquidGlass()
-    }
-}
-
-struct ToolCard: View {
-    let icon: String
-    let title: String
-    let color: Color
-
-    @ObservedObject private var theme = ThemeManager.shared
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title)
-                .foregroundColor(color)
-            Text(title)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(theme.primaryText)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .liquidGlass()
-    }
-}

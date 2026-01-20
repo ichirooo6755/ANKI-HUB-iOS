@@ -41,6 +41,8 @@ private let widgetThemeTextDarkKey = "anki_hub_widget_theme_text_dark_v1"
 private let widgetThemeSchemeOverrideKey = "anki_hub_widget_theme_color_scheme_override_v1"
 private let scanStartRequestKey = "anki_hub_scan_start_request_v1"
 private let frontCameraStartRequestKey = "anki_hub_front_camera_start_request_v1"
+private let controlTimerURL = URL(string: "sugwranki://timer/start?minutes=25")!
+private let controlFrontCameraURL = URL(string: "sugwranki://camera/front")!
 
 private let widgetAccent = Color(red: 0.96, green: 0.36, blue: 0.20)
 
@@ -71,6 +73,34 @@ fileprivate struct WidgetSettings {
     }
 
 }
+
+#if canImport(AppIntents) && swift(>=6.0) && os(iOS)
+@available(iOS 18.0, *)
+struct TimerStartControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "TimerStartControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlTimerURL)) {
+                Label("タイマー", systemImage: "timer")
+            }
+        }
+        .displayName("タイマー開始")
+        .description("25分のタイマーを開始します")
+    }
+}
+
+@available(iOS 18.0, *)
+struct FrontCameraControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "FrontCameraControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlFrontCameraURL)) {
+                Label("ミラー", systemImage: "camera.viewfinder")
+            }
+        }
+        .displayName("ミラー")
+        .description("ロック画面からミラーを起動します")
+    }
+}
+#endif
 
 private struct WidgetThemeSnapshot {
     let primaryLight: Color
@@ -632,6 +662,12 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                 StudyLiveActivity()
             }
         #endif
+        #if canImport(AppIntents) && swift(>=6.0) && os(iOS)
+            if #available(iOS 18.0, *) {
+                TimerStartControlWidget()
+                FrontCameraControlWidget()
+            }
+        #endif
     }
 }
 
@@ -735,16 +771,14 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
         }
 
         private var activityBackgroundColor: Color {
-            if let snapshot = themeSnapshot {
-                let resolvedScheme = snapshot.resolvedScheme(for: colorScheme)
-                let opacity = resolvedScheme == .dark ? 0.9 : 0.88
-                return snapshot.resolvedBackground(for: colorScheme).opacity(opacity)
-            }
-            return Color.black.opacity(0.85)
+            // Lock screen Live Activity should always use dark semi-transparent background
+            // to blend with the lock screen aesthetic (Apple HIG)
+            return Color.black.opacity(0.75)
         }
 
         private var primaryTextColor: Color {
-            themeSnapshot?.resolvedText(for: colorScheme) ?? .white
+            // Always use white text on dark Live Activity background
+            .white
         }
 
         var body: some WidgetConfiguration {
@@ -753,66 +787,60 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                 let progress = progressValue(remaining: remaining, total: context.state.totalSeconds)
                 let statusText = context.state.isPaused ? "一時停止" : "集中"
 
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack(spacing: 10) {
-                        FocusBadge(size: 28, fontSize: 13, accent: accentColor)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(context.attributes.timerName)
-                                .font(.headline)
-                            Text(statusText)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Text("残り")
+                HStack(spacing: 12) {
+                    // Left: Timer ring (compact)
+                    ZStack {
+                        FocusRing(progress: progress, size: 56, lineWidth: 5, accent: accentColor)
+                        timerText(for: context, remaining: remaining)
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(primaryTextColor)
+                    }
+                    .frame(width: 56, height: 56)
+                    
+                    // Center: Info
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(context.attributes.timerName)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                        Text(statusText)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.white.opacity(0.7))
+                        Text("合計 \(max(1, context.state.totalSeconds / 60))分")
+                            .font(.caption2)
+                            .foregroundStyle(.white.opacity(0.6))
                     }
-
-                    HStack(spacing: 16) {
-                        ZStack {
-                            FocusRing(progress: progress, size: 96, lineWidth: 8, accent: accentColor)
-                            timerText(for: context, remaining: remaining)
-                                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                .monospacedDigit()
-                                .foregroundStyle(primaryTextColor)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("合計 \(max(1, context.state.totalSeconds / 60))分")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(context.state.isPaused ? "再開できます" : "集中を継続中")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer(minLength: 0)
-                    }
+                    
+                    Spacer(minLength: 0)
 
                     #if canImport(AppIntents)
-                        HStack(spacing: 10) {
+                        // Right: Control buttons (vertical for compact layout)
+                        VStack(spacing: 6) {
                             Button(intent: FocusTimerTogglePauseIntent()) {
                                 Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
+                                    .font(.system(size: 14))
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(accentColor)
 
                             Button(intent: FocusTimerStopIntent()) {
                                 Image(systemName: "stop.fill")
+                                    .font(.system(size: 12))
                             }
                             .buttonStyle(.bordered)
-                            .tint(Color.white.opacity(0.25))
+                            .tint(Color.white.opacity(0.3))
 
                             Button(intent: FocusTimerOpenFrontCameraIntent()) {
                                 Image(systemName: "camera.fill")
+                                    .font(.system(size: 12))
                             }
                             .buttonStyle(.bordered)
                             .tint(accentColor.opacity(0.35))
                         }
                     #endif
                 }
-                .padding(.vertical, 12)
-                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
                 .activityBackgroundTint(activityBackgroundColor)
                 .activitySystemActionForegroundColor(accentColor)
 

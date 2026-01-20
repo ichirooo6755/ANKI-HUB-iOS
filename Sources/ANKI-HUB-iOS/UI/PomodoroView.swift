@@ -10,10 +10,11 @@ import UserNotifications
 #endif
 
 // MARK: - Timer & Stopwatch View
-struct PomodoroView: View {
+struct TimerView: View {
     @ObservedObject var theme = ThemeManager.shared
+    @ObservedObject private var materialManager = StudyMaterialManager.shared
 
-    let startRequest: PomodoroStartRequest?
+    let startRequest: TimerStartRequest?
 
     @Environment(\.scenePhase) private var scenePhase
     #if os(iOS)
@@ -54,7 +55,8 @@ struct PomodoroView: View {
     private let timerHistoryKey = "anki_hub_timer_history_v1"
     private let timerLogKey = "anki_hub_timer_study_logs_v1"
     private let timerEndNotificationId = "anki_hub_timer_end_v1"
-    private let persistedTimerStateKey = "anki_hub_pomodoro_timer_state_v1"
+    private let persistedTimerStateKey = "anki_hub_timer_state_v1"
+    private let legacyPersistedTimerStateKey = "anki_hub_pomodoro_timer_state_v1"
 
     // Timer State
     @State private var timeRemaining: TimeInterval = 25 * 60
@@ -87,6 +89,8 @@ struct PomodoroView: View {
     @State private var showStudyLogSheet = false
     @State private var studyContent = ""
     @State private var shouldResetAfterStudyLog = false
+    @State private var selectedMaterialId: UUID? = nil
+    @State private var postStudyLogToTimeline = true
 
     // Live Activity State
     @State private var activityID: String? = nil
@@ -112,7 +116,7 @@ struct PomodoroView: View {
     @State private var selectedMode: TimerMode = .focus
     @State private var showSettings = false
 
-    init(startRequest: PomodoroStartRequest? = nil) {
+    init(startRequest: TimerStartRequest? = nil) {
         self.startRequest = startRequest
     }
 
@@ -122,7 +126,7 @@ struct PomodoroView: View {
     }
 
     enum TimerMode: String, CaseIterable {
-        case focus = "集中"
+        case focus = "ポモドーロ"
         case shortBreak = "小休憩"
         case longBreak = "長休憩"
         case custom = "カスタム"
@@ -684,7 +688,10 @@ struct PomodoroView: View {
     }
 
     private func startActiveSegmentIfNeeded(at start: Date = Date()) {
-        guard isStudyMode(selectedMode) else { return }
+        guard isStudyMode(selectedMode) else {
+            activeSegmentStart = nil
+            return
+        }
         if activeSegmentStart == nil {
             activeSegmentStart = start
         }
@@ -939,6 +946,26 @@ struct PomodoroView: View {
                     TextField("何を勉強した？", text: $studyContent)
                 }
 
+                Section("教材") {
+                    if materialManager.materials.isEmpty {
+                        Text("教材を追加すると学習記録に紐づけできます")
+                            .font(.caption)
+                            .foregroundStyle(theme.secondaryText)
+                    } else {
+                        Picker("教材", selection: $selectedMaterialId) {
+                            Text("未選択").tag(UUID?.none)
+                            ForEach(materialManager.materials) { material in
+                                Text(material.title).tag(Optional(material.id))
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                }
+
+                Section("タイムライン") {
+                    Toggle("タイムラインにも投稿", isOn: $postStudyLogToTimeline)
+                }
+
                 Section("ログ") {
                     if let startedAt = startTime {
                         let formatter = DateFormatter()
@@ -1107,6 +1134,7 @@ struct PomodoroView: View {
             plannedSeconds: Int(totalTime),
             overtimeSeconds: isOvertime ? Int(overtimeSeconds) : 0,
             studyContent: studyContent.trimmingCharacters(in: .whitespacesAndNewlines),
+            materialId: selectedMaterialId,
             segments: segments.isEmpty ? nil : segments
         )
 
@@ -1121,12 +1149,18 @@ struct PomodoroView: View {
         if let encoded = try? JSONEncoder().encode(logs) {
             UserDefaults.standard.set(encoded, forKey: timerLogKey)
         }
+        if postStudyLogToTimeline {
+            TimelineManager.shared.addStudyLogEntry(log)
+        }
+        StudyMaterialManager.shared.recordTimerStudy(log)
         LearningStats.shared.refreshStudyMinutesFromSessions()
         SyncManager.shared.requestAutoSync()
     }
 
     private func restoreTimerStateIfNeeded() -> Bool {
-        guard let data = UserDefaults.standard.data(forKey: persistedTimerStateKey),
+        let data = UserDefaults.standard.data(forKey: persistedTimerStateKey)
+            ?? UserDefaults.standard.data(forKey: legacyPersistedTimerStateKey)
+        guard let data,
             let decoded = try? JSONDecoder().decode(PersistedTimerState.self, from: data)
         else {
             return false
@@ -1200,6 +1234,7 @@ struct PomodoroView: View {
 
     private func clearPersistedTimerState() {
         UserDefaults.standard.removeObject(forKey: persistedTimerStateKey)
+        UserDefaults.standard.removeObject(forKey: legacyPersistedTimerStateKey)
     }
 
     // MARK: - Live Activity Logic

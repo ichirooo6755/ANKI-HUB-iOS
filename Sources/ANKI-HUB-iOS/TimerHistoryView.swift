@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct TimerHistoryView: View {
-    let history: [PomodoroView.TimerHistoryEntry]
-    let onEntrySelected: (PomodoroView.TimerHistoryEntry) -> Void
+    let history: [TimerView.TimerHistoryEntry]
+    let onEntrySelected: (TimerView.TimerHistoryEntry) -> Void
     
     @Environment(\.presentationMode) var presentationMode
     @ObservedObject private var theme = ThemeManager.shared

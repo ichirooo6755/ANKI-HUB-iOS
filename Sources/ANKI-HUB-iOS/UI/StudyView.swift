@@ -153,19 +153,16 @@ struct ToolsGridView: View {
             NavigationLink(destination: WordbookView()) {
                 ToolCard(icon: "book.fill", title: "単語帳", color: .blue)
             }
-            NavigationLink(destination: WeakWordsView()) {
-                ToolCard(icon: "exclamationmark.triangle.fill", title: "苦手復習", color: .purple)
+            NavigationLink(destination: BookshelfView()) {
+                ToolCard(icon: "books.vertical.fill", title: "教材", color: .cyan)
             }
             NavigationLink(destination: TodoView()) {
                 ToolCard(icon: "list.bullet", title: "やること", color: .teal)
             }
-            NavigationLink(destination: ExamHistoryView()) {
-                ToolCard(icon: "doc.text", title: "テスト履歴", color: .indigo)
-            }
-            NavigationLink(destination: PomodoroView()) {
+            NavigationLink(destination: TimerView()) {
                 ToolCard(icon: "timer", title: "タイマー", color: .red)
             }
-            NavigationLink(destination: CalendarView()) {
+            NavigationLink(destination: AppCalendarView()) {
                 ToolCard(icon: "calendar", title: "カレンダー", color: .green)
             }
             NavigationLink(destination: ReportView()) {

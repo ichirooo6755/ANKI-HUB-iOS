@@ -1,17 +1,9 @@
 import Combine
 import SwiftUI
-@preconcurrency import UserNotifications
-
-#if canImport(UniformTypeIdentifiers)
-    import UniformTypeIdentifiers
-#endif
+import UserNotifications
 
 #if canImport(Speech)
     import Speech
-#endif
-
-#if canImport(AVFoundation)
-    import AVFoundation
 #endif
 
 // MARK: - Data Models
@@ -108,168 +100,6 @@ struct TodoTemplate: Identifiable, Codable {
     var tasks: [TodoItem]
     var createdAt: Date = Date()
 }
-
-// MARK: - Speech Transcriber
-
-#if os(iOS) && canImport(Speech)
-@MainActor
-final class SpeechTranscriber: NSObject, ObservableObject {
-    @Published var transcript: String = ""
-    @Published var isRecording = false
-    @Published var isAuthorized = false
-    @Published var errorMessage: String?
-
-    private let audioEngine = AVAudioEngine()
-    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "ja-JP"))
-    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-    private var recognitionTask: SFSpeechRecognitionTask?
-
-    func ensureAuthorization() async -> Bool {
-        let speechAllowed = await requestSpeechAuthorization()
-        let micAllowed = await requestMicrophoneAuthorization()
-        let allowed = speechAllowed && micAllowed
-        isAuthorized = allowed
-        if !allowed, errorMessage == nil {
-            errorMessage = "音声認識とマイクのアクセスを許可してください。"
-        }
-        return allowed
-    }
-
-    func startTranscribing() {
-        guard !isRecording else { return }
-        errorMessage = nil
-        transcript = ""
-
-        guard speechRecognizer?.isAvailable == true else {
-            errorMessage = "音声認識が利用できません。"
-            return
-        }
-
-        do {
-            let audioSession = AVAudioSession.sharedInstance()
-            try audioSession.setCategory(.record, mode: .measurement, options: [.duckOthers])
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-
-            let request = SFSpeechAudioBufferRecognitionRequest()
-            request.shouldReportPartialResults = true
-            recognitionRequest = request
-
-            let inputNode = audioEngine.inputNode
-            inputNode.removeTap(onBus: 0)
-            let recordingFormat = inputNode.outputFormat(forBus: 0)
-            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) {
-                [weak request] buffer, _ in
-                request?.append(buffer)
-            }
-
-            recognitionTask = speechRecognizer?.recognitionTask(with: request) { [weak self] result, error in
-                guard let self else { return }
-                if let result {
-                    Task { @MainActor in
-                        self.transcript = result.bestTranscription.formattedString
-                    }
-                    if result.isFinal {
-                        Task { @MainActor in
-                            self.stopTranscribing()
-                        }
-                    }
-                }
-                if let error {
-                    Task { @MainActor in
-                        self.errorMessage = error.localizedDescription
-                        self.stopTranscribing()
-                    }
-                }
-            }
-
-            audioEngine.prepare()
-            try audioEngine.start()
-            isRecording = true
-        } catch {
-            errorMessage = "録音を開始できませんでした。"
-            stopTranscribing()
-        }
-    }
-
-    func stopTranscribing() {
-        if audioEngine.isRunning {
-            audioEngine.stop()
-        }
-        audioEngine.inputNode.removeTap(onBus: 0)
-        recognitionRequest?.endAudio()
-        recognitionTask?.cancel()
-        recognitionRequest = nil
-        recognitionTask = nil
-        isRecording = false
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-    }
-
-    private func requestSpeechAuthorization() async -> Bool {
-        switch SFSpeechRecognizer.authorizationStatus() {
-        case .authorized:
-            return true
-        case .notDetermined:
-            return await withCheckedContinuation { continuation in
-                SFSpeechRecognizer.requestAuthorization { status in
-                    let allowed = status == .authorized
-                    Task { @MainActor in
-                        if !allowed {
-                            self.errorMessage = "音声認識の許可が必要です。"
-                        }
-                        continuation.resume(returning: allowed)
-                    }
-                }
-            }
-        case .denied:
-            errorMessage = "音声認識の許可が拒否されています。"
-            return false
-        case .restricted:
-            errorMessage = "音声認識が制限されています。"
-            return false
-        @unknown default:
-            errorMessage = "音声認識の許可状態を確認できません。"
-            return false
-        }
-    }
-
-    private func requestMicrophoneAuthorization() async -> Bool {
-        let session = AVAudioSession.sharedInstance()
-        switch session.recordPermission {
-        case .granted:
-            return true
-        case .denied:
-            errorMessage = "マイクの許可が拒否されています。"
-            return false
-        case .undetermined:
-            return await withCheckedContinuation { continuation in
-                session.requestRecordPermission { allowed in
-                    Task { @MainActor in
-                        if !allowed {
-                            self.errorMessage = "マイクの許可が必要です。"
-                        }
-                        continuation.resume(returning: allowed)
-                    }
-                }
-            }
-        @unknown default:
-            errorMessage = "マイクの許可状態を確認できません。"
-            return false
-        }
-    }
-}
-#else
-@MainActor
-final class SpeechTranscriber: ObservableObject {
-    @Published var transcript: String = ""
-    @Published var isRecording = false
-    @Published var isAuthorized = false
-    @Published var errorMessage: String? = "このデバイスでは音声認識を利用できません。"
-
-    func ensureAuthorization() async -> Bool { false }
-    func startTranscribing() {}
-    func stopTranscribing() {}
-}
-#endif
 
 // MARK: - TodoManager
 
@@ -462,53 +292,21 @@ class TodoManager: ObservableObject {
     // MARK: - Templates
 
     func saveAsTemplate(name: String, taskIds: [UUID]) {
-        var includeIds = Set(taskIds)
-        var queue = taskIds
-        while let current = queue.popLast() {
-            let children = items.filter { $0.parentId == current }.map { $0.id }
-            for child in children where !includeIds.contains(child) {
-                includeIds.insert(child)
-                queue.append(child)
-            }
-        }
-        let tasksToSave = items.filter { includeIds.contains($0.id) }
+        let tasksToSave = items.filter { taskIds.contains($0.id) }
         let template = TodoTemplate(name: name, tasks: tasksToSave)
         templates.append(template)
         saveTemplates()
     }
 
     func applyTemplate(_ template: TodoTemplate) {
-        // 旧ID -> 新ID のマップを作り、親子関係やサブタスクを再構築する
-        var idMap: [UUID: UUID] = [:]
-        var copied: [TodoItem] = []
-
-        // 1. まず全タスクをコピーして新しいIDを割り当てる（サブタスクIDは後で付け替え）
         for task in template.tasks {
             var newTask = task
-            let newId = UUID()
-            idMap[task.id] = newId
-            newTask.id = newId
+            newTask.id = UUID()
             newTask.createdAt = Date()
             newTask.isCompleted = false
             newTask.boardColumn = .todo
-            newTask.parentId = nil
-            newTask.subtaskIds = []
-            copied.append(newTask)
+            items.append(newTask)
         }
-
-        // 2. 親子とサブタスクIDを新IDに貼り替える
-        for i in copied.indices {
-            if let oldParent = template.tasks.first(where: { $0.id == template.tasks[i].parentId })?.id,
-               let newParent = idMap[oldParent] {
-                copied[i].parentId = newParent
-            }
-
-            let oldSubtasks = template.tasks.first(where: { $0.id == template.tasks[i].id })?.subtaskIds ?? []
-            copied[i].subtaskIds = oldSubtasks.compactMap { idMap[$0] }
-        }
-
-        // 3. 追加して保存
-        items.append(contentsOf: copied)
         saveItems()
     }
 
@@ -520,7 +318,9 @@ class TodoManager: ObservableObject {
     // MARK: - Notifications
 
     private func scheduleNotification(for item: TodoItem, at date: Date) {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+        let center = UNUserNotificationCenter.current()
+
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
             guard granted else { return }
 
             let content = UNMutableNotificationContent()
@@ -538,12 +338,13 @@ class TodoManager: ObservableObject {
                 trigger: trigger
             )
 
-            UNUserNotificationCenter.current().add(request)
+            center.add(request)
         }
     }
 
     private func cancelNotification(for item: TodoItem) {
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [
+        let center = UNUserNotificationCenter.current()
+        center.removePendingNotificationRequests(withIdentifiers: [
             "\(notificationPrefix)\(item.id.uuidString)"
         ])
     }
@@ -677,16 +478,11 @@ struct TodoView: View {
     @StateObject private var manager = TodoManager()
     @ObservedObject private var theme = ThemeManager.shared
 
-    @Environment(\.openURL) private var openURL
-
     @State private var showAddSheet = false
     @State private var editingItem: TodoItem? = nil
     @State private var viewMode: ViewMode = .list
     @State private var showTemplates = false
     @State private var showCategories = false
-    @State private var showVoiceSheet = false
-
-    @State private var selectedCategoryFilter: String? = nil
 
     enum ViewMode: String, CaseIterable {
         case list = "リスト"
@@ -700,66 +496,17 @@ struct TodoView: View {
             if manager.items.isEmpty {
                 emptyStateView
             } else {
-                VStack(spacing: 0) {
-                    // Category Filter
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            Button {
-                                selectedCategoryFilter = nil
-                            } label: {
-                                Text("すべて")
-                                    .font(.caption)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(
-                                        (selectedCategoryFilter == nil
-                                            ? theme.currentPalette.color(
-                                                .accent, isDark: theme.effectiveIsDark)
-                                            : theme.currentPalette.color(
-                                                .surface, isDark: theme.effectiveIsDark))
-                                    )
-                                    .foregroundStyle(
-                                        selectedCategoryFilter == nil
-                                            ? theme.onColor(
-                                                for: theme.currentPalette.color(
-                                                    .accent, isDark: theme.effectiveIsDark))
-                                            : theme.primaryText
-                                    )
-                                    .clipShape(Capsule())
-                            }
-                            .buttonStyle(.plain)
-
-                            ForEach(manager.categories, id: \.self) { cat in
-                                Button {
-                                    selectedCategoryFilter = cat
-                                } label: {
-                                    Text(cat)
-                                        .font(.caption)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 8)
-                                        .background(
-                                            (selectedCategoryFilter == cat
-                                                ? theme.currentPalette.color(
-                                                    .accent, isDark: theme.effectiveIsDark)
-                                                : theme.currentPalette.color(
-                                                    .surface, isDark: theme.effectiveIsDark))
-                                        )
-                                        .foregroundStyle(
-                                            selectedCategoryFilter == cat
-                                                ? theme.onColor(
-                                                    for: theme.currentPalette.color(
-                                                        .accent, isDark: theme.effectiveIsDark))
-                                                : theme.primaryText
-                                        )
-                                        .clipShape(Capsule())
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.top, 10)
-                        .padding(.bottom, 6)
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        SectionHeader(
+                            title: "タスク管理",
+                            subtitle: "今日の予定と進捗",
+                            trailing: "\(manager.items.count)件"
+                        )
+                        summaryMetrics
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 12)
 
                     // View Mode Picker
                     Picker("", selection: $viewMode) {
@@ -769,7 +516,6 @@ struct TodoView: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
-                    .padding(.top, 8)
 
                     switch viewMode {
                     case .list:
@@ -794,12 +540,6 @@ struct TodoView: View {
                     }
 
                     Button {
-                        showVoiceSheet = true
-                    } label: {
-                        Label("音声メモ", systemImage: "waveform")
-                    }
-
-                    Button {
                         showTemplates = true
                     } label: {
                         Label("テンプレート", systemImage: "doc.on.doc")
@@ -818,9 +558,6 @@ struct TodoView: View {
         .sheet(isPresented: $showAddSheet) {
             AddTodoSheet(manager: manager)
         }
-        .sheet(isPresented: $showVoiceSheet) {
-            VoiceTodoSheet(manager: manager)
-        }
         .sheet(item: $editingItem) { item in
             TodoDetailSheet(manager: manager, item: item)
         }
@@ -835,7 +572,7 @@ struct TodoView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: 20) {
-            Image(systemName: "list.bullet")
+            Image(systemName: "list.bullet.clipboard")
                 .font(.system(size: 60))
                 .foregroundStyle(theme.secondaryText)
 
@@ -862,10 +599,9 @@ struct TodoView: View {
     private var todoList: some View {
         List {
             // Pending Section
-            let pending = filteredListItems(manager.pendingItems)
-            if !pending.isEmpty {
-                Section("未完了 (\(pending.count))") {
-                    ForEach(pending) { item in
+            if !manager.pendingItems.isEmpty {
+                Section("未完了 (\(manager.pendingItems.count))") {
+                    ForEach(manager.pendingItems) { item in
                         TodoRow(
                             item: item,
                             manager: manager,
@@ -876,14 +612,11 @@ struct TodoView: View {
                             },
                             onTap: {
                                 editingItem = item
-                            },
-                            onStartTimer: { minutes in
-                                startPomodoro(minutes: minutes)
-                            })
+                           })
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
-                            let item = pending[index]
+                            let item = manager.pendingItems[index]
                             manager.deleteItem(id: item.id)
                         }
                     }
@@ -891,10 +624,9 @@ struct TodoView: View {
             }
 
             // Completed Section
-            let completed = filteredListItems(manager.completedItems)
-            if !completed.isEmpty {
-                Section("完了済み (\(completed.count))") {
-                    ForEach(completed) { item in
+            if !manager.completedItems.isEmpty {
+                Section("完了済み (\(manager.completedItems.count))") {
+                    ForEach(manager.completedItems) { item in
                         TodoRow(
                             item: item,
                             manager: manager,
@@ -905,14 +637,11 @@ struct TodoView: View {
                             },
                             onTap: {
                                 editingItem = item
-                            },
-                            onStartTimer: { minutes in
-                                startPomodoro(minutes: minutes)
                             })
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
-                            let item = completed[index]
+                            let item = manager.completedItems[index]
                             manager.deleteItem(id: item.id)
                         }
                     }
@@ -920,6 +649,7 @@ struct TodoView: View {
             }
         }
         .scrollContentBackground(.hidden)
+        .listStyle(.insetGrouped)
     }
 
     private var boardView: some View {
@@ -928,36 +658,16 @@ struct TodoView: View {
                 ForEach(TodoItem.BoardColumn.allCases, id: \.self) { column in
                     BoardColumnView(
                         column: column,
-                        items: filteredBoardItems(column: column),
+                        items: manager.itemsByColumn(column),
                         manager: manager,
                         onItemTap: { item in
                             editingItem = item
-                        },
-                        onStartTimer: { minutes in
-                            startPomodoro(minutes: minutes)
                         }
                     )
                 }
             }
             .padding()
         }
-    }
-
-    private func filteredListItems(_ items: [TodoItem]) -> [TodoItem] {
-        guard let category = selectedCategoryFilter else { return items }
-        return items.filter { $0.category == category }
-    }
-
-    private func filteredBoardItems(column: TodoItem.BoardColumn) -> [TodoItem] {
-        let items = manager.itemsByColumn(column)
-        guard let category = selectedCategoryFilter else { return items }
-        return items.filter { $0.category == category }
-    }
-
-    private func startPomodoro(minutes: Int) {
-        let safeMinutes = max(1, min(180, minutes))
-        guard let url = URL(string: "sugwranki://timer/start?minutes=\(safeMinutes)") else { return }
-        openURL(url)
     }
 }
 
@@ -968,22 +678,18 @@ struct BoardColumnView: View {
     let items: [TodoItem]
     @ObservedObject var manager: TodoManager
     let onItemTap: (TodoItem) -> Void
-    let onStartTimer: (Int) -> Void
 
     @ObservedObject private var theme = ThemeManager.shared
-    @State private var isTargeted: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Column Header
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: column.icon)
                     .foregroundStyle(column.color)
                 Text(column.rawValue)
                     .font(.headline)
-                Text("(\(items.count))")
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
+                PillBadge(title: "\(items.count)", color: column.color)
             }
             .padding(.horizontal, 8)
 
@@ -994,12 +700,8 @@ struct BoardColumnView: View {
                         BoardTaskCard(
                             item: item,
                             manager: manager,
-                            onTap: { onItemTap(item) },
-                            onStartTimer: onStartTimer
+                            onTap: { onItemTap(item) }
                         )
-                        .onDrag {
-                            NSItemProvider(object: item.id.uuidString as NSString)
-                        }
                     }
                 }
             }
@@ -1007,33 +709,14 @@ struct BoardColumnView: View {
         .frame(width: 280)
         .padding()
         .background(
-            theme.currentPalette
-                .color(.surface, isDark: theme.effectiveIsDark)
-                .opacity(isTargeted ? 0.75 : 0.5)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+                .opacity(theme.effectiveIsDark ? 0.9 : 0.95)
         )
-        .cornerRadius(12)
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(
-                    column.color.opacity(isTargeted ? 0.6 : 0.0),
-                    style: StrokeStyle(lineWidth: 3, dash: [6, 4])
-                )
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(theme.currentPalette.color(.border, isDark: theme.effectiveIsDark).opacity(0.2), lineWidth: 1)
         )
-
-        #if canImport(UniformTypeIdentifiers)
-            .onDrop(of: [UTType.text], isTargeted: $isTargeted) { providers in
-                guard let provider = providers.first else { return false }
-                _ = provider.loadObject(ofClass: NSString.self) { str, _ in
-                    guard let nsText = str as? NSString else { return }
-                    let text = nsText as String
-                    guard let id = UUID(uuidString: text) else { return }
-                    Task { @MainActor in
-                        manager.moveItem(id: id, to: column)
-                    }
-                }
-                return true
-            }
-        #endif
     }
 }
 
@@ -1043,7 +726,6 @@ struct BoardTaskCard: View {
     let item: TodoItem
     @ObservedObject var manager: TodoManager
     let onTap: () -> Void
-    let onStartTimer: (Int) -> Void
 
     @ObservedObject private var theme = ThemeManager.shared
 
@@ -1051,64 +733,34 @@ struct BoardTaskCard: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(item.title)
-                    .font(.subheadline)
-                    .lineLimit(2)
+                    .font(.headline)
+                    .foregroundStyle(theme.primaryText)
                 Spacer()
+                Button {
+                    manager.toggleItem(id: item.id)
+                } label: {
+                    Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(item.isCompleted ? .green : .gray)
+                }
             }
 
             HStack(spacing: 8) {
-                if item.recurrence != nil {
-                    Image(systemName: "repeat")
-                        .font(.caption2)
-                        .foregroundStyle(theme.secondaryText)
-                }
-                if item.isReminderEnabled {
-                    Image(systemName: "bell.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.orange)
-                }
-                if let limit = item.timeLimit {
-                    HStack(spacing: 4) {
-                        Image(systemName: "stopwatch.fill")
-                        Text("\(Int(limit / 60))分")
-                    }
-                    .font(.caption2)
-                    .foregroundStyle(theme.secondaryText)
-                }
-                Spacer()
-            }
+                PillBadge(title: item.priority.rawValue, color: item.priority.color)
 
-            HStack(spacing: 8) {
-                // Priority
-                Text(item.priority.rawValue)
-                    .font(.caption2)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(item.priority.color.opacity(0.2))
-                    .foregroundStyle(item.priority.color)
-                    .cornerRadius(4)
-
-                // Category
                 if let category = item.category {
-                    Text(category)
-                        .font(.caption2)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(.purple.opacity(0.2))
-                        .foregroundStyle(.purple)
-                        .cornerRadius(4)
+                    PillBadge(
+                        title: category,
+                        color: theme.currentPalette.color(.secondary, isDark: theme.effectiveIsDark)
+                    )
                 }
 
-                Spacer()
-
-                // Due Date
                 if let dueDate = item.dueDate {
-                    HStack(spacing: 2) {
-                        Image(systemName: "calendar")
-                        Text(formatDate(dueDate))
-                    }
-                    .font(.caption2)
-                    .foregroundStyle(isOverdue(dueDate) ? .red : theme.secondaryText)
+                    PillBadge(
+                        title: formatDate(dueDate),
+                        color: isOverdue(dueDate)
+                            ? theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
+                            : theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                    )
                 }
             }
 
@@ -1116,18 +768,12 @@ struct BoardTaskCard: View {
             let subtasks = manager.subtasks(of: item.id)
             if !subtasks.isEmpty {
                 let completed = subtasks.filter { $0.isCompleted }.count
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "checklist")
-                        Text("\(completed)/\(subtasks.count)")
-                    }
-                    .font(.caption2)
-                    .foregroundStyle(theme.secondaryText)
-
-                    ProgressView(value: Double(completed), total: Double(max(1, subtasks.count)))
-                        .progressViewStyle(.linear)
-                        .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+                HStack(spacing: 4) {
+                    Image(systemName: "checklist")
+                    Text("\(completed)/\(subtasks.count)")
                 }
+                .font(.caption2)
+                .foregroundStyle(theme.secondaryText)
             }
 
             // Move buttons
@@ -1146,23 +792,18 @@ struct BoardTaskCard: View {
                         .buttonStyle(.plain)
                     }
                 }
-
-                if let limit = item.timeLimit {
-                    Button {
-                        onStartTimer(Int(limit / 60))
-                    } label: {
-                        Image(systemName: "stopwatch.fill")
-                            .font(.caption)
-                            .foregroundStyle(theme.secondaryText)
-                    }
-                    .buttonStyle(.plain)
-                }
             }
         }
         .padding(12)
-        .background(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
-        .cornerRadius(8)
-        .shadow(color: .black.opacity(0.1), radius: 2, y: 1)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+                .opacity(theme.effectiveIsDark ? 0.92 : 0.97)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(theme.currentPalette.color(.border, isDark: theme.effectiveIsDark).opacity(0.2), lineWidth: 1)
+        )
         .onTapGesture { onTap() }
     }
 
@@ -1184,7 +825,6 @@ struct TodoRow: View {
     @ObservedObject var manager: TodoManager
     let onToggle: () -> Void
     let onTap: () -> Void
-    let onStartTimer: (Int) -> Void
 
     @ObservedObject private var theme = ThemeManager.shared
 
@@ -1223,37 +863,21 @@ struct TodoRow: View {
                 }
 
                 HStack(spacing: 8) {
-                    // Priority
-                    Text(item.priority.rawValue)
-                        .font(.caption2)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(item.priority.color.opacity(0.2))
-                        .foregroundStyle(item.priority.color)
-                        .cornerRadius(4)
+                    PillBadge(title: item.priority.rawValue, color: item.priority.color)
 
-                    // Category
                     if let category = item.category {
-                        Text(category)
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(.purple.opacity(0.2))
-                            .foregroundStyle(.purple)
-                            .cornerRadius(4)
+                        PillBadge(
+                            title: category,
+                            color: theme.currentPalette.color(.secondary, isDark: theme.effectiveIsDark)
+                        )
                     }
 
-                    // Due Date
                     if let dueDate = item.dueDate {
-                        HStack(spacing: 2) {
-                            Image(systemName: "calendar")
-                            Text(formatDate(dueDate))
-                        }
-                        .font(.caption)
-                        .foregroundStyle(
-                            isOverdue(dueDate)
+                        PillBadge(
+                            title: formatDate(dueDate),
+                            color: isOverdue(dueDate)
                                 ? theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
-                                : theme.secondaryText
+                                : theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
                         )
                     }
 
@@ -1278,30 +902,21 @@ struct TodoRow: View {
                         .font(.caption)
                         .foregroundStyle(theme.secondaryText)
                     }
-
-                    if let limit = item.timeLimit {
-                        HStack(spacing: 2) {
-                            Image(systemName: "stopwatch.fill")
-                            Text("\(Int(limit / 60))分")
-                        }
-                        .font(.caption)
-                        .foregroundStyle(theme.secondaryText)
-                    }
                 }
             }
 
             Spacer()
-
-            if let limit = item.timeLimit {
-                Button {
-                    onStartTimer(Int(limit / 60))
-                } label: {
-                    Image(systemName: "stopwatch.fill")
-                        .foregroundStyle(theme.secondaryText)
-                }
-                .buttonStyle(.plain)
-            }
         }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+                .opacity(theme.effectiveIsDark ? 0.92 : 0.97)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(theme.currentPalette.color(.border, isDark: theme.effectiveIsDark).opacity(0.2), lineWidth: 1)
+        )
         .contentShape(Rectangle())
         .onTapGesture {
             onTap()
@@ -1316,111 +931,6 @@ struct TodoRow: View {
 
     private func isOverdue(_ date: Date) -> Bool {
         !Calendar.current.isDateInToday(date) && date < Date()
-    }
-}
-
-// MARK: - Voice Todo Sheet
-
-struct VoiceTodoSheet: View {
-    @ObservedObject var manager: TodoManager
-    @Environment(\.dismiss) private var dismiss
-    @StateObject private var transcriber = SpeechTranscriber()
-
-    @State private var title: String = ""
-    @State private var showPermissionAlert = false
-    @State private var permissionMessage = ""
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("音声メモ") {
-                    TextEditor(text: $title)
-                        .frame(minHeight: 120)
-
-                    Button {
-                        toggleRecording()
-                    } label: {
-                        Label(
-                            transcriber.isRecording ? "録音停止" : "録音開始",
-                            systemImage: transcriber.isRecording ? "stop.fill" : "mic.fill"
-                        )
-                    }
-                    .buttonStyle(.borderedProminent)
-
-                    if transcriber.isRecording {
-                        HStack(spacing: 8) {
-                            ProgressView()
-                            Text("録音中...")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-
-                if let error = transcriber.errorMessage {
-                    Section {
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                    }
-                }
-
-                Section {
-                    Text("録音ボタンを押すと音声メモを文字起こしします。")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .navigationTitle("音声メモ")
-            #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("キャンセル") {
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("追加") {
-                        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
-                        guard !trimmed.isEmpty else { return }
-                        manager.addItem(title: trimmed, dueDate: nil, priority: .medium)
-                        dismiss()
-                    }
-                    .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-            }
-            .onChange(of: transcriber.transcript) {
-                title = transcriber.transcript
-            }
-            .onDisappear {
-                transcriber.stopTranscribing()
-            }
-            .alert("音声認識の許可が必要です", isPresented: $showPermissionAlert) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(permissionMessage)
-            }
-        }
-        .applyAppTheme()
-    }
-
-    private func toggleRecording() {
-        if transcriber.isRecording {
-            transcriber.stopTranscribing()
-        } else {
-            Task {
-                let allowed = await transcriber.ensureAuthorization()
-                if allowed {
-                    transcriber.startTranscribing()
-                } else {
-                    permissionMessage = transcriber.errorMessage
-                        ?? "音声認識とマイクの許可を設定してください。"
-                    showPermissionAlert = true
-                }
-            }
-        }
     }
 }
 
@@ -1550,7 +1060,6 @@ struct TodoDetailSheet: View {
     @ObservedObject var manager: TodoManager
     let item: TodoItem
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.openURL) private var openURL
 
     @State private var title: String = ""
     @State private var hasDueDate: Bool = false
@@ -1567,10 +1076,6 @@ struct TodoDetailSheet: View {
     @State private var newComment: String = ""
     @State private var showAddSubtask = false
     @State private var newSubtaskTitle: String = ""
-
-    private var currentItem: TodoItem {
-        manager.items.first(where: { $0.id == item.id }) ?? item
-    }
 
     var body: some View {
         NavigationStack {
@@ -1627,21 +1132,6 @@ struct TodoDetailSheet: View {
                                 set: { timeLimit = $0 * 60 }
                             ), in: 5...120, step: 5)
                     }
-                }
-
-                Section("ポモドーロ") {
-                    Button {
-                        guard hasTimeLimit else { return }
-                        let minutes = max(1, min(180, Int(timeLimit / 60)))
-                        guard let url = URL(string: "sugwranki://timer/start?minutes=\(minutes)") else {
-                            return
-                        }
-                        dismiss()
-                        openURL(url)
-                    } label: {
-                        Label("このタイムリミットでタイマー開始", systemImage: "stopwatch.fill")
-                    }
-                    .disabled(!hasTimeLimit)
                 }
 
                 Section("優先度") {
@@ -1710,7 +1200,7 @@ struct TodoDetailSheet: View {
 
                 // Comments
                 Section("コメント") {
-                    ForEach(currentItem.comments) { comment in
+                    ForEach(item.comments) { comment in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(comment.text)
                             Text(formatCommentDate(comment.createdAt))
@@ -1750,7 +1240,7 @@ struct TodoDetailSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
-                        var updated = currentItem
+                        var updated = item
                         updated.title = title
                         updated.dueDate = hasDueDate ? dueDate : nil
                         updated.priority = priority

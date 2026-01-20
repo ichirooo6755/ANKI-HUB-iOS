@@ -10,37 +10,177 @@ struct ReportView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    NavigationLink(destination: WeakWordsView()) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-                            Text("苦手一括復習")
-                                .font(.headline)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding()
-                        .liquidGlass()
-                    }
+                VStack(spacing: 28) {
+                    SectionHeader(title: "アクティビティ", subtitle: "直近の学習サマリー", trailing: nil)
 
-                    // Mastery Pie Chart
+                    activityRings
+
+                    summaryMetrics
+
+                    SectionHeader(title: "習熟度", subtitle: "マスタリー分布", trailing: nil)
                     MasteryPieChart(masteryTracker: masteryTracker)
-                    
-                    // Weekly Activity Line Chart
+
+                    SectionHeader(title: "週間推移", subtitle: "1週間の単語数", trailing: nil)
                     WeeklyActivityChart(learningStats: learningStats)
-                    
-                    // Subject Strength Radar (Simplified Bar Chart for iOS)
+
+                    SectionHeader(title: "科目別", subtitle: "習得率", trailing: nil)
                     SubjectStrengthChart(masteryTracker: masteryTracker)
+
+                    weakWordsAction
                 }
-                .padding()
+                .padding(16)
             }
             .navigationTitle("レポート")
-            .background(ThemeManager.shared.background)
+            .background(theme.background)
             .applyAppTheme()
         }
+    }
+
+    private var activityRings: some View {
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+        let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 16) {
+                ringCard(
+                    title: "今日の学習",
+                    value: "\(learningStats.todayMinutes)分",
+                    progress: min(Double(learningStats.todayMinutes) / 60.0, 1),
+                    color: accent
+                )
+                ringCard(
+                    title: "習得率",
+                    value: "\(learningStats.masteryRate)%",
+                    progress: Double(learningStats.masteryRate) / 100.0,
+                    color: mastered
+                )
+                ringCard(
+                    title: "連続日数",
+                    value: "\(learningStats.streak)日",
+                    progress: min(Double(learningStats.streak) / 30.0, 1),
+                    color: primary
+                )
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+
+    private var summaryMetrics: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                HealthMetricCard(
+                    title: "総学習時間",
+                    value: formatMinutes(totalMinutes),
+                    unit: "",
+                    icon: "hourglass",
+                    color: theme.currentPalette.color(.secondary, isDark: theme.effectiveIsDark)
+                )
+                HealthMetricCard(
+                    title: "総単語数",
+                    value: "\(totalWords)",
+                    unit: "語",
+                    icon: "text.book.closed.fill",
+                    color: theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+                )
+            }
+            HStack(spacing: 12) {
+                HealthMetricCard(
+                    title: "弱点語彙",
+                    value: "\(weakCount)",
+                    unit: "語",
+                    icon: "exclamationmark.triangle.fill",
+                    color: theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
+                )
+                HealthMetricCard(
+                    title: "習得語彙",
+                    value: "\(learningStats.masteredCount)",
+                    unit: "語",
+                    icon: "checkmark.seal.fill",
+                    color: theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+                )
+            }
+        }
+    }
+
+    private var weakWordsAction: some View {
+        NavigationLink(destination: WeakWordsView()) {
+            HStack(spacing: 12) {
+                let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                ZStack {
+                    Circle()
+                        .fill(accent.opacity(0.18))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: "bolt.fill")
+                        .foregroundStyle(accent)
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("苦手一括復習")
+                        .font(.headline)
+                        .foregroundStyle(theme.primaryText)
+                    Text("弱点語彙を集中で復習")
+                        .font(.caption)
+                        .foregroundStyle(theme.secondaryText)
+                }
+                Spacer()
+                PillBadge(title: "\(weakCount)語", color: accent)
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+                    .opacity(theme.effectiveIsDark ? 0.95 : 0.98)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func ringCard(title: String, value: String, progress: Double, color: Color) -> some View {
+        VStack(spacing: 8) {
+            ZStack {
+                HealthRingView(progress: progress, color: color, lineWidth: 8, size: 72)
+                Text(value)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(theme.primaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            }
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(theme.secondaryText)
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+                .opacity(theme.effectiveIsDark ? 0.95 : 0.98)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(color.opacity(0.2), lineWidth: 1)
+        )
+    }
+
+    private var totalMinutes: Int {
+        learningStats.dailyHistory.values.reduce(0) { $0 + $1.minutes }
+    }
+
+    private var totalWords: Int {
+        learningStats.dailyHistory.values.reduce(0) { $0 + $1.words }
+    }
+
+    private var weakCount: Int {
+        Subject.allCases.reduce(0) { partial, subject in
+            let stats = masteryTracker.getStats(for: subject.rawValue)
+            return partial + (stats[.weak] ?? 0)
+        }
+    }
+    
+    private func formatMinutes(_ minutes: Int) -> String {
+        let hours = minutes / 60
+        let remainder = minutes % 60
+        if hours == 0 { return "\(remainder)分" }
+        return "\(hours)時間\(remainder)分"
     }
 }
 

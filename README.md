@@ -17,7 +17,7 @@
 - **学習統計**: 連続学習日数、学習時間、習熟率の追跡
 
 ### ツール
-- **ポモドーロタイマー**: 集中・休憩・長休憩の3モード対応
+- **タイマー**: ポモドーロ・休憩・長休憩・カスタムの4モード対応
 - **ストップウォッチ**: ラップ機能付き
 - **フロントカメラ起動**: ロック画面/Dynamic Islandから即起動
 - **カレンダー**: 月間学習記録の可視化
@@ -114,6 +114,12 @@ open ANKI-HUB-iOS.xcodeproj
 | 署名エラー | `DEVELOPMENT_TEAM`未設定 | `project.yml`に追加 |
 | Widget拡張インストール失敗 | `CFBundleExecutable`未設定、不要キー存在 | Info.plist修正 |
 | CodeSign失敗 | resource fork/xattr | `SYMROOT/OBJROOT`をDerivedData側に |
+| `startActiveSegmentIfNeeded`が見つからない | タイマーリファクタで補助関数が欠落 | `TimerView`に補助関数を復旧 |
+| `CalendarView`が見つからない | `UI/CalendarView.swift`が空/重複していた | `Views/CalendarView.swift`を`AppCalendarView`として実装し参照を統一、SPMでUI側を除外 |
+| `TimelineView`が見つからない | 画面ファイルが欠落 | `Views/TimelineView.swift`を追加しDashboardから参照 |
+| `InputModeView`の型チェック失敗 | View構造破損と`SpeechTranscriber`名競合 | `InputModeSessionView`に分割し`CustomSpeechTranscriber`で統一 |
+| macOSビルドでiOS専用APIエラー | `.topBarTrailing`/`textInputAutocapitalization`/`AVAudioSession`が未対応 | `#if os(iOS)`でガードしmacOSでは`.automatic`等に切替 |
+| `StudyMaterial`の公開APIで型エラー | `Subject`がinternalのままpublic型に露出 | `Subject`の公開範囲をpublicに統一 |
 
 ### クイズ・学習関連
 
@@ -147,6 +153,7 @@ open ANKI-HUB-iOS.xcodeproj
 | Liquid Glassが効かない | 監視が弱い | `AdaptiveLiquidGlassModifier`統一 |
 | 写真壁紙でコンテナ見えない | 透明度不足 | 壁紙時は不透明度/ボーダー強化 |
 | ダークモードで読めない | `.secondary`等システム色依存 | テーマ基準の色に統一 |
+| ダーク/ライトが混在して見える | 色指定が固定でもMaterialがシステム色に引っ張られる | カラー強制時はMaterialを無効化しテーマ色に統一 |
 
 ### データ関連
 
@@ -163,6 +170,42 @@ open ANKI-HUB-iOS.xcodeproj
 | ウィジェット反映が遅い | Timeline更新間隔長い | 短縮、`reloadTimelines`呼び出し |
 | タイマー開始できない | ディープリンクなし | `sugwranki://timer/start`追加 |
 | 教科フィルタ効かない | App Group設定未参照 | `SettingsView`で設定、Widget参照 |
+| ロック画面右下コントロールが追加できない | ControlWidget未登録 / iOS18未満 | ControlWidgetを追加し、iOS18以上で追加 |
+| Live Activity背景がロック画面で白く浮く | テーマ色がライト固定 | 常にダーク半透明背景+白テキストに固定 |
+| ControlWidgetのビルドエラー | iOS18/Swift6未満でControlWidget型が解決不能 | ControlWidget定義/使用箇所を`swift(>=6.0)`+`@available(iOS 18.0)`でガード |
+
+### UI関連
+
+| 症状 | 原因 | 解決策 |
+|------|------|--------|
+| 学習画面のカードテキストが薄くて見えない | liquidGlass透明度が高すぎ | 背景不透明度を上げ、SubjectCard/ToolCardをソリッド背景に変更 |
+| ダーク/ライトがコンテナごとに混在して見える | Form/Listのシステム背景がテーマ背景と混ざる | `applyAppTheme`で`scrollContentBackground(.hidden)`+テーマ背景を適用して統一 |
+
+### 機能追加
+
+| 追加機能 | 内容 |
+|---------|------|
+| ジャーナル（気分/メモ） | `CalendarView`の学習記録編集に「ジャーナル」を追加し、日付ごとに気分とメモを保存/閲覧できるようにした（Supabase同期はLearningStats内に統合） |
+| 3日間学習 Day3 音声入力 | InputModeのDay3に音声入力（SpeechTranscriber）を追加し、発音確認を行えるようにした |
+| バックアップ（JSONエクスポート） | 管理画面から`anki_hub_*`の設定・学習データをJSONとしてエクスポートできるようにした |
+
+### ビルド関連
+
+| 症状 | 原因 | 解決策 |
+|------|------|--------|
+| `BookshelfView`でビルドエラー | パッチ適用時に`+`が残り構文崩れ | `+`を除去しフォーム構造を復元 |
+| `SyncManager`で`TimelineManager`/`StudyMaterialManager`が見つからない | SwiftPMターゲット間の可視性不足 | マネージャー本体/共有インスタンス/公開APIを`public`化 |
+| `CalendarView` / `StudyView` 重複定義エラー | `StatCard`, `SubjectCard`等が複数ファイルで定義 | コンポーネントを`Components/`ディレクトリに外部化し、重複を削除 |
+| `SettingsView`の`accountSection`で構文崩れ | パッチ適用の差分競合でView構造が破損 | `accountSection`を再構築し`SettingsIcon`統一のレイアウトに修正 |
+| `CalendarView.swift`が空ファイルになりビルド不能 | ファイル内容が消失 | git履歴から復旧し、`CalendarStatCard`/`DayCell`に適合させた |
+
+### UI刷新・リファクタリング
+- **Apple HIG準拠**: 設定画面やプロフィール画面のリストスタイルを`insetGrouped`に統一し、アイコンデザインを`SettingsIcon`コンポーネントで標準化。
+- **コンポーネント外部化**:
+  - `CalendarComponents.swift`: `CalendarStatCard`, `DayCell`
+  - `DashboardComponents.swift`: `StatCard`, `SubjectCard`, `ToolCard`, `GoalCountdownCard`
+  - `SettingsIcon.swift`: 設定系画面のアイコン統一
+- **Liquid Glass適用**: 各種カードUIに統一されたBlurエフェクトとシャドウを適用。
 
 ---
 

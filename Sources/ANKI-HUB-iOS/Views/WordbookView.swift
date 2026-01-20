@@ -117,9 +117,16 @@ struct WordbookView: View {
                         }
                         .onDelete(perform: deleteWords)
                     }
-                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                    .listRowBackground(ThemeManager.shared.currentPalette.color(.surface, isDark: ThemeManager.shared.effectiveIsDark))
+                    #if os(iOS)
+                    .listStyle(.insetGrouped)
+                    #else
+                    .listStyle(.inset)
+                    #endif
                 }
             }
+            .background(ThemeManager.shared.background)
             .navigationTitle("単語帳")
             .toolbar {
                 ToolbarItem(placement: .automatic) {
