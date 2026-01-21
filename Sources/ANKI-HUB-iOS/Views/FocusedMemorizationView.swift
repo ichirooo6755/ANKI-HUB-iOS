@@ -159,7 +159,7 @@ struct FocusedMemorizationView: View {
         ScrollView {
             VStack(spacing: 24) {
                 Image(systemName: "brain.head.profile")
-                    .font(.system(size: 60))
+                    .font(.largeTitle.weight(.semibold))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [.orange, .yellow],
@@ -168,7 +168,7 @@ struct FocusedMemorizationView: View {
                         ))
 
                 Text("インプットモード")
-                    .font(.largeTitle.bold())
+                    .font(.largeTitle.weight(.bold))
 
                 Picker("教科", selection: $selectedSubject) {
                     ForEach(subjectOptions) { s in
@@ -222,7 +222,7 @@ struct FocusedMemorizationView: View {
                 Button("進捗をリセット") {
                     resetProgress()
                 }
-                .font(.caption)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
             }
             .padding(.vertical, 16)
@@ -241,11 +241,12 @@ struct FocusedMemorizationView: View {
                     Image(systemName: icon)
                         .font(.title2)
                     Text(title)
-                        .font(.headline)
+                        .font(.headline.weight(.semibold))
                 }
                 Spacer()
                 Text(subtitle)
-                    .font(.subheadline)
+                    .font(.footnote)
+                    .monospacedDigit()
                     .opacity(0.8)
             }
             .foregroundStyle(fg)
@@ -259,10 +260,11 @@ struct FocusedMemorizationView: View {
     private func statItem(value: Int, label: String, color: Color) -> some View {
         VStack(spacing: 4) {
             Text("\(value)")
-                .font(.title2.bold())
+                .font(.title3.weight(.bold))
+                .monospacedDigit()
                 .foregroundStyle(color)
             Text(label)
-                .font(.caption)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
         }
     }
@@ -273,10 +275,10 @@ struct FocusedMemorizationView: View {
         ScrollView {
             VStack(spacing: 20) {
                 Text(dayLabel(currentDay))
-                    .font(.title2.bold())
+                    .font(.title2.weight(.bold))
 
                 Text("ブロックを選択（各50語）")
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
 
                 // Block Grid
@@ -289,10 +291,12 @@ struct FocusedMemorizationView: View {
                         } label: {
                             VStack(spacing: 4) {
                                 Text("\(index + 1)")
-                                    .font(.headline)
+                                    .font(.callout.weight(.semibold))
+                                    .monospacedDigit()
                                 if completionCount > 0 {
                                     Text("\(completionCount)回")
-                                        .font(.caption2)
+                                        .font(.footnote.weight(.medium))
+                                        .monospacedDigit()
                                 }
                             }
                             .frame(maxWidth: .infinity)
@@ -338,10 +342,12 @@ struct FocusedMemorizationView: View {
             
             HStack {
                 Text("\(currentWordIndex + 1) / \(words.count)")
-                    .font(.subheadline)
+                    .font(.callout)
+                    .monospacedDigit()
                 Spacer()
                 Text("ブロック \(currentBlockIndex + 1)")
-                    .font(.subheadline)
+                    .font(.callout)
+                    .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
             .padding(.horizontal)
@@ -352,7 +358,7 @@ struct FocusedMemorizationView: View {
                     .frame(width: 80, height: 80)
             } else {
                 Text("時間制限なし")
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
             
@@ -374,12 +380,12 @@ struct FocusedMemorizationView: View {
 
                     HStack {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 44, weight: .bold))
+                            .font(.title.weight(.bold))
                             .foregroundStyle(theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark))
                             .opacity(ngOpacity)
                         Spacer()
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 44, weight: .bold))
+                            .font(.title.weight(.bold))
                             .foregroundStyle(theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark))
                             .opacity(okOpacity)
                     }
@@ -410,7 +416,7 @@ struct FocusedMemorizationView: View {
                 )
                 
                 Text("← わからない ｜ わかる →")
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
             
@@ -458,7 +464,7 @@ struct FocusedMemorizationView: View {
                 timerActive = false
                 currentScreen = .daySelect
             }
-            .font(.caption)
+            .font(.footnote)
             .foregroundStyle(.secondary)
             .padding(.bottom)
         }
@@ -471,13 +477,15 @@ struct FocusedMemorizationView: View {
             Spacer()
             
             Image(systemName: "arrow.triangle.2.circlepath")
-                .font(.system(size: 60))
+                .font(.largeTitle.weight(.semibold))
                 .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
             
             Text("弱点語の再処理")
-                .font(.title.bold())
+                .font(.title2.weight(.bold))
             
             Text("\(weakWords.count)語が「わからない」でした。\n再度処理しますか？")
+                .font(.footnote)
+                .monospacedDigit()
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             
@@ -487,6 +495,7 @@ struct FocusedMemorizationView: View {
                 Button("スキップ") {
                     showResult()
                 }
+                .font(.callout.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
                 .padding()
@@ -495,6 +504,7 @@ struct FocusedMemorizationView: View {
                 Button("再処理する") {
                     startWeakReprocess()
                 }
+                .font(.callout.weight(.semibold))
                 .foregroundStyle(
                     theme.onColor(for: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
                 )
@@ -516,27 +526,29 @@ struct FocusedMemorizationView: View {
             Spacer()
             
             Image(systemName: "party.popper.fill")
-                .font(.system(size: 60))
+                .font(.largeTitle.weight(.semibold))
                 .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
             
             Text("ブロック完了！")
-                .font(.title.bold())
+                .font(.title2.weight(.bold))
             
             HStack(spacing: 32) {
                 VStack {
                     Text("\(knownCount)")
-                        .font(.largeTitle.bold())
+                        .font(.largeTitle.weight(.bold))
+                        .monospacedDigit()
                         .foregroundStyle(theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark))
                     Text("わかる")
-                        .font(.caption)
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
                 VStack {
                     Text("\(unknownCount)")
-                        .font(.largeTitle.bold())
+                        .font(.largeTitle.weight(.bold))
+                        .monospacedDigit()
                         .foregroundStyle(theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark))
                     Text("わからない")
-                        .font(.caption)
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -550,7 +562,7 @@ struct FocusedMemorizationView: View {
             } label: {
                 let bg = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
                 Text("ホームに戻る")
-                    .font(.headline)
+                    .font(.headline.weight(.semibold))
                     .foregroundStyle(theme.onColor(for: bg))
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -581,6 +593,7 @@ struct FocusedMemorizationView: View {
                     Text("1日目（初接触）")
                     Spacer()
                     Text("時間制限なし")
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
                 
@@ -589,6 +602,8 @@ struct FocusedMemorizationView: View {
                         Text("2日目（高速判定）")
                         Spacer()
                         Text("\(String(format: "%.1f", day2Seconds))秒")
+                            .font(.footnote.weight(.semibold))
+                            .monospacedDigit()
                             .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
                     }
                     Slider(value: $day2Seconds, in: 0.5...10.0, step: 0.5)
@@ -604,6 +619,8 @@ struct FocusedMemorizationView: View {
                         Text("3日目（音読固定）")
                         Spacer()
                         Text("\(String(format: "%.1f", day3Seconds))秒")
+                            .font(.footnote.weight(.semibold))
+                            .monospacedDigit()
                             .foregroundStyle(theme.currentPalette.color(.selection, isDark: theme.effectiveIsDark))
                     }
                     Slider(value: $day3Seconds, in: 0.5...10.0, step: 0.5)
@@ -617,7 +634,8 @@ struct FocusedMemorizationView: View {
                             day2Seconds = preset
                             day3Seconds = preset
                         }
-                        .font(.caption.bold())
+                        .font(.footnote.weight(.semibold))
+                        .monospacedDigit()
                         .padding(.vertical, 8)
                         .frame(maxWidth: .infinity)
                         .background(Color.gray.opacity(0.1))
@@ -860,7 +878,8 @@ struct CircularTimerView: View {
                 .animation(.linear(duration: 0.1), value: remaining)
             
             Text(String(format: "%.1f", max(0, remaining)))
-                .font(.system(size: 20, weight: .bold, design: .monospaced))
+                .font(.title3.weight(.bold))
+                .monospacedDigit()
                 .foregroundStyle(remaining <= 1 ? danger : accent)
         }
     }
@@ -885,12 +904,12 @@ struct FlashcardInputView: View {
             VStack(spacing: 12) {
                 if showsHintWithAnswer, !hint.isEmpty {
                     Text(hint)
-                        .font(.title3)
+                        .font(.headline)
                         .foregroundStyle(.secondary)
                 }
                 
                 Text(meaning.components(separatedBy: CharacterSet(charactersIn: "　 、,")).first ?? meaning)
-                    .font(.caption)
+                    .font(.footnote)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 4)
                     .background(okColor.opacity(0.2))
@@ -898,7 +917,7 @@ struct FlashcardInputView: View {
                     .foregroundStyle(okColor)
                 
                 Text(meaning)
-                    .font(.title2.bold())
+                    .font(.title2.weight(.bold))
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -911,11 +930,11 @@ struct FlashcardInputView: View {
             // Front
             VStack(spacing: 12) {
                 Text(word)
-                    .font(.system(size: 32, weight: .bold))
+                    .font(.title.weight(.bold))
 
                 if !showsHintWithAnswer, !hint.isEmpty {
                     Text(hint)
-                        .font(.subheadline)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
             }

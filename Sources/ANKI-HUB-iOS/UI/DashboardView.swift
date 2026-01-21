@@ -127,10 +127,10 @@ struct DashboardView: View {
                         VStack(alignment: .leading) {
                             HStack {
                                 Text("Recommended")
-                                    .font(.title2.weight(.bold))
+                                    .font(.title3.weight(.bold))
                                 Spacer()
                                 Text("今やるべきこと")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.medium))
                                     .foregroundStyle(themeManager.secondaryText)
                             }
                             .padding(.horizontal)
@@ -142,9 +142,10 @@ struct DashboardView: View {
                                     HStack {
                                         VStack(alignment: .leading) {
                                             Text("復習待ち（期限到来）")
-                                                .font(.title3.weight(.bold))
+                                                .font(.headline.weight(.semibold))
                                             Text("\(totalDueCount)語")
-                                                .font(.subheadline.weight(.medium))
+                                                .font(.footnote.weight(.medium))
+                                                .monospacedDigit()
                                                 .foregroundStyle(themeManager.secondaryText)
                                         }
                                         Spacer()
@@ -188,9 +189,9 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("タイムライン")
-                                            .font(.title3.weight(.bold))
+                                            .font(.headline.weight(.semibold))
                                         Text("学習ログを投稿")
-                                            .font(.subheadline.weight(.medium))
+                                            .font(.footnote.weight(.medium))
                                             .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
@@ -232,9 +233,10 @@ struct DashboardView: View {
                                     HStack {
                                         VStack(alignment: .leading) {
                                             Text("復習待ち")
-                                                .font(.title3.weight(.bold))
+                                                .font(.headline.weight(.semibold))
                                             Text("\(totalWeakCount)語")
-                                                .font(.subheadline.weight(.medium))
+                                                .font(.footnote.weight(.medium))
+                                                .monospacedDigit()
                                                 .foregroundStyle(themeManager.secondaryText)
                                         }
                                         Spacer()
@@ -275,9 +277,10 @@ struct DashboardView: View {
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text("今日の復習")
-                                        .font(.title3.weight(.bold))
+                                        .font(.headline.weight(.semibold))
                                     Text("\(learningStats.todayMinutes)分")
-                                        .font(.subheadline.weight(.medium))
+                                        .font(.footnote.weight(.medium))
+                                        .monospacedDigit()
                                         .foregroundStyle(themeManager.secondaryText)
                                 }
                                 Spacer()
@@ -317,9 +320,9 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("やることリスト")
-                                            .font(.title3.weight(.bold))
+                                            .font(.headline.weight(.semibold))
                                         Text("学習タスクを管理")
-                                            .font(.subheadline.weight(.medium))
+                                            .font(.footnote.weight(.medium))
                                             .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
@@ -363,9 +366,9 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("テスト履歴")
-                                            .font(.title3.weight(.bold))
+                                            .font(.headline.weight(.semibold))
                                         Text("過去の成績を確認")
-                                            .font(.subheadline.weight(.medium))
+                                            .font(.footnote.weight(.medium))
                                             .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
@@ -409,9 +412,9 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("タイマー")
-                                            .font(.title3.weight(.bold))
+                                            .font(.headline.weight(.semibold))
                                         Text("集中時間を管理")
-                                            .font(.subheadline.weight(.medium))
+                                            .font(.footnote.weight(.medium))
                                             .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
@@ -458,9 +461,9 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("ミラー")
-                                            .font(.title3.weight(.bold))
+                                            .font(.headline.weight(.semibold))
                                         Text("フロントカメラを即起動")
-                                            .font(.subheadline.weight(.medium))
+                                            .font(.footnote.weight(.medium))
                                             .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()

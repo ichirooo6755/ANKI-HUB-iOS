@@ -46,8 +46,9 @@ struct AppCalendarView: View {
                     Text("月間カレンダー")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(theme.primaryText)
+                        .accessibilityAddTraits(.isHeader)
                     Text("学習記録がある日を可視化")
-                        .font(.caption.weight(.medium))
+                        .font(.footnote.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                 }
                 Spacer()
@@ -69,7 +70,8 @@ struct AppCalendarView: View {
                     .buttonStyle(.plain)
 
                     Text(monthTitle)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.callout.weight(.semibold))
+                        .monospacedDigit()
                         .foregroundStyle(theme.primaryText)
 
                     Button {
@@ -93,7 +95,7 @@ struct AppCalendarView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 6) {
                 ForEach(weekdays, id: \.self) { weekday in
                     Text(weekday)
-                        .font(.caption2.weight(.medium))
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                         .frame(maxWidth: .infinity)
                 }
@@ -197,8 +199,9 @@ struct AppCalendarView: View {
                     Text("学習履歴")
                         .font(.title3.weight(.bold))
                         .foregroundStyle(theme.primaryText)
+                        .accessibilityAddTraits(.isHeader)
                     Text("直近3週間の記録")
-                        .font(.caption.weight(.medium))
+                        .font(.footnote.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                 }
                 Spacer()
@@ -210,19 +213,19 @@ struct AppCalendarView: View {
                         .font(.system(size: 28, weight: .semibold))
                         .foregroundStyle(accent)
                     Text("まだ学習記録がありません")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.headline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text("タイマーやクイズを完了するとここに反映されます")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(theme.secondaryText)
                         .multilineTextAlignment(.center)
 
                     NavigationLink(destination: TimerView()) {
                         HStack(spacing: 6) {
                             Image(systemName: "timer")
-                                .font(.caption.weight(.semibold))
+                                .font(.footnote.weight(.semibold))
                             Text("タイマーを起動")
-                                .font(.caption.weight(.semibold))
+                                .font(.footnote.weight(.semibold))
                         }
                         .foregroundStyle(theme.onColor(for: accent))
                         .padding(.horizontal, 12)
@@ -261,12 +264,13 @@ struct AppCalendarView: View {
 
                 HStack {
                     Text("記録日数: \(stats.dailyHistory.count)日")
-                        .font(.caption.weight(.medium))
+                        .font(.footnote.weight(.medium))
+                        .monospacedDigit()
                         .foregroundStyle(theme.secondaryText)
                     Spacer()
                     HStack(spacing: 4) {
                         Text("少")
-                            .font(.caption2)
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                         ForEach(0..<4) { level in
                             RoundedRectangle(cornerRadius: 3, style: .continuous)
@@ -274,7 +278,7 @@ struct AppCalendarView: View {
                                 .frame(width: 12, height: 12)
                         }
                         Text("多")
-                            .font(.caption2)
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                     }
                 }

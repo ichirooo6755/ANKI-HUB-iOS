@@ -116,10 +116,10 @@ struct ReportView: View {
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text("苦手一括復習")
-                        .font(.headline)
+                        .font(.headline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text("弱点語彙を集中で復習")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(theme.secondaryText)
                 }
                 Spacer()
@@ -142,13 +142,14 @@ struct ReportView: View {
             ZStack {
                 HealthRingView(progress: progress, color: color, lineWidth: 8, size: 72)
                 Text(value)
-                    .font(.caption.weight(.semibold))
+                    .font(.callout.weight(.semibold))
+                    .monospacedDigit()
                     .foregroundStyle(theme.primaryText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
             }
             Text(title)
-                .font(.caption.weight(.medium))
+                .font(.footnote.weight(.medium))
                 .foregroundStyle(theme.secondaryText)
         }
         .padding(12)
@@ -241,14 +242,14 @@ struct MasteryPieChart: View {
                                         .stroke(accent.opacity(0.2), lineWidth: 12)
                                         .frame(width: 140, height: 140)
                                     Image(systemName: "sparkles")
-                                        .font(.system(size: 22, weight: .semibold))
+                                        .font(.title3.weight(.semibold))
                                         .foregroundStyle(accent)
                                 }
                                 Text("学習を始めよう")
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(theme.primaryText)
                                 Text("クイズやタイマーの記録がここに表示されます")
-                                    .font(.caption)
+                                    .font(.footnote)
                                     .foregroundStyle(theme.secondaryText)
                                     .multilineTextAlignment(.center)
                             }
@@ -267,10 +268,11 @@ struct MasteryPieChart: View {
                             .chartOverlay { _ in
                                 VStack(spacing: 4) {
                                     Text("覚えた")
-                                        .font(.caption)
+                                        .font(.footnote)
                                         .foregroundStyle(theme.secondaryText)
                                     Text("\(totalMastered)")
-                                        .font(.system(.title, design: .default).weight(.bold))
+                                        .font(.title2.weight(.bold))
+                                        .monospacedDigit()
                                         .minimumScaleFactor(0.5)
                                         .lineLimit(1)
                                         .foregroundStyle(theme.primaryText)
@@ -291,11 +293,11 @@ struct MasteryPieChart: View {
 
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(currentPage.subject?.displayName ?? "総合")
-                    .font(.caption.weight(.semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
                 Spacer()
                 Text("左右スワイプで科目切替")
-                    .font(.caption2)
+                    .font(.footnote)
                     .foregroundStyle(theme.secondaryText)
             }
 
@@ -307,11 +309,12 @@ struct MasteryPieChart: View {
                             .fill(level.color)
                             .frame(width: 12, height: 12)
                         Text(level.label)
-                            .font(.caption2.weight(.medium))
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(theme.primaryText)
                         Spacer()
                         Text("\(count)")
-                            .font(.caption2.weight(.semibold))
+                            .font(.footnote.weight(.semibold))
+                            .monospacedDigit()
                             .foregroundStyle(theme.secondaryText)
                     }
                     .padding(.horizontal, 8)
@@ -416,13 +419,13 @@ struct WeeklyActivityChart: View {
             if isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(primary)
                     Text("まだ記録がありません")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text("クイズやタイマーを使うと推移が表示されます")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(theme.secondaryText)
                         .multilineTextAlignment(.center)
                 }
@@ -455,6 +458,33 @@ struct WeeklyActivityChart: View {
                         y: .value("Words", item.words)
                     )
                     .foregroundStyle(primary)
+                }
+                .chartYAxisLabel("学習語数", position: .leading)
+                .chartXAxisLabel("曜日")
+                .chartYAxis {
+                    AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
+                        AxisGridLine()
+                            .foregroundStyle(primary.opacity(0.2))
+                        AxisTick()
+                        AxisValueLabel {
+                            if let words = value.as(Int.self) {
+                                Text("\(words)")
+                                    .monospacedDigit()
+                            }
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(theme.secondaryText)
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks(values: weeklyData.map { $0.day }) { _ in
+                        AxisGridLine()
+                            .foregroundStyle(primary.opacity(0.12))
+                        AxisTick()
+                        AxisValueLabel()
+                            .font(.footnote)
+                            .foregroundStyle(theme.secondaryText)
+                    }
                 }
                 .frame(height: 220)
             }
@@ -501,13 +531,13 @@ struct SubjectStrengthChart: View {
             if isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "chart.bar.xaxis")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(mastered)
                     Text("まだ学習がありません")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text("学習が進むと科目ごとの棒グラフが表示されます")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(theme.secondaryText)
                         .multilineTextAlignment(.center)
                 }
@@ -530,6 +560,31 @@ struct SubjectStrengthChart: View {
                 }
                 .frame(height: 220)
                 .chartYScale(domain: 0...100)
+                .chartYAxisLabel("習熟度(%)", position: .leading)
+                .chartXAxisLabel("科目")
+                .chartYAxis {
+                    AxisMarks(position: .leading, values: .stride(by: 25)) { value in
+                        AxisGridLine()
+                            .foregroundStyle(mastered.opacity(0.2))
+                        AxisTick()
+                        AxisValueLabel {
+                            if let percent = value.as(Double.self) {
+                                Text("\(Int(percent))%")
+                                    .monospacedDigit()
+                            }
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(theme.secondaryText)
+                    }
+                }
+                .chartXAxis {
+                    AxisMarks(values: subjectStrength.map { $0.subject }) { _ in
+                        AxisTick()
+                        AxisValueLabel()
+                            .font(.footnote)
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                }
             }
         }
     }

@@ -648,8 +648,8 @@ class ThemeManager: ObservableObject {
             weak: weak,
             new: new,
             primaryDark: selection,
-            backgroundDark: "#0f172a",
-            surfaceDark: "#1e293b",
+            backgroundDark: "#000000",  // System Background (OLED/Dark)
+            surfaceDark: "#1C1C1E",  // Secondary System Background (Dark)
             textDark: "#f8fafc",
             borderDark: "#334155",
             selectionDark: selection,
@@ -670,84 +670,84 @@ class ThemeManager: ObservableObject {
             actionDark: "#39FF14"
         ),
         "ocean": ThemePalette(
-            primary: "#0ea5e9", secondary: "#64748b", accent: "#f59e0b", background: "#f0f9ff",
-            surface: "#ffffff", text: "#0c4a6e", border: "#bae6fd", selection: "#0ea5e9",
-            action: "#00E5FF",
-            mastered: "#10b981", almost: "#f59e0b", learning: "#f97316", weak: "#ef4444",
-            new: "#94a3b8",
-            primaryDark: "#0ea5e9", backgroundDark: "#071f30", surfaceDark: "#0c4a6e",
-            textDark: "#e0f2fe", borderDark: "#075985", selectionDark: "#38bdf8",
-            actionDark: "#00FFFF"
+            primary: "#007AFF", secondary: "#8E8E93", accent: "#5AC8FA", background: "#F2F2F7",  // System Blue, System Grouped
+            surface: "#FFFFFF", text: "#000000", border: "#C6C6C8", selection: "#007AFF",
+            action: "#007AFF",  // System Blue
+            mastered: "#34C759", almost: "#FFD60A", learning: "#007AFF", weak: "#FF3B30",
+            new: "#8E8E93",
+            primaryDark: "#0A84FF", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
+            textDark: "#FFFFFF", borderDark: "#38383A", selectionDark: "#0A84FF",
+            actionDark: "#64D2FF"  // Light System Blue
         ),
         "forest": ThemePalette(
-            primary: "#16a34a", secondary: "#64748b", accent: "#84cc16", background: "#f0fdf4",
-            surface: "#ffffff", text: "#14532d", border: "#bbf7d0", selection: "#16a34a",
-            action: "#39FF14",
-            mastered: "#22c55e", almost: "#84cc16", learning: "#a3e635", weak: "#dc2626",
-            new: "#a8a29e",
-            primaryDark: "#22c55e", backgroundDark: "#052e16", surfaceDark: "#14532d",
-            textDark: "#dcfce7", borderDark: "#14532d", selectionDark: "#4ade80",
-            actionDark: "#39FF14"
+            primary: "#28CD41", secondary: "#8E8E93", accent: "#30D158", background: "#F2F2F7",
+            surface: "#FFFFFF", text: "#000000", border: "#C6C6C8", selection: "#28CD41",
+            action: "#28CD41",  // System Green
+            mastered: "#28CD41", almost: "#FFD60A", learning: "#007AFF", weak: "#FF3B30",
+            new: "#8E8E93",
+            primaryDark: "#30D158", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
+            textDark: "#FFFFFF", borderDark: "#38383A", selectionDark: "#30D158",
+            actionDark: "#30D158"
         ),
         "sunset": ThemePalette(
-            primary: "#f43f5e", secondary: "#64748b", accent: "#fb7185", background: "#ffe4e6",
-            surface: "#fff1f2", text: "#881337", border: "#fecdd3", selection: "#e11d48",
-            action: "#FF0055",
-            mastered: "#f43f5e", almost: "#fb7185", learning: "#fda4af", weak: "#881337",
-            new: "#9ca3af",
-            primaryDark: "#f43f5e", backgroundDark: "#4c0519", surfaceDark: "#881337",
-            textDark: "#ffe4e6", borderDark: "#881337", selectionDark: "#fb7185",
-            actionDark: "#FF2D55"
+            primary: "#FF2D55", secondary: "#8E8E93", accent: "#FF375F", background: "#F2F2F7",
+            surface: "#FFFFFF", text: "#000000", border: "#C6C6C8", selection: "#FF2D55",
+            action: "#FF2D55",  // System Pink
+            mastered: "#28CD41", almost: "#FFD60A", learning: "#007AFF", weak: "#FF3B30",
+            new: "#8E8E93",
+            primaryDark: "#FF375F", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
+            textDark: "#FFFFFF", borderDark: "#38383A", selectionDark: "#FF375F",
+            actionDark: "#FF375F"
         ),
         "night": ThemePalette(
-            primary: "#7c3aed", secondary: "#64748b", accent: "#a78bfa", background: "#f3e8ff",
-            surface: "#faf5ff", text: "#4c1d95", border: "#c4b5fd", selection: "#7c3aed",
-            action: "#7F00FF",
-            mastered: "#818cf8", almost: "#a78bfa", learning: "#6366f1", weak: "#ec4899",
-            new: "#71717a",
-            primaryDark: "#7c3aed", backgroundDark: "#1c1040", surfaceDark: "#2e1065",
-            textDark: "#ede9fe", borderDark: "#5b21b6", selectionDark: "#7c3aed",
-            actionDark: "#8F00FF"
+            primary: "#5856D6", secondary: "#8E8E93", accent: "#BF5AF2", background: "#F2F2F7",
+            surface: "#FFFFFF", text: "#000000", border: "#C6C6C8", selection: "#5856D6",
+            action: "#5856D6",  // System Purple
+            mastered: "#28CD41", almost: "#FFD60A", learning: "#007AFF", weak: "#FF3B30",
+            new: "#8E8E93",
+            primaryDark: "#BF5AF2", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
+            textDark: "#FFFFFF", borderDark: "#38383A", selectionDark: "#BF5AF2",
+            actionDark: "#BF5AF2"
         ),
         "sakura": ThemePalette(
-            primary: "#f472b6", secondary: "#64748b", accent: "#f9a8d4", background: "#fdf2f8",
-            surface: "#ffffff", text: "#831843", border: "#fbcfe8", selection: "#f472b6",
-            action: "#FF0080",
+            primary: "#FF2D55", secondary: "#8E8E93", accent: "#FF375F", background: "#fdf2f8",  // Using System Pink variants
+            surface: "#ffffff", text: "#831843", border: "#fbcfe8", selection: "#FF2D55",
+            action: "#FF2D55",  // System Pink
             mastered: "#ec4899", almost: "#f9a8d4", learning: "#e879f9", weak: "#f43f5e",
             new: "#d1d5db",
-            primaryDark: "#f472b6", backgroundDark: "#500724", surfaceDark: "#831843",
-            textDark: "#fdf2f8", borderDark: "#831843", selectionDark: "#f472b6",
-            actionDark: "#FF00CC"
+            primaryDark: "#FF375F", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
+            textDark: "#fdf2f8", borderDark: "#831843", selectionDark: "#FF375F",
+            actionDark: "#FF375F"
         ),
         "matcha": ThemePalette(
-            primary: "#84cc16", secondary: "#64748b", accent: "#bef264", background: "#ecfccb",
-            surface: "#f7fee7", text: "#3f6212", border: "#d9f99d", selection: "#65a30d",
-            action: "#76E600",
+            primary: "#34C759", secondary: "#8E8E93", accent: "#30D158", background: "#ecfccb",
+            surface: "#f7fee7", text: "#3f6212", border: "#d9f99d", selection: "#34C759",
+            action: "#34C759",  // System Green
             mastered: "#84cc16", almost: "#bef264", learning: "#a3e635", weak: "#3f6212",
             new: "#9ca3af",
-            primaryDark: "#84cc16", backgroundDark: "#1a2e05", surfaceDark: "#3f6212",
-            textDark: "#ecfccb", borderDark: "#3f6212", selectionDark: "#84cc16",
-            actionDark: "#A2FF00"
+            primaryDark: "#30D158", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
+            textDark: "#ecfccb", borderDark: "#3f6212", selectionDark: "#30D158",
+            actionDark: "#30D158"
         ),
         "coffee": ThemePalette(
-            primary: "#d97706", secondary: "#64748b", accent: "#fcd34d", background: "#fef3c7",
-            surface: "#fffbeb", text: "#78350f", border: "#fde68a", selection: "#b45309",
-            action: "#FF9500",
+            primary: "#FF9500", secondary: "#8E8E93", accent: "#FF9F0A", background: "#fef3c7",
+            surface: "#fffbeb", text: "#78350f", border: "#fde68a", selection: "#FF9500",
+            action: "#FF9500",  // System Orange
             mastered: "#d97706", almost: "#fcd34d", learning: "#f59e0b", weak: "#78350f",
             new: "#9ca3af",
-            primaryDark: "#d97706", backgroundDark: "#451a03", surfaceDark: "#78350f",
-            textDark: "#fef3c7", borderDark: "#78350f", selectionDark: "#d97706",
-            actionDark: "#FFB000"
+            primaryDark: "#FF9F0A", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
+            textDark: "#fef3c7", borderDark: "#78350f", selectionDark: "#FF9F0A",
+            actionDark: "#FF9F0A"
         ),
         "monochrome": ThemePalette(
-            primary: "#525252", secondary: "#a3a3a3", accent: "#737373", background: "#FFFFFF",
-            surface: "#FAFAFA", text: "#000000", border: "#e5e5e5", selection: "#404040",
-            action: "#FF3B30",
-            mastered: "#525252", almost: "#a3a3a3", learning: "#737373", weak: "#171717",
-            new: "#d4d4d4",
-            primaryDark: "#d4d4d4", backgroundDark: "#000000", surfaceDark: "#171717",
-            textDark: "#FFFFFF", borderDark: "#404040", selectionDark: "#d4d4d4",
-            actionDark: "#FF453A"
+            primary: "#8E8E93", secondary: "#AEAEB2", accent: "#C7C7CC", background: "#FFFFFF",
+            surface: "#F2F2F7", text: "#000000", border: "#C6C6C8", selection: "#8E8E93",
+            action: "#000000",  // Black action in Light Mode
+            mastered: "#28CD41", almost: "#FFD60A", learning: "#007AFF", weak: "#FF3B30",
+            new: "#8E8E93",
+            primaryDark: "#8E8E93", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
+            textDark: "#FFFFFF", borderDark: "#38383A", selectionDark: "#8E8E93",
+            actionDark: "#FFFFFF"  // White action in Dark Mode
         ),
         "cyberpunk": ThemePalette(
             primary: "#00ff41", secondary: "#fdfd00", accent: "#00ffff", background: "#f8fafc",
@@ -755,9 +755,9 @@ class ThemeManager: ObservableObject {
             action: "#FF00FF",
             mastered: "#00ff41", almost: "#fdfd00", learning: "#ff00ff", weak: "#ff0055",
             new: "#94a3b8",
-            primaryDark: "#00ff41", backgroundDark: "#000507", surfaceDark: "#00151a",
-            textDark: "#2aa198", borderDark: "#586e75", selectionDark: "#2aa198",
-            actionDark: "#FF0099"
+            primaryDark: "#00ff41", backgroundDark: "#000000", surfaceDark: "#1C1C1E",  // OLED Black, System Surface
+            textDark: "#2aa198", borderDark: "#586e75", selectionDark: "#00ffff",  // Brighter Cyan for selection
+            actionDark: "#FF00CC"
         ),
         "nordic": ThemePalette(
             primary: "#5e81ac", secondary: "#81a1c1", accent: "#88c0d0", background: "#d8dee9",
@@ -878,9 +878,9 @@ class ThemeManager: ObservableObject {
             action: "#6366f1",
             mastered: "#34d399", almost: "#fbbf24", learning: "#fb923c", weak: "#f87171",
             new: "#475569",
-            primaryDark: "#818cf8", backgroundDark: "#0f172a", surfaceDark: "#1e293b",
+            primaryDark: "#818cf8", backgroundDark: "#000000", surfaceDark: "#1C1C1E",
             textDark: "#e2e8f0", borderDark: "#334155", selectionDark: "#818cf8",
-            actionDark: "#4F46E5"
+            actionDark: "#6366f1"
         ),
 
         "fugaku36": ThemePalette(

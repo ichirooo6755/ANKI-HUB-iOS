@@ -23,13 +23,14 @@ struct StatCard: View {
                         .foregroundStyle(color)
                 }
                 Text(title)
-                    .font(.caption2.weight(.semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(theme.secondaryText)
                 Spacer()
             }
 
             Text(value)
-                .font(.system(size: 34, weight: .bold, design: .default))
+                .font(.title.weight(.bold))
+                .monospacedDigit()
                 .foregroundStyle(theme.primaryText)
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
@@ -68,12 +69,12 @@ struct SubjectCard: View {
             
             VStack(spacing: 6) {
                 Text(subject.displayName)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.headline.weight(.semibold))
                     .foregroundColor(textColor)
                     .multilineTextAlignment(.center)
 
                 Text(subject.description)
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundColor(secondaryColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
@@ -114,7 +115,7 @@ struct ToolCard: View {
                     .foregroundColor(color)
             }
             Text(title)
-                .font(.subheadline.weight(.semibold))
+                .font(.callout.weight(.semibold))
                 .foregroundColor(textColor)
                 .multilineTextAlignment(.center)
         }
@@ -146,13 +147,14 @@ struct GoalCountdownCard: View {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("目標まで")
-                        .font(.caption.weight(.semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(theme.secondaryText)
                     Text(daysRemaining == 0 ? "今日が締切" : "あと\(daysRemaining)日")
-                        .font(.system(size: 28, weight: .bold, design: .default))
+                        .font(.title2.weight(.bold))
+                        .monospacedDigit()
                         .foregroundStyle(theme.primaryText)
                     Text("目標日 \(dateString(targetDate))")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(theme.secondaryText)
                 }
                 Spacer()
@@ -162,11 +164,12 @@ struct GoalCountdownCard: View {
 
             HStack {
                 Text("学習時間")
-                    .font(.caption2.weight(.semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(theme.secondaryText)
                 Spacer()
                 Text(progressText)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.callout.weight(.semibold))
+                    .monospacedDigit()
                     .foregroundStyle(theme.primaryText)
             }
         }

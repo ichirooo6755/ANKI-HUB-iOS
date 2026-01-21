@@ -28,20 +28,20 @@ struct DashboardCharts: View {
                             .fill(accent.opacity(0.2))
                             .frame(width: 34, height: 34)
                         Image(systemName: "chart.pie.fill")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.callout.weight(.semibold))
                             .foregroundStyle(accent)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("習熟度")
-                            .font(.headline.weight(.bold))
+                            .font(.title3.weight(.bold))
                             .foregroundStyle(theme.primaryText)
                         Text("左右スワイプで科目切替")
-                            .font(.caption)
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                     }
                     Spacer()
                     Image(systemName: "arrow.left.and.right")
-                        .font(.caption.weight(.semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(theme.secondaryText)
                 }
 
@@ -58,14 +58,14 @@ struct DashboardCharts: View {
                                             .stroke(accent.opacity(0.2), lineWidth: 12)
                                             .frame(width: 120, height: 120)
                                         Image(systemName: "sparkles")
-                                            .font(.system(size: 22, weight: .semibold))
+                                            .font(.title3.weight(.semibold))
                                             .foregroundStyle(accent)
                                     }
                                     Text("学習を始めよう")
-                                        .font(.subheadline.weight(.semibold))
+                                        .font(.headline.weight(.semibold))
                                         .foregroundStyle(theme.primaryText)
                                     Text("クイズやタイマーの記録がここに表示されます")
-                                        .font(.caption)
+                                        .font(.footnote)
                                         .foregroundStyle(theme.secondaryText)
                                         .multilineTextAlignment(.center)
                                 }
@@ -84,10 +84,11 @@ struct DashboardCharts: View {
                                 .chartOverlay { _ in
                                     VStack(spacing: 4) {
                                         Text("覚えた")
-                                            .font(.caption)
+                                            .font(.footnote)
                                             .foregroundStyle(theme.secondaryText)
                                         Text("\(totalMastered)")
-                                            .font(.system(.title, design: .default).weight(.bold))
+                                            .font(.title2.weight(.bold))
+                                            .monospacedDigit()
                                             .minimumScaleFactor(0.5)
                                             .lineLimit(1)
                                             .foregroundStyle(theme.primaryText)
@@ -97,7 +98,7 @@ struct DashboardCharts: View {
                             }
 
                             Text(page.subject?.displayName ?? "総合")
-                                .font(.caption.weight(.semibold))
+                                .font(.footnote.weight(.semibold))
                                 .foregroundStyle(theme.secondaryText)
                         }
                         .padding(.horizontal, 4)
@@ -119,11 +120,12 @@ struct DashboardCharts: View {
                                 .fill(level.color)
                                 .frame(width: 12, height: 12)
                             Text(level.label)
-                                .font(.caption2.weight(.medium))
+                                .font(.footnote.weight(.medium))
                                 .foregroundStyle(theme.primaryText)
                             Spacer()
                             Text("\(count)")
-                                .font(.caption2.weight(.semibold))
+                                .font(.footnote.weight(.semibold))
+                                .monospacedDigit()
                                 .foregroundStyle(theme.secondaryText)
                         }
                         .padding(.horizontal, 8)
@@ -146,15 +148,15 @@ struct DashboardCharts: View {
                             .fill(primary.opacity(0.2))
                             .frame(width: 34, height: 34)
                         Image(systemName: "square.grid.3x3.fill")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.callout.weight(.semibold))
                             .foregroundStyle(primary)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("学習ヒートマップ")
-                            .font(.headline.weight(.bold))
+                            .font(.title3.weight(.bold))
                             .foregroundStyle(theme.primaryText)
                         Text("直近3週間の学習強度")
-                            .font(.caption)
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                     }
                     Spacer()
@@ -163,13 +165,13 @@ struct DashboardCharts: View {
                 if learningStats.dailyHistory.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "calendar.badge.plus")
-                            .font(.system(size: 28, weight: .semibold))
+                            .font(.title3.weight(.semibold))
                             .foregroundStyle(primary)
                         Text("まだ学習記録がありません")
-                            .font(.subheadline.weight(.semibold))
+                            .font(.headline.weight(.semibold))
                             .foregroundStyle(theme.primaryText)
                         Text("タイマーやクイズを完了するとここに反映されます")
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(theme.secondaryText)
                             .multilineTextAlignment(.center)
                     }
@@ -192,7 +194,7 @@ struct DashboardCharts: View {
 
                     HStack(spacing: 6) {
                         Text("少")
-                            .font(.caption2)
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                         ForEach(0..<4) { level in
                             HeatmapCell(
@@ -203,7 +205,7 @@ struct DashboardCharts: View {
                             )
                         }
                         Text("多")
-                            .font(.caption2)
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                     }
                 }

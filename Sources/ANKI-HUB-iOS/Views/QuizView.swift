@@ -153,7 +153,7 @@ struct QuizView: View {
         let q = questions[currentIndex]
         return VStack(spacing: 10) {
             Text("この問題をセッション内でもう一度出しますか？")
-                .font(.caption)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
@@ -165,7 +165,7 @@ struct QuizView: View {
                 } label: {
                     let bg = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
                     Text("もう一度出す")
-                        .font(.headline)
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(theme.onColor(for: bg))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
@@ -177,7 +177,7 @@ struct QuizView: View {
                     didDecideRechallengeForCurrent = true
                 } label: {
                     Text("今回はいい")
-                        .font(.headline)
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
@@ -495,7 +495,7 @@ struct QuizView: View {
                                         .fill(level.color)
                                         .frame(width: 20, height: 20)
                                     Text(level.label)
-                                        .font(.caption2)
+                                        .font(.caption.weight(.medium))
                                 }
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 12)
@@ -518,8 +518,9 @@ struct QuizView: View {
                                         .accent, isDark: theme.effectiveIsDark))
                             VStack(alignment: .leading) {
                                 Text("特訓モード")
+                                    .font(.callout.weight(.semibold))
                                 Text("全て『覚えた』になるまで出題")
-                                    .font(.caption)
+                                    .font(.footnote)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -535,8 +536,9 @@ struct QuizView: View {
                                         .primary, isDark: theme.effectiveIsDark))
                             VStack(alignment: .leading) {
                                 Text("チャプター順に解く")
+                                    .font(.callout.weight(.semibold))
                                 Text("選択したチャプターを順に完了")
-                                    .font(.caption)
+                                    .font(.footnote)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -597,7 +599,7 @@ struct QuizView: View {
                             }
                             
                             Text("選択中: \(selectedChaptersDisplay)")
-                                .font(.caption)
+                                .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
                         .padding(.horizontal)
@@ -633,11 +635,12 @@ struct QuizView: View {
                                         .accent, isDark: theme.effectiveIsDark))
                             Text("制限時間: \(timeLimit == 0 ? "なし" : "\(timeLimit)秒")")
                         }
-                        .font(.headline)
+                        .font(.callout.weight(.semibold))
+                        .monospacedDigit()
                         .foregroundStyle(.secondary)
 
                         Text("※政経は穴埋め数に応じて+10秒/穴")
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
 
                         Slider(
@@ -761,10 +764,11 @@ struct QuizView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(subject.displayName)
-                        .font(.title2.bold())
+                        .font(.title2.weight(.bold))
                         .foregroundStyle(theme.primaryText)
                     Text("全\(totalWords)語")
-                        .font(.caption)
+                        .font(.footnote.weight(.medium))
+                        .monospacedDigit()
                         .foregroundStyle(theme.secondaryText)
                 }
 
@@ -921,7 +925,8 @@ struct QuizView: View {
             }
 
             Text("全\(correctCount + wrongCount)問")
-                .font(.caption)
+                .font(.footnote.weight(.medium))
+                .monospacedDigit()
                 .foregroundStyle(theme.secondaryText)
         }
         .padding(16)
@@ -946,7 +951,7 @@ struct QuizView: View {
             ZStack {
                 HealthRingView(progress: progress, color: color, lineWidth: 8, size: size)
                 Text(value)
-                    .font(.caption.weight(.semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
@@ -954,7 +959,7 @@ struct QuizView: View {
             }
 
             Text(title)
-                .font(.caption2)
+                .font(.footnote)
                 .foregroundStyle(theme.secondaryText)
         }
         .frame(maxWidth: .infinity)
@@ -1068,7 +1073,8 @@ struct QuizView: View {
             VStack(spacing: cardSpacing) {
                 HStack {
                     Text("\(currentIndex + 1)/\(questions.count)")
-                        .font(.caption)
+                        .font(.footnote)
+                        .monospacedDigit()
                         .foregroundStyle(.secondary)
 
                     Text(question.questionText)
@@ -1084,6 +1090,7 @@ struct QuizView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "timer")
                             Text("残り\(timeRemaining)秒")
+                                .monospacedDigit()
                         }
                         .font(.subheadline.bold())
                         .foregroundStyle(timeRemaining <= 5 ? danger : accent)
@@ -1125,7 +1132,7 @@ struct QuizView: View {
                     if subject == .kobun {
                         if showKobunHint || showResult {
                             Text(hint)
-                                .font(.subheadline)
+                                .font(.callout)
                                 .foregroundStyle(
                                     theme.currentPalette.color(
                                         .selection, isDark: theme.effectiveIsDark))
@@ -1134,7 +1141,7 @@ struct QuizView: View {
                                 showKobunHint = true
                             } label: {
                                 Label("ヒントを見る", systemImage: "eye.fill")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(
                                         theme.currentPalette.color(
                                             .primary, isDark: theme.effectiveIsDark)
@@ -1151,7 +1158,7 @@ struct QuizView: View {
                     } else if subject == .kanbun {
                         if showKanbunHint || showResult {
                             Text(hint)
-                                .font(.subheadline)
+                                .font(.callout)
                                 .foregroundStyle(
                                     theme.currentPalette.color(
                                         .selection, isDark: theme.effectiveIsDark))
@@ -1160,7 +1167,7 @@ struct QuizView: View {
                                 showKanbunHint = true
                             } label: {
                                 Label("ふりがなを見る", systemImage: "eye.fill")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(
                                         theme.currentPalette.color(
                                             .primary, isDark: theme.effectiveIsDark)
@@ -1176,7 +1183,7 @@ struct QuizView: View {
                         }
                     } else {
                         Text(hint)
-                            .font(.subheadline)
+                            .font(.callout)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -1256,7 +1263,7 @@ struct QuizView: View {
                 } label: {
                     let bg = subject.color
                     Text("次へ")
-                        .font(.headline)
+                        .font(.headline.weight(.semibold))
                         .foregroundStyle(theme.onColor(for: bg))
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -1278,7 +1285,8 @@ struct QuizView: View {
             VStack(spacing: 12) {
                 HStack {
                     Text("\(currentIndex + 1)/\(questions.count)")
-                        .font(.caption)
+                        .font(.footnote)
+                        .monospacedDigit()
                         .foregroundStyle(.secondary)
                     Spacer()
                 }
@@ -1286,20 +1294,21 @@ struct QuizView: View {
                 if subject == .kanbun {
                     if let example = question.example, !example.isEmpty {
                         Text(question.questionText)
-                            .font(.subheadline)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                     KanbunWebView(kanbunText: kanbunDisplayText(for: question), isCompact: true)
                         .frame(maxWidth: .infinity, minHeight: 160)
                 } else {
                     Text(question.questionText)
-                        .font(.title2.bold())
+                        .font(.title2.weight(.bold))
                         .multilineTextAlignment(.center)
                 }
 
                 if subject == .seikei, let bid = question.seikeiBlankId {
                     Text("空欄 \(bid)")
-                        .font(.caption)
+                        .font(.footnote)
+                        .monospacedDigit()
                         .foregroundStyle(.tertiary)
                 }
 
@@ -1321,7 +1330,7 @@ struct QuizView: View {
                     if subject == .kobun {
                         if showKobunHint || showResult {
                             Text(hint)
-                                .font(.subheadline)
+                                .font(.callout)
                                 .foregroundStyle(
                                     theme.currentPalette.color(
                                         .selection, isDark: theme.effectiveIsDark))
@@ -1330,7 +1339,7 @@ struct QuizView: View {
                                 showKobunHint = true
                             } label: {
                                 Label("ヒントを見る", systemImage: "eye.fill")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(
                                         theme.currentPalette.color(
                                             .primary, isDark: theme.effectiveIsDark)
@@ -1347,7 +1356,7 @@ struct QuizView: View {
                     } else if subject == .kanbun {
                         if showKanbunHint || showResult {
                             Text(hint)
-                                .font(.subheadline)
+                                .font(.callout)
                                 .foregroundStyle(
                                     theme.currentPalette.color(
                                         .selection, isDark: theme.effectiveIsDark))
@@ -1356,7 +1365,7 @@ struct QuizView: View {
                                 showKanbunHint = true
                             } label: {
                                 Label("ふりがなを見る", systemImage: "eye.fill")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(
                                         theme.currentPalette.color(
                                             .primary, isDark: theme.effectiveIsDark)
@@ -1372,7 +1381,7 @@ struct QuizView: View {
                         }
                     } else {
                         Text(hint)
-                            .font(.subheadline)
+                            .font(.callout)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -1390,7 +1399,7 @@ struct QuizView: View {
             VStack(spacing: 16) {
                 TextField("答えを入力...", text: $typingAnswer)
                     .textFieldStyle(.roundedBorder)
-                    .font(.title3)
+                    .font(.title3.weight(.semibold))
                     #if os(iOS)
                         .textInputAutocapitalization(.never)
                     #endif
@@ -1514,7 +1523,8 @@ struct QuizView: View {
             VStack(spacing: 16) {
                 HStack {
                     Text("\(currentIndex + 1)/\(questions.count)")
-                        .font(.caption)
+                        .font(.footnote)
+                        .monospacedDigit()
                         .foregroundStyle(.secondary)
                     Spacer()
                 }
@@ -1522,20 +1532,21 @@ struct QuizView: View {
                 if subject == .kanbun {
                     if let example = question.example, !example.isEmpty {
                         Text(question.questionText)
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                     KanbunWebView(kanbunText: kanbunDisplayText(for: question))
                         .frame(maxWidth: .infinity, minHeight: 220)
                 } else {
                     Text(question.questionText)
-                        .font(.title.bold())
+                        .font(.title.weight(.bold))
                         .multilineTextAlignment(.center)
                 }
 
                 if subject == .seikei, let bid = question.seikeiBlankId {
                     Text("空欄 \(bid)")
-                        .font(.caption)
+                        .font(.footnote)
+                        .monospacedDigit()
                         .foregroundStyle(.tertiary)
                 }
 
@@ -1557,7 +1568,7 @@ struct QuizView: View {
                     if subject == .kobun {
                         if showKobunHint || showAnswer {
                             Text(hint)
-                                .font(.subheadline)
+                                .font(.callout)
                                 .foregroundStyle(
                                     theme.currentPalette.color(
                                         .selection, isDark: theme.effectiveIsDark))
@@ -1566,7 +1577,7 @@ struct QuizView: View {
                                 showKobunHint = true
                             } label: {
                                 Label("ヒントを見る", systemImage: "eye.fill")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(
                                         theme.currentPalette.color(
                                             .primary, isDark: theme.effectiveIsDark)
@@ -1583,7 +1594,7 @@ struct QuizView: View {
                     } else if subject == .kanbun {
                         if showKanbunHint || showAnswer {
                             Text(hint)
-                                .font(.subheadline)
+                                .font(.callout)
                                 .foregroundStyle(
                                     theme.currentPalette.color(
                                         .selection, isDark: theme.effectiveIsDark))
@@ -1592,7 +1603,7 @@ struct QuizView: View {
                                 showKanbunHint = true
                             } label: {
                                 Label("ふりがなを見る", systemImage: "eye.fill")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.semibold))
                                     .foregroundStyle(
                                         theme.currentPalette.color(
                                             .primary, isDark: theme.effectiveIsDark)
@@ -1612,7 +1623,7 @@ struct QuizView: View {
                 if showAnswer {
                     Divider()
                     Text(question.answerText)
-                        .font(.title2)
+                        .font(.title2.weight(.bold))
                         .foregroundStyle(subject.color)
                         .multilineTextAlignment(.center)
                 }
@@ -1630,12 +1641,12 @@ struct QuizView: View {
                 let ngOpacity = min(1.0, max(0.0, Double(-cardDragX / 90.0)))
                 HStack {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 44, weight: .bold))
+                        .font(.largeTitle.weight(.bold))
                         .foregroundStyle(ngColor)
                         .opacity(ngOpacity)
                     Spacer()
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 44, weight: .bold))
+                        .font(.largeTitle.weight(.bold))
                         .foregroundStyle(okColor)
                         .opacity(okOpacity)
                 }
@@ -1682,7 +1693,7 @@ struct QuizView: View {
 
             if !showAnswer {
                 Text("タップで答えを表示")
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             } else {
                 HStack(spacing: 16) {
@@ -1698,7 +1709,7 @@ struct QuizView: View {
                             Image(systemName: "xmark")
                                 .font(.title2.bold())
                             Text("わからない")
-                                .font(.caption)
+                                .font(.footnote)
                         }
                         .foregroundStyle(theme.onColor(for: bg))
                         .frame(maxWidth: .infinity)
@@ -1721,7 +1732,7 @@ struct QuizView: View {
                             Image(systemName: "checkmark")
                                 .font(.title2.bold())
                             Text("わかった")
-                                .font(.caption)
+                                .font(.footnote)
                         }
                         .foregroundStyle(theme.onColor(for: bg))
                         .frame(maxWidth: .infinity)
@@ -1743,7 +1754,7 @@ struct QuizView: View {
                     } label: {
                         let bg = subject.color
                         Text("次へ")
-                            .font(.headline)
+                            .font(.headline.weight(.semibold))
                             .foregroundStyle(theme.onColor(for: bg))
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -1771,7 +1782,7 @@ struct QuizView: View {
                     correctCount: correctCount, totalCount: total)
 
                 Text(passed ? "🎉" : "💪")
-                    .font(.system(size: 80))
+                    .font(.largeTitle)
 
                 Text(passed ? "ランクアップ！" : "不合格...")
                     .font(.largeTitle.bold())
@@ -1789,11 +1800,12 @@ struct QuizView: View {
                     }
             } else {
                 Text(accuracy >= 80 ? "🎉" : accuracy >= 60 ? "👍" : "📚")
-                    .font(.system(size: 80))
+                    .font(.largeTitle)
 
                 // Score
                 Text("\(accuracy)%")
-                    .font(.system(size: 64, weight: .bold, design: .default))
+                    .font(.largeTitle.weight(.bold))
+                    .monospacedDigit()
                     .foregroundStyle(accuracy >= 80 ? .green : accuracy >= 60 ? .blue : .orange)
 
                 Text(accuracy >= 80 ? "素晴らしい！" : accuracy >= 60 ? "よくできました！" : "もう少し頑張ろう！")
@@ -1814,7 +1826,7 @@ struct QuizView: View {
                     } label: {
                         let bg = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
                         Label("間違えた問題を復習", systemImage: "arrow.triangle.2.circlepath")
-                            .font(.headline)
+                            .font(.headline.weight(.semibold))
                             .foregroundStyle(theme.onColor(for: bg))
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -1829,7 +1841,7 @@ struct QuizView: View {
                     } label: {
                         let bg = subject.color
                         Label("次のチャプターへ", systemImage: "arrow.right")
-                            .font(.headline)
+                            .font(.headline.weight(.semibold))
                             .foregroundStyle(theme.onColor(for: bg))
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -1842,7 +1854,7 @@ struct QuizView: View {
                     } label: {
                         let bg = subject.color
                         Label("もう一度", systemImage: "arrow.counterclockwise")
-                            .font(.headline)
+                            .font(.headline.weight(.semibold))
                             .foregroundStyle(theme.onColor(for: bg))
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -1868,7 +1880,7 @@ struct QuizView: View {
                 ForEach(Array(text.reversed().enumerated()), id: \.offset) { _, char in
                     VStack {
                         Text(String(char))
-                            .font(.system(size: 32, weight: .bold, design: .serif))
+                            .font(.title2.weight(.bold))
                             .frame(width: 40)
                     }
                 }
@@ -2975,7 +2987,7 @@ struct OverlayFeedbackView: View {
 
             VStack {
                 Image(systemName: isCorrect ? "circle.circle" : "xmark.circle")
-                    .font(.system(size: 100))
+                    .font(.largeTitle.weight(.bold))
                     .foregroundStyle(isCorrect ? .green : .red)
                     .symbolEffect(.bounce, value: isCorrect)
 

@@ -53,17 +53,18 @@ struct HealthMetricCard: View {
                         .foregroundStyle(color)
                 }
                 Text(title)
-                    .font(.caption.weight(.medium))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(theme.secondaryText)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(value)
-                    .font(.system(size: 30, weight: .bold, design: .default))
+                    .font(.title3.weight(.bold))
+                    .monospacedDigit()
                     .foregroundStyle(theme.primaryText)
                 if !unit.isEmpty {
                     Text(unit)
-                        .font(.caption2.weight(.medium))
+                        .font(.footnote.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                 }
             }
@@ -99,18 +100,20 @@ struct SectionHeader: View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.title3.bold())
+                    .font(.title3.weight(.bold))
                     .foregroundStyle(theme.primaryText)
+                    .accessibilityAddTraits(.isHeader)
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(theme.secondaryText)
                 }
             }
             Spacer()
             if let trailing, !trailing.isEmpty {
                 Text(trailing)
-                    .font(.caption.weight(.semibold))
+                    .font(.footnote.weight(.semibold))
+                    .monospacedDigit()
                     .foregroundStyle(theme.secondaryText)
             }
         }

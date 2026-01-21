@@ -63,17 +63,18 @@ struct ExamHistoryView: View {
     private var emptyStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "doc.text")
-                .font(.system(size: 60))
+                .font(.largeTitle.weight(.semibold))
                 .foregroundStyle(theme.secondaryText)
 
             Text("テスト結果がありません")
-                .font(.headline)
+                .font(.headline.weight(.semibold))
                 .foregroundStyle(theme.secondaryText)
 
             Button {
                 showAddSheet = true
             } label: {
                 Label("結果を追加", systemImage: "plus")
+                    .font(.callout.weight(.semibold))
                     .padding()
                     .background(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
                     .foregroundStyle(
@@ -91,10 +92,11 @@ struct ExamHistoryView: View {
                 HStack {
                     VStack(alignment: .leading) {
                         Text("平均得点率")
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(theme.secondaryText)
                         Text("\(manager.getAveragePercent())%")
-                            .font(.title.bold())
+                            .font(.title2.weight(.bold))
+                            .monospacedDigit()
                             .foregroundStyle(theme.primaryText)
                     }
 
@@ -102,10 +104,11 @@ struct ExamHistoryView: View {
 
                     VStack(alignment: .trailing) {
                         Text("記録数")
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(theme.secondaryText)
                         Text("\(manager.results.count)")
-                            .font(.title.bold())
+                            .font(.title2.weight(.bold))
+                            .monospacedDigit()
                             .foregroundStyle(theme.primaryText)
                     }
                 }
@@ -149,7 +152,7 @@ struct ExamResultRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(result.type.label)
-                        .font(.caption)
+                        .font(.footnote.weight(.semibold))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
                         .background(
@@ -160,7 +163,7 @@ struct ExamResultRow: View {
 
                     if !result.subject.isEmpty {
                         Text(result.subject)
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(theme.secondaryText)
                     }
                 }
@@ -172,12 +175,13 @@ struct ExamResultRow: View {
                             result.faculty.isEmpty ? nil : result.faculty,
                         ].compactMap { $0 }.joined(separator: " ")
                     )
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundStyle(theme.secondaryText)
                 }
 
                 Text("\(result.year)年")
-                    .font(.subheadline)
+                    .font(.callout)
+                    .monospacedDigit()
                     .foregroundStyle(theme.secondaryText)
             }
 
@@ -185,11 +189,13 @@ struct ExamResultRow: View {
 
             VStack(alignment: .trailing) {
                 Text("\(result.percent)%")
-                    .font(.title2.bold())
+                    .font(.title3.weight(.bold))
+                    .monospacedDigit()
                     .foregroundStyle(percentColor(result.percent))
 
                 Text("\(result.score)/\(result.total)")
-                    .font(.caption)
+                    .font(.footnote)
+                    .monospacedDigit()
                     .foregroundStyle(theme.secondaryText)
             }
         }

@@ -23,16 +23,17 @@ struct CalendarStatCard: View {
                         .foregroundStyle(color)
                 }
                 Text(title)
-                    .font(.caption.weight(.semibold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(theme.secondaryText)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(value)
-                    .font(.system(size: 32, weight: .bold, design: .default))
+                    .font(.title3.weight(.bold))
+                    .monospacedDigit()
                     .foregroundStyle(theme.primaryText)
                 Text(unit)
-                    .font(.caption2.weight(.medium))
+                    .font(.footnote.weight(.medium))
                     .foregroundStyle(theme.secondaryText)
             }
         }
@@ -93,7 +94,8 @@ struct DayCell: View {
             }
 
             Text("\(Calendar.current.component(.day, from: date))")
-                .font(.caption.weight(.semibold))
+                .font(.caption2.weight(.semibold))
+                .monospacedDigit()
                 .foregroundStyle(textColor)
 
             if hasJournal {

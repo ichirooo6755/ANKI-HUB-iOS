@@ -574,13 +574,14 @@ struct TodoView: View {
                 .foregroundStyle(theme.secondaryText)
 
             Text("タスクがありません")
-                .font(.headline)
+                .font(.headline.weight(.semibold))
                 .foregroundStyle(theme.secondaryText)
 
             Button {
                 showAddSheet = true
             } label: {
                 Label("タスクを追加", systemImage: "plus")
+                    .font(.callout.weight(.semibold))
                     .padding()
                     .background(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
                     .foregroundStyle(

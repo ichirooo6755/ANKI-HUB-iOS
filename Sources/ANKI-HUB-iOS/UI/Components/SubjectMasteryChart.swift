@@ -11,7 +11,7 @@ struct SubjectMasteryChart: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("習熟度")
-                .font(.caption)
+                .font(.footnote.weight(.medium))
                 .foregroundStyle(theme.secondaryText)
 
             HStack(spacing: 16) {
@@ -36,11 +36,12 @@ struct SubjectMasteryChart: View {
                                 .fill(level.color)
                                 .frame(width: 8, height: 8)
                             Text(level.label)
-                                .font(.caption2)
+                                .font(.footnote)
                                 .foregroundStyle(theme.primaryText)
                             Spacer()
                             Text("\(count)")
-                                .font(.caption2.monospacedDigit())
+                                .font(.footnote.weight(.semibold))
+                                .monospacedDigit()
                                 .foregroundStyle(theme.primaryText)
                         }
                     }

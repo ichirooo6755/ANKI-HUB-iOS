@@ -135,7 +135,7 @@ struct BookshelfView: View {
 #if os(iOS)
                 .textInputAutocapitalization(.never)
 #endif
-                .font(.subheadline)
+                .font(.body)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -177,7 +177,7 @@ struct BookshelfView: View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
         let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
         return Text(title)
-            .font(.caption.weight(.semibold))
+            .font(.footnote.weight(.semibold))
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(isSelected ? accent : surface.opacity(0.85))
@@ -204,7 +204,7 @@ struct BookshelfView: View {
                         )
                     )
                     .frame(width: 120, height: 120)
-                
+
                 Image(systemName: "books.vertical.fill")
                     .font(.system(size: 48, weight: .medium))
                     .foregroundStyle(
@@ -218,19 +218,20 @@ struct BookshelfView: View {
                         )
                     )
             }
-            
+
             VStack(spacing: 12) {
                 Text("学習を始めましょう")
-                    .font(.title2.weight(.semibold))
+                    .font(.title3.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
-                
+                    .accessibilityAddTraits(.isHeader)
+
                 Text("教材を登録して学習記録をつければ、\nあなたの成長を可視化できます")
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundStyle(theme.secondaryText)
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
             }
-            
+
             Button {
                 showAddSheet = true
             } label: {
@@ -238,7 +239,7 @@ struct BookshelfView: View {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20, weight: .medium))
                     Text("教材を追加")
-                        .font(.headline.weight(.semibold))
+                        .font(.callout.weight(.semibold))
                 }
                 .foregroundStyle(theme.onColor(for: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)))
                 .padding(.horizontal, 24)
@@ -341,11 +342,12 @@ private struct MaterialCardView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text(formatMinutes(material.totalMinutes))
                         .font(.title3.weight(.bold))
+                        .monospacedDigit()
                         .foregroundStyle(theme.primaryText)
                 }
                 if let last = material.lastStudiedAt {
                     Text(dateString(last))
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(theme.secondaryText)
                 }
             }
@@ -380,19 +382,20 @@ private struct MaterialRecordRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(record.materialTitle)
-                    .font(.subheadline)
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
                 Text(record.note.isEmpty ? "学習記録" : record.note)
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundStyle(theme.secondaryText)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 4) {
                 Text("\(record.minutes)分")
-                    .font(.caption)
+                    .font(.footnote.weight(.semibold))
+                    .monospacedDigit()
                     .foregroundStyle(theme.primaryText)
                 Text(dateString(record.endedAt))
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundStyle(theme.secondaryText)
             }
         }
@@ -446,7 +449,7 @@ struct MaterialDetailView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     SectionHeader(title: "メモ", subtitle: nil, trailing: nil)
                                     Text(material.notes)
-                                        .font(.subheadline)
+                                        .font(.body)
                                         .foregroundStyle(theme.primaryText)
                                 }
                                 .padding(16)
@@ -476,7 +479,7 @@ struct MaterialDetailView: View {
                                 let records = manager.records(for: material.id)
                                 if records.isEmpty {
                                     Text("学習記録がまだありません")
-                                        .font(.caption)
+                                        .font(.footnote)
                                         .foregroundStyle(theme.secondaryText)
                                 } else {
                                     VStack(spacing: 10) {
@@ -625,11 +628,11 @@ private struct MaterialHeaderView: View {
                 HStack(spacing: 6) {
                     if let subject = material.subject {
                         Label(subject.displayName, systemImage: subject.icon)
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(theme.secondaryText)
                     }
                     Text(material.type.rawValue)
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(theme.secondaryText)
                 }
             }

@@ -79,9 +79,12 @@ struct PastExamAnalysisView: View {
                 
                 HStack(alignment: .bottom, spacing: 10) {
                     VStack(alignment: .leading) {
-                        Text("年度").font(.caption).foregroundStyle(theme.secondaryText)
+                        Text("年度")
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(theme.secondaryText)
                         TextField("2024", text: $inputYear)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .monospacedDigit()
                             #if os(iOS)
                             .keyboardType(.numberPad)
                             #endif
@@ -89,7 +92,9 @@ struct PastExamAnalysisView: View {
                     .frame(width: 80)
                     
                     VStack(alignment: .leading) {
-                        Text("種類").font(.caption).foregroundStyle(theme.secondaryText)
+                        Text("種類")
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(theme.secondaryText)
                         Picker("Type", selection: $inputType) {
                             ForEach(ExamResult.ExamType.allCases, id: \.self) { type in
                                 Text(type.label).tag(type)
@@ -104,16 +109,20 @@ struct PastExamAnalysisView: View {
                 
                 HStack(alignment: .bottom, spacing: 10) {
                     VStack(alignment: .leading) {
-                        Text("点数 / 満点").font(.caption).foregroundStyle(theme.secondaryText)
+                        Text("点数 / 満点")
+                            .font(.footnote.weight(.medium))
+                            .foregroundStyle(theme.secondaryText)
                         HStack {
                             TextField("点数", text: $inputScore)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .monospacedDigit()
                                 #if os(iOS)
                                 .keyboardType(.numberPad)
                                 #endif
                             Text("/")
                             TextField("満点", text: $inputTotal)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .monospacedDigit()
                                 #if os(iOS)
                                 .keyboardType(.numberPad)
                                 #endif
@@ -123,7 +132,7 @@ struct PastExamAnalysisView: View {
                     
                     Button(action: addScore) {
                         Text("記録")
-                            .fontWeight(.bold)
+                            .font(.callout.weight(.semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
                             .background(primaryColor)
@@ -134,7 +143,9 @@ struct PastExamAnalysisView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("科目/大学/学部").font(.caption).foregroundStyle(theme.secondaryText)
+                    Text("科目/大学/学部")
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(theme.secondaryText)
                     TextField("科目", text: $inputSubject)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     TextField("大学名", text: $inputUniversity)
@@ -170,6 +181,33 @@ struct PastExamAnalysisView: View {
                         )
                         .foregroundStyle(primaryColor.opacity(0.1))
                     }
+                    .chartYScale(domain: 0...100)
+                    .chartYAxisLabel("得点率", position: .leading)
+                    .chartXAxisLabel("年度")
+                    .chartYAxis {
+                        AxisMarks(position: .leading) { value in
+                            AxisGridLine()
+                                .foregroundStyle(borderColor.opacity(0.25))
+                            AxisTick()
+                            AxisValueLabel {
+                                if let percent = value.as(Double.self) {
+                                    Text("\(Int(percent))%")
+                                }
+                            }
+                            .font(.footnote)
+                            .foregroundStyle(theme.secondaryText)
+                        }
+                    }
+                    .chartXAxis {
+                        AxisMarks(values: .automatic(desiredCount: 4)) { _ in
+                            AxisGridLine()
+                                .foregroundStyle(borderColor.opacity(0.15))
+                            AxisTick()
+                            AxisValueLabel(format: .dateTime.year())
+                                .font(.footnote)
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                    }
                     .frame(height: 200)
                 }
                 .padding()
@@ -183,8 +221,8 @@ struct PastExamAnalysisView: View {
                 ForEach(manager.results.sorted(by: { $0.date > $1.date })) { res in
                     HStack {
                         Text("\(res.percent)%")
-                            .font(.title2)
-                            .fontWeight(.black)
+                            .font(.title2.weight(.bold))
+                            .monospacedDigit()
                             .foregroundColor(primaryColor)
                             .frame(width: 60, alignment: .center)
                         
@@ -200,11 +238,12 @@ struct PastExamAnalysisView: View {
                                         res.faculty.isEmpty ? nil : res.faculty,
                                     ].compactMap { $0 }.joined(separator: " ")
                                 )
-                                .font(.caption)
+                                .font(.footnote)
                                 .foregroundColor(ThemeManager.shared.secondaryText)
                             }
                             Text("\(res.score)/\(res.total)点")
-                                .font(.caption)
+                                .font(.footnote)
+                                .monospacedDigit()
                                 .foregroundColor(ThemeManager.shared.secondaryText)
                         }
                         
@@ -240,7 +279,7 @@ struct PastExamAnalysisView: View {
                 
                 Button(action: analyze) {
                     Text("分析開始")
-                        .bold()
+                        .font(.callout.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(LinearGradient(colors: [primaryColor, accentColor], startPoint: .leading, endPoint: .trailing))
@@ -296,7 +335,7 @@ struct PastExamAnalysisView: View {
                 
                 Button(action: analyzeTrend) {
                     Text("傾向を分析")
-                        .bold()
+                        .font(.callout.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(LinearGradient(colors: [masteredColor, selectionColor], startPoint: .leading, endPoint: .trailing))
@@ -345,7 +384,7 @@ struct PastExamAnalysisView: View {
                 
                 Button(action: calculatePoints) {
                     Text("計算")
-                        .bold()
+                        .font(.callout.weight(.semibold))
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(LinearGradient(colors: [accentColor, weakColor], startPoint: .leading, endPoint: .trailing))
@@ -355,6 +394,8 @@ struct PastExamAnalysisView: View {
                 
                 if !calculatedPoints.isEmpty {
                     Text(calculatedPoints)
+                        .font(.callout.weight(.semibold))
+                        .monospacedDigit()
                         .padding()
                         .frame(maxWidth: .infinity)
                         .background(Color.gray.opacity(0.1))
@@ -446,7 +487,7 @@ struct TabButton: View {
         let onColoredBackgroundText: Color = theme.onColor(for: primary)
         Button(action: { selected = id }) {
             Text(title)
-                .font(.system(size: 14, weight: .bold))
+                .font(.callout.weight(.semibold))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(selected == id ? primary : surface)
@@ -472,11 +513,11 @@ struct StatBox: View {
         let bg = theme.currentPalette.color(.surface, isDark: isDark).opacity(isDark ? 0.6 : 1.0)
         VStack {
             Text(val)
-                .font(.title2)
-                .fontWeight(.black)
+                .font(.title2.weight(.bold))
+                .monospacedDigit()
                 .foregroundColor(color == .black ? theme.primaryText : color)
             Text(label)
-                .font(.caption)
+                .font(.footnote)
                 .foregroundColor(theme.secondaryText)
         }
         .frame(maxWidth: .infinity)

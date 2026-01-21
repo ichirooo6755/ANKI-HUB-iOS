@@ -66,11 +66,12 @@ struct AuthView: View {
                     
                     VStack(spacing: 8) {
                         Text("ANKI-HUB")
-                            .font(.system(size: 40, weight: .bold, design: .default))
+                            .font(.largeTitle.weight(.bold))
                             .foregroundStyle(ThemeManager.shared.primaryText)
-                        
+                            .accessibilityAddTraits(.isHeader)
+
                         Text("Your Personal Memory Assistant")
-                            .font(.subheadline)
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(ThemeManager.shared.secondaryText)
                     }
                     .opacity(showContent ? 1 : 0)
@@ -97,7 +98,7 @@ struct AuthView: View {
                                 Image(systemName: "globe") // Placeholder for Google Icon
                                     .font(.title2)
                                 Text("Sign in with Google")
-                                    .font(.headline)
+                                    .font(.headline.weight(.semibold))
                             }
                             .foregroundStyle(theme.onColor(for: bg))
                             .frame(maxWidth: .infinity)
@@ -122,7 +123,7 @@ struct AuthView: View {
                             }
                         } label: {
                             Text("Continue as Guest")
-                                .font(.subheadline)
+                                .font(.footnote)
                                 .foregroundStyle(ThemeManager.shared.secondaryText)
                         }
                     }

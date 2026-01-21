@@ -205,10 +205,10 @@ struct ToolsGridView: View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.headline.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
                 Text(subtitle)
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundStyle(theme.secondaryText)
             }
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
