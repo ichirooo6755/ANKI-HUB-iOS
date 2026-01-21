@@ -137,7 +137,7 @@ struct FrontCameraView: View {
             } else {
                 VStack(spacing: 16) {
                     Image(systemName: "camera.viewfinder")
-                        .font(.system(size: 52))
+                        .font(.largeTitle.weight(.semibold))
                         .foregroundStyle(theme.secondaryText)
 
                     Text("カメラ権限が必要です")
@@ -175,7 +175,7 @@ struct FrontCameraView: View {
     private var unsupportedContent: some View {
         VStack(spacing: 16) {
             Image(systemName: "camera.viewfinder")
-                .font(.system(size: 52))
+                .font(.largeTitle.weight(.semibold))
                 .foregroundStyle(.secondary)
             Text("iOS端末でのみ利用できます")
                 .font(.headline)

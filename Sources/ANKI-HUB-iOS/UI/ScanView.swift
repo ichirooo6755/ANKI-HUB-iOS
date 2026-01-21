@@ -39,7 +39,7 @@ struct ScanView: View {
                     if scannedImages.isEmpty {
                         VStack(spacing: 24) {
                             Image(systemName: "doc.text.viewfinder")
-                                .font(.system(size: 80))
+                                .font(.largeTitle.weight(.semibold))
                                 .foregroundStyle(.secondary)
 
                             Text("Scan Textbooks")
@@ -233,7 +233,7 @@ struct ScanView: View {
                 #else
                     VStack(spacing: 16) {
                         Image(systemName: "doc.text.viewfinder")
-                            .font(.system(size: 60))
+                            .font(.largeTitle.weight(.semibold))
                             .foregroundStyle(.secondary)
                         Text("Scanner is available on iOS")
                             .font(.headline)

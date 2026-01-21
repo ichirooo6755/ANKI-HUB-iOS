@@ -31,7 +31,7 @@ struct PaperWordbookSyncView: View {
                 Spacer()
                 
                 Image(systemName: "book.pages.fill")
-                    .font(.system(size: 80))
+                    .font(.largeTitle.weight(.semibold))
                     .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
                 
                 Text("紙の単語帳と同期")
@@ -71,7 +71,7 @@ struct PaperWordbookSyncView: View {
                     }
                     
                     Text("範囲指定: 1-10 / 複数指定: 1,2,5,7")
-                        .font(.caption)
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal)
@@ -82,11 +82,12 @@ struct PaperWordbookSyncView: View {
                         HStack {
                             Text("同期済み: \(syncedWords.count)語")
                                 .font(.headline)
+                                .monospacedDigit()
                             Spacer()
                             Button("単語帳に追加") {
                                 addAllToWordbook()
                             }
-                            .font(.subheadline)
+                            .font(.callout.weight(.semibold))
                             .foregroundStyle(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
                         }
                         
@@ -95,7 +96,8 @@ struct PaperWordbookSyncView: View {
                                 ForEach(syncedWords) { word in
                                     HStack {
                                         Text("#\(word.number)")
-                                            .font(.caption)
+                                            .font(.footnote.weight(.medium))
+                                            .monospacedDigit()
                                             .foregroundStyle(.secondary)
                                             .frame(width: 40, alignment: .leading)
                                         Text(word.term)

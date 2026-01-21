@@ -11,6 +11,7 @@ struct DashboardView: View {
     @AppStorage("anki_hub_target_start_timestamp_v1") private var targetStartTimestamp: Double = 0
     @AppStorage("anki_hub_target_study_minutes_v1") private var targetStudyMinutes: Int = 600
     @State private var showReviewPrompt: Bool = false
+    @ScaledMetric private var quickIconSize: CGFloat = 40
 
     private enum Destination: Hashable {
         case weak
@@ -152,9 +153,9 @@ struct DashboardView: View {
                                         ZStack {
                                             Circle()
                                                 .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.18))
-                                                .frame(width: 40, height: 40)
+                                                .frame(width: quickIconSize, height: quickIconSize)
                                             Image(systemName: "clock.badge.exclamationmark")
-                                                .font(.system(size: 20, weight: .semibold))
+                                                .font(.callout.weight(.semibold))
                                                 .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                         }
                                     }
@@ -198,9 +199,9 @@ struct DashboardView: View {
                                     ZStack {
                                         Circle()
                                             .fill(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.18))
-                                            .frame(width: 40, height: 40)
+                                            .frame(width: quickIconSize, height: quickIconSize)
                                         Image(systemName: "sparkles")
-                                            .font(.system(size: 20, weight: .semibold))
+                                            .font(.callout.weight(.semibold))
                                             .foregroundStyle(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
@@ -243,9 +244,9 @@ struct DashboardView: View {
                                         ZStack {
                                             Circle()
                                                 .fill(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.18))
-                                                .frame(width: 40, height: 40)
+                                                .frame(width: quickIconSize, height: quickIconSize)
                                             Image(systemName: "exclamationmark.triangle.fill")
-                                                .font(.system(size: 20, weight: .semibold))
+                                                .font(.callout.weight(.semibold))
                                                 .foregroundStyle(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark))
                                         }
                                     }
@@ -329,9 +330,9 @@ struct DashboardView: View {
                                     ZStack {
                                         Circle()
                                             .fill(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.18))
-                                            .frame(width: 40, height: 40)
+                                            .frame(width: quickIconSize, height: quickIconSize)
                                         Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 20, weight: .semibold))
+                                            .font(.callout.weight(.semibold))
                                             .foregroundStyle(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
@@ -375,9 +376,9 @@ struct DashboardView: View {
                                     ZStack {
                                         Circle()
                                             .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.18))
-                                            .frame(width: 40, height: 40)
+                                            .frame(width: quickIconSize, height: quickIconSize)
                                         Image(systemName: "doc.text")
-                                            .font(.system(size: 20, weight: .semibold))
+                                            .font(.callout.weight(.semibold))
                                             .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
@@ -421,9 +422,9 @@ struct DashboardView: View {
                                     ZStack {
                                         Circle()
                                             .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.18))
-                                            .frame(width: 40, height: 40)
+                                            .frame(width: quickIconSize, height: quickIconSize)
                                         Image(systemName: "stopwatch.fill")
-                                            .font(.system(size: 20, weight: .semibold))
+                                            .font(.callout.weight(.semibold))
                                             .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
@@ -470,9 +471,9 @@ struct DashboardView: View {
                                     ZStack {
                                         Circle()
                                             .fill(mirrorColor.opacity(0.18))
-                                            .frame(width: 40, height: 40)
+                                            .frame(width: quickIconSize, height: quickIconSize)
                                         Image(systemName: "camera.fill")
-                                            .font(.system(size: 20, weight: .semibold))
+                                            .font(.callout.weight(.semibold))
                                             .foregroundStyle(mirrorColor)
                                     }
                                 }

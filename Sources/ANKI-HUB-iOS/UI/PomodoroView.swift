@@ -347,7 +347,7 @@ struct TimerView: View {
                     Circle()
                         .fill(fill)
                     Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(ringColor)
                 }
                 .frame(width: 42, height: 42)
@@ -373,6 +373,7 @@ struct TimerView: View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
         let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
         let dialSize: CGFloat = isCompact ? 250 : 290
+        let timeFont: Font = isCompact ? .title : .largeTitle
 
         return VStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
@@ -424,7 +425,7 @@ struct TimerView: View {
                             ? "+\(timeString(from: overtimeSeconds))"
                             : timeString(from: timeRemaining)
                     )
-                    .font(.system(size: isCompact ? 52 : 64, weight: .thin, design: .default))
+                    .font(timeFont.weight(.thin))
                     .foregroundStyle(theme.primaryText)
                     .contentTransition(.numericText())
                     .monospacedDigit()
@@ -467,6 +468,7 @@ struct TimerView: View {
             VStack(spacing: 16) {
                 let sideSize: CGFloat = isCompact ? 46 : 52
                 let mainSize: CGFloat = isCompact ? 82 : 96
+                let mainControlFont: Font = isCompact ? .title3 : .title2
 
                 HStack(spacing: 16) {
                     Button {
@@ -484,7 +486,7 @@ struct TimerView: View {
                     } label: {
                         let bg = accent
                         Image(systemName: isActive ? "pause.fill" : "play.fill")
-                            .font(.system(size: isCompact ? 26 : 30, weight: .semibold))
+                            .font(mainControlFont.weight(.semibold))
                             .foregroundStyle(theme.onColor(for: bg))
                             .frame(width: mainSize, height: mainSize)
                             .background(bg)
@@ -589,7 +591,7 @@ struct TimerView: View {
 
                 VStack {
                     Text(stopwatchString(from: stopwatchTime))
-                        .font(.system(size: 52, weight: .thin, design: .default))
+                        .font(.largeTitle.weight(.thin))
                         .contentTransition(.numericText())
                         .monospacedDigit()
 

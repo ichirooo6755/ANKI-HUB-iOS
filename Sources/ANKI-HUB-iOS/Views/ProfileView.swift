@@ -19,7 +19,7 @@ struct ProfileView: View {
                 Section {
                     HStack(spacing: 16) {
                         Image(systemName: "person.circle.fill")
-                            .font(.system(size: 60))
+                            .font(.largeTitle.weight(.semibold))
                             .foregroundColor(themeManager.color(.primary, scheme: colorScheme))
                         
                         VStack(alignment: .leading, spacing: 4) {
@@ -30,7 +30,7 @@ struct ProfileView: View {
                                 .foregroundStyle(themeManager.secondaryText)
                             if authManager.currentUser != nil {
                                 Text(authManager.isInvited ? "プレミアム" : "無料プラン")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.medium))
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 2)
                                     .background((authManager.isInvited ? themeManager.color(.mastered, scheme: colorScheme) : themeManager.color(.border, scheme: colorScheme)).opacity(0.2))
@@ -116,7 +116,7 @@ struct ProfileView: View {
                                 Spacer()
                                 if !syncStatus.isEmpty {
                                     Text(syncStatus)
-                                        .font(.caption)
+                                        .font(.footnote)
                                         .foregroundStyle(.secondary)
                                 }
                             }

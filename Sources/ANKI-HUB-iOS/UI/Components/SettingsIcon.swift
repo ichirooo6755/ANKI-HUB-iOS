@@ -8,7 +8,7 @@ struct SettingsIcon: View {
     var body: some View {
         Image(systemName: icon)
             .foregroundStyle(foregroundColor)
-            .font(.system(size: 16))
+            .font(.callout.weight(.semibold))
             .frame(width: 28, height: 28)
             .background(color)
             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))

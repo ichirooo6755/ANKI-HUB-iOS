@@ -34,7 +34,7 @@ struct QuizCaptureView: View {
             Spacer()
             
             Image(systemName: "camera.viewfinder")
-                .font(.system(size: 80))
+                .font(.largeTitle.weight(.semibold))
                 .foregroundStyle(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
             
             Text("写真から単語を抽出")

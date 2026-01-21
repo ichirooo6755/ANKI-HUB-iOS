@@ -39,7 +39,7 @@ struct AppCalendarView: View {
                         .fill(accent.opacity(0.2))
                         .frame(width: 36, height: 36)
                     Image(systemName: "calendar")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(accent)
                 }
                 VStack(alignment: .leading, spacing: 2) {
@@ -57,7 +57,7 @@ struct AppCalendarView: View {
                         monthOffset -= 1
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.caption.weight(.semibold))
+                            .font(.footnote.weight(.semibold))
                             .foregroundStyle(accent)
                             .frame(width: 30, height: 30)
                             .background(accent.opacity(0.12))
@@ -78,7 +78,7 @@ struct AppCalendarView: View {
                         monthOffset += 1
                     } label: {
                         Image(systemName: "chevron.right")
-                            .font(.caption.weight(.semibold))
+                            .font(.footnote.weight(.semibold))
                             .foregroundStyle(accent)
                             .frame(width: 30, height: 30)
                             .background(accent.opacity(0.12))
@@ -95,7 +95,7 @@ struct AppCalendarView: View {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 6) {
                 ForEach(weekdays, id: \.self) { weekday in
                     Text(weekday)
-                        .font(.caption.weight(.medium))
+                        .font(.footnote.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                         .frame(maxWidth: .infinity)
                 }
@@ -192,7 +192,7 @@ struct AppCalendarView: View {
                         .fill(accent.opacity(0.2))
                         .frame(width: 36, height: 36)
                     Image(systemName: "calendar")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(accent)
                 }
                 VStack(alignment: .leading, spacing: 2) {
@@ -210,7 +210,7 @@ struct AppCalendarView: View {
             if stats.dailyHistory.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "calendar.badge.plus")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(accent)
                     Text("まだ学習記録がありません")
                         .font(.headline.weight(.semibold))
@@ -270,7 +270,7 @@ struct AppCalendarView: View {
                     Spacer()
                     HStack(spacing: 4) {
                         Text("少")
-                            .font(.caption.weight(.medium))
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                         ForEach(0..<4) { level in
                             RoundedRectangle(cornerRadius: 3, style: .continuous)
@@ -278,7 +278,7 @@ struct AppCalendarView: View {
                                 .frame(width: 12, height: 12)
                         }
                         Text("多")
-                            .font(.caption.weight(.medium))
+                            .font(.footnote.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                     }
                 }

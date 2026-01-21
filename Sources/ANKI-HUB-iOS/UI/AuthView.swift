@@ -50,7 +50,7 @@ struct AuthView: View {
                 // Icon & Title
                 VStack(spacing: 20) {
                     Image(systemName: "book.pages.fill")
-                        .font(.system(size: 80))
+                        .font(.largeTitle.weight(.semibold))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [

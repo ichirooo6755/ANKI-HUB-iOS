@@ -129,7 +129,7 @@ struct BookshelfView: View {
     private var searchBar: some View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 16, weight: .medium))
+                .font(.callout.weight(.semibold))
                 .foregroundStyle(theme.secondaryText)
             TextField("教材を検索", text: $searchText)
 #if os(iOS)
@@ -206,7 +206,7 @@ struct BookshelfView: View {
                     .frame(width: 120, height: 120)
 
                 Image(systemName: "books.vertical.fill")
-                    .font(.system(size: 48, weight: .medium))
+                    .font(.largeTitle.weight(.semibold))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [
@@ -237,7 +237,7 @@ struct BookshelfView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 20, weight: .medium))
+                        .font(.callout.weight(.semibold))
                     Text("教材を追加")
                         .font(.callout.weight(.semibold))
                 }
@@ -319,7 +319,7 @@ private struct MaterialCardView: View {
                     .fill(accent.opacity(0.25))
                     .frame(width: 52, height: 52)
                 Image(systemName: material.type.icon)
-                    .font(.system(size: 24, weight: .medium))
+                    .font(.title3.weight(.semibold))
                     .foregroundStyle(accent)
             }
 
@@ -610,12 +610,12 @@ private struct MaterialHeaderView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 } else {
                     Image(systemName: material.type.icon)
-                        .font(.system(size: 34))
+                        .font(.title2.weight(.semibold))
                         .foregroundStyle(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
                 }
 #else
                 Image(systemName: material.type.icon)
-                    .font(.system(size: 34))
+                    .font(.title2.weight(.semibold))
                     .foregroundStyle(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
 #endif
             }

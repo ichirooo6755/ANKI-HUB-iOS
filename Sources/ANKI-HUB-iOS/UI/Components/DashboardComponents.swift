@@ -19,7 +19,7 @@ struct StatCard: View {
                         .fill(color.opacity(0.16))
                         .frame(width: 32, height: 32)
                     Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(color)
                 }
                 Text(title)
@@ -63,7 +63,7 @@ struct SubjectCard: View {
                     .fill(subject.color.opacity(0.2))
                     .frame(width: 72, height: 72)
                 Image(systemName: subject.icon)
-                    .font(.system(size: 32, weight: .semibold))
+                    .font(.title.weight(.semibold))
                     .foregroundColor(subject.color)
             }
             
@@ -111,7 +111,7 @@ struct ToolCard: View {
                     .fill(color.opacity(0.18))
                     .frame(width: 54, height: 54)
                 Image(systemName: icon)
-                    .font(.system(size: 24, weight: .semibold))
+                    .font(.title3.weight(.semibold))
                     .foregroundColor(color)
             }
             Text(title)

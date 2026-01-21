@@ -2,7 +2,6 @@ import SwiftUI
 
 struct KanbunVerticalView: View {
     let text: String
-    let fontSize: CGFloat = 24
     
     // Simple vertical text implementation
     // Splits text into lines and arranges them horizontally (RTL)
@@ -13,7 +12,8 @@ struct KanbunVerticalView: View {
                 VStack(spacing: 2) {
                     ForEach(Array(line.enumerated()), id: \.offset) { _, char in
                         Text(String(char))
-                            .font(.system(size: fontSize, design: .serif))
+                            .font(.title3)
+                            .fontDesign(.serif)
                             .padding(.vertical, -2)
                             .foregroundColor(ThemeManager.shared.primaryText)
                     }

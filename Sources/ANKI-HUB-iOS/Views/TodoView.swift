@@ -570,7 +570,7 @@ struct TodoView: View {
     private var emptyStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "list.bullet.clipboard")
-                .font(.system(size: 60))
+                .font(.largeTitle.weight(.semibold))
                 .foregroundStyle(theme.secondaryText)
 
             Text("タスクがありません")

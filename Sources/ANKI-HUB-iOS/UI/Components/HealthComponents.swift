@@ -49,7 +49,7 @@ struct HealthMetricCard: View {
                         .fill(color.opacity(0.2))
                         .frame(width: 34, height: 34)
                     Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(color)
                 }
                 Text(title)

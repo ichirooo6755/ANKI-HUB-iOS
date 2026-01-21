@@ -515,11 +515,13 @@ struct InputModeSessionView: View {
             Spacer()
 
             Text(selectedSubject.displayName)
-                .font(.caption)
+                .font(.footnote.weight(.medium))
                 .padding(6)
                 .liquidGlass()
 
             Text("\(min(currentIndex + 1, max(1, words.count))) / \(words.count)")
+                .font(.footnote.weight(.semibold))
+                .monospacedDigit()
         }
     }
 
@@ -528,7 +530,7 @@ struct InputModeSessionView: View {
             ProgressView(value: timeRemaining)
                 .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
             Text("タイムリミット")
-                .font(.caption)
+                .font(.footnote.weight(.medium))
                 .foregroundStyle(theme.secondaryText)
         }
         .padding(.horizontal)
@@ -540,7 +542,7 @@ struct InputModeSessionView: View {
 
         return VStack(spacing: 24) {
             Text(word.term)
-                .font(.system(size: 40, weight: .bold))
+                .font(.title.weight(.bold))
 
             Text(word.meaning)
                 .font(.title3)
@@ -551,7 +553,7 @@ struct InputModeSessionView: View {
                 Button(action: { onProcessDay1(false) }) {
                     VStack(spacing: 8) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 48))
+                            .font(.largeTitle.weight(.semibold))
                             .foregroundStyle(danger)
                         Text("わからない")
                             .foregroundStyle(theme.primaryText)
@@ -561,7 +563,7 @@ struct InputModeSessionView: View {
                 Button(action: { onProcessDay1(true) }) {
                     VStack(spacing: 8) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 48))
+                            .font(.largeTitle.weight(.semibold))
                             .foregroundStyle(ok)
                         Text("わかる")
                             .foregroundStyle(theme.primaryText)
@@ -612,7 +614,7 @@ struct InputModeSessionView: View {
         return VStack(spacing: 16) {
             VStack(spacing: 12) {
                 Text(word.term)
-                    .font(.system(size: 36, weight: .bold))
+                    .font(.title2.weight(.bold))
 
                 if showDay3Answer {
                     VStack(spacing: 8) {
@@ -651,7 +653,7 @@ struct InputModeSessionView: View {
                     Image(systemName: "mic.fill")
                         .foregroundStyle(accent)
                     Text("音声入力で発音確認")
-                        .font(.caption)
+                        .font(.footnote.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                 }
 
@@ -667,7 +669,7 @@ struct InputModeSessionView: View {
                     HStack(spacing: 8) {
                         ProgressView()
                         Text("録音中...")
-                            .font(.caption)
+                            .font(.footnote)
                             .foregroundStyle(theme.secondaryText)
                     }
                 }
@@ -746,14 +748,14 @@ struct InputResultView: View {
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
         VStack(spacing: 30) {
             Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 80))
+                .font(.largeTitle.weight(.semibold))
                 .foregroundColor(primary)
 
             Text("\(day)日目 完了！")
-                .font(.title)
-                .bold()
+                .font(.title2.weight(.bold))
 
             Text("\(count)語を処理しました")
+                .monospacedDigit()
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 20) {

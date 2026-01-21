@@ -195,7 +195,7 @@ struct CardContent: View {
         let secondary = theme.secondaryText
         VStack(spacing: 20) {
             Text(isFront ? "問題" : "答え")
-                .font(.caption)
+                .font(.footnote)
                 .foregroundColor(secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
@@ -213,15 +213,14 @@ struct CardContent: View {
                         .fill(danger)
                         .overlay(
                             Text("タップで表示")
-                                .font(.caption)
-                                .fontWeight(.black)
+                                .font(.footnote.weight(.semibold))
                                 .foregroundColor(.white.opacity(0.8))
                         )
                         .frame(height: 100)
                         .cornerRadius(8)
                 } else {
                     Text(text)
-                        .font(.system(size: isFront ? 40 : 30, weight: .bold))
+                        .font(isFront ? .title.weight(.bold) : .title2.weight(.bold))
                         .multilineTextAlignment(.center)
                         .lineSpacing(isFront ? 2 : 4)
                         .minimumScaleFactor(0.6)
@@ -242,7 +241,7 @@ struct CardContent: View {
             Spacer()
             
             Text(isFront ? "タップで答えを表示" : "")
-                .font(.caption)
+                .font(.footnote)
                 .foregroundColor(secondary)
         }
         .padding(24)

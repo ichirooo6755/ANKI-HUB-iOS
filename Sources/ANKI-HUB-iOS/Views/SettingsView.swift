@@ -194,7 +194,7 @@ struct SettingsView: View {
             if let user = authManager.currentUser {
                 HStack(spacing: 16) {
                     Image(systemName: "person.circle.fill")
-                        .font(.system(size: 50))
+                        .font(.title.weight(.semibold))
                         .foregroundStyle(themeManager.color(.primary, scheme: colorScheme))
 
                     VStack(alignment: .leading, spacing: 4) {
@@ -203,12 +203,12 @@ struct SettingsView: View {
                         HStack {
                             if authManager.isInvited {
                                 Label("プレミアム", systemImage: "checkmark.seal.fill")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.medium))
                                     .foregroundStyle(
                                         themeManager.color(.mastered, scheme: colorScheme))
                             } else {
                                 Text("無料プラン")
-                                    .font(.caption)
+                                    .font(.footnote.weight(.medium))
                                     .foregroundStyle(themeManager.secondaryText)
                             }
                         }
