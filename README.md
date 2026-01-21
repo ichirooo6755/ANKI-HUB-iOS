@@ -187,6 +187,7 @@ open ANKI-HUB-iOS.xcodeproj
 |------|------|--------|
 | 学習画面のカードテキストが薄くて見えない | liquidGlass透明度が高すぎ | 背景不透明度を上げ、SubjectCard/ToolCardをソリッド背景に変更 |
 | ダーク/ライトがコンテナごとに混在して見える | Form/Listのシステム背景がテーマ背景と混ざる | `applyAppTheme`で`scrollContentBackground(.hidden)`+テーマ背景を適用して統一 |
+| タブ導線の配置が画面によってズレる | `ContentView`と`MainTabView`でタブ構成が二重管理 | `ContentView`を`MainTabView`への委譲に統一 |
 
 ### 機能追加
 

@@ -225,31 +225,9 @@ struct MasteryPieChart: View {
     var body: some View {
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
         let safeIndex = min(selectedPage, max(pages.count - 1, 0))
-        let currentData = masteryData(for: pages[safeIndex])
-        return ReportCard(accent: accent) {
-            HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(accent.opacity(0.2))
-                        .frame(width: 34, height: 34)
-                    Image(systemName: "chart.pie.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(accent)
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("習熟度")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(theme.primaryText)
-                    Text("スワイプで科目を切替")
-                        .font(.caption)
-                        .foregroundStyle(theme.secondaryText)
-                }
-                Spacer()
-                Image(systemName: "arrow.left.and.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(theme.secondaryText)
-            }
-
+        let currentPage = pages[safeIndex]
+        let currentData = masteryData(for: currentPage)
+        return VStack(alignment: .leading, spacing: 16) {
             TabView(selection: $selectedPage) {
                 ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
                     let data = masteryData(for: page)
@@ -261,7 +239,7 @@ struct MasteryPieChart: View {
                                 ZStack {
                                     Circle()
                                         .stroke(accent.opacity(0.2), lineWidth: 12)
-                                        .frame(width: 120, height: 120)
+                                        .frame(width: 140, height: 140)
                                     Image(systemName: "sparkles")
                                         .font(.system(size: 22, weight: .semibold))
                                         .foregroundStyle(accent)
@@ -274,7 +252,7 @@ struct MasteryPieChart: View {
                                     .foregroundStyle(theme.secondaryText)
                                     .multilineTextAlignment(.center)
                             }
-                            .frame(height: 200)
+                            .frame(height: 240)
                         } else {
                             Chart(data) { item in
                                 SectorMark(
@@ -285,14 +263,14 @@ struct MasteryPieChart: View {
                                 .foregroundStyle(item.level.color)
                                 .cornerRadius(5)
                             }
-                            .frame(height: 200)
+                            .frame(height: 240)
                             .chartOverlay { _ in
                                 VStack(spacing: 4) {
                                     Text("覚えた")
                                         .font(.caption)
                                         .foregroundStyle(theme.secondaryText)
                                     Text("\(totalMastered)")
-                                        .font(.system(.title, design: .rounded).weight(.bold))
+                                        .font(.system(.title, design: .default).weight(.bold))
                                         .minimumScaleFactor(0.5)
                                         .lineLimit(1)
                                         .foregroundStyle(theme.primaryText)
@@ -300,20 +278,26 @@ struct MasteryPieChart: View {
                                 .padding(.horizontal, 10)
                             }
                         }
-
-                        Text(page.subject?.displayName ?? "総合")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(theme.secondaryText)
                     }
                     .tag(index)
                 }
             }
-            .frame(height: 240)
+            .frame(height: 300)
             #if os(iOS)
-                .tabViewStyle(.page(indexDisplayMode: .automatic))
+                .tabViewStyle(.page(indexDisplayMode: .never))
             #else
                 .tabViewStyle(.automatic)
             #endif
+
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text(currentPage.subject?.displayName ?? "総合")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(theme.primaryText)
+                Spacer()
+                Text("左右スワイプで科目切替")
+                    .font(.caption2)
+                    .foregroundStyle(theme.secondaryText)
+            }
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 ForEach(MasteryLevel.allCases, id: \.self) { level in
@@ -428,27 +412,7 @@ struct WeeklyActivityChart: View {
     var body: some View {
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
         let isEmpty = weeklyData.allSatisfy { $0.words == 0 }
-        return ReportCard(accent: primary) {
-            HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(primary.opacity(0.2))
-                        .frame(width: 34, height: 34)
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(primary)
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("週間推移")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(theme.primaryText)
-                    Text("単語数の伸び")
-                        .font(.caption)
-                        .foregroundStyle(theme.secondaryText)
-                }
-                Spacer()
-            }
-
+        return VStack(alignment: .leading, spacing: 12) {
             if isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "chart.line.uptrend.xyaxis")
@@ -463,7 +427,7 @@ struct WeeklyActivityChart: View {
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, 12)
             } else {
                 Chart(weeklyData, id: \.day) { item in
                     LineMark(
@@ -492,7 +456,7 @@ struct WeeklyActivityChart: View {
                     )
                     .foregroundStyle(primary)
                 }
-                .frame(height: 180)
+                .frame(height: 220)
             }
         }
     }
@@ -533,27 +497,7 @@ struct SubjectStrengthChart: View {
         let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
         let isEmpty = subjectStrength.allSatisfy { $0.score == 0 }
-        return ReportCard(accent: mastered) {
-            HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(mastered.opacity(0.2))
-                        .frame(width: 34, height: 34)
-                    Image(systemName: "chart.bar.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(mastered)
-                }
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("科目別")
-                        .font(.headline.weight(.bold))
-                        .foregroundStyle(theme.primaryText)
-                    Text("習得率の比較")
-                        .font(.caption)
-                        .foregroundStyle(theme.secondaryText)
-                }
-                Spacer()
-            }
-
+        return VStack(alignment: .leading, spacing: 12) {
             if isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "chart.bar.xaxis")
@@ -568,7 +512,7 @@ struct SubjectStrengthChart: View {
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, 12)
             } else {
                 Chart(subjectStrength, id: \.subject) { item in
                     BarMark(
@@ -584,46 +528,10 @@ struct SubjectStrengthChart: View {
                     )
                     .cornerRadius(8)
                 }
-                .frame(height: 200)
+                .frame(height: 220)
                 .chartYScale(domain: 0...100)
             }
         }
-    }
-}
-
-private struct ReportCard<Content: View>: View {
-    let accent: Color
-    let content: Content
-
-    @ObservedObject private var theme = ThemeManager.shared
-
-    init(accent: Color, @ViewBuilder content: () -> Content) {
-        self.accent = accent
-        self.content = content()
-    }
-
-    var body: some View {
-        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-        let highlight = theme.currentPalette.color(.background, isDark: theme.effectiveIsDark)
-        return VStack(alignment: .leading, spacing: 16) {
-            content
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [surface.opacity(0.98), highlight.opacity(0.92)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(accent.opacity(0.25), lineWidth: 1)
-        )
-        .shadow(color: accent.opacity(0.12), radius: 8, x: 0, y: 4)
     }
 }
 

@@ -66,7 +66,7 @@ struct AuthView: View {
                     
                     VStack(spacing: 8) {
                         Text("ANKI-HUB")
-                            .font(.system(size: 40, weight: .bold, design: .rounded))
+                            .font(.system(size: 40, weight: .bold, design: .default))
                             .foregroundStyle(ThemeManager.shared.primaryText)
                         
                         Text("Your Personal Memory Assistant")

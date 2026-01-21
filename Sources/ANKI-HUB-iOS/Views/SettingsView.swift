@@ -23,6 +23,7 @@ struct SettingsView: View {
     @AppStorage("anki_hub_widget_mistake_count_v1") private var widgetMistakeCount: Int = 3
     @AppStorage("anki_hub_widget_show_todo_v1") private var widgetShowTodo: Bool = false
     @AppStorage("anki_hub_widget_todo_count_v1") private var widgetTodoCount: Int = 2
+    @AppStorage("anki_hub_widget_show_calendar_v1") private var widgetShowCalendar: Bool = false
     @AppStorage("anki_hub_widget_style_v1") private var widgetStyle: String = "system"
     @AppStorage("anki_hub_widget_timer_minutes_v1") private var widgetTimerMinutes: Int = 25
 
@@ -182,6 +183,7 @@ struct SettingsView: View {
         defaults?.set(widgetMistakeCount, forKey: "anki_hub_widget_mistake_count_v1")
         defaults?.set(widgetShowTodo, forKey: "anki_hub_widget_show_todo_v1")
         defaults?.set(widgetTodoCount, forKey: "anki_hub_widget_todo_count_v1")
+        defaults?.set(widgetShowCalendar, forKey: "anki_hub_widget_show_calendar_v1")
         defaults?.set(widgetStyle, forKey: "anki_hub_widget_style_v1")
         defaults?.set(widgetTimerMinutes, forKey: "anki_hub_widget_timer_minutes_v1")
     }
@@ -815,6 +817,7 @@ struct WidgetSettingsView: View {
     @AppStorage("anki_hub_widget_mistake_count_v1") private var widgetMistakeCount: Int = 3
     @AppStorage("anki_hub_widget_show_todo_v1") private var widgetShowTodo: Bool = false
     @AppStorage("anki_hub_widget_todo_count_v1") private var widgetTodoCount: Int = 2
+    @AppStorage("anki_hub_widget_show_calendar_v1") private var widgetShowCalendar: Bool = false
     @AppStorage("anki_hub_widget_style_v1") private var widgetStyle: String = "system"
     @AppStorage("anki_hub_widget_timer_minutes_v1") private var widgetTimerMinutes: Int = 25
 
@@ -843,6 +846,10 @@ struct WidgetSettingsView: View {
 
                 Toggle(isOn: $widgetShowMistakes) {
                     Text("間違えた単語")
+                }
+
+                Toggle(isOn: $widgetShowCalendar) {
+                    Text("カレンダー")
                 }
 
                 Picker("間違えた単語の表示数", selection: $widgetMistakeCount) {
@@ -901,6 +908,9 @@ struct WidgetSettingsView: View {
         .onChange(of: widgetShowMistakes) { _, _ in
             onWidgetSettingsChanged()
         }
+        .onChange(of: widgetShowCalendar) { _, _ in
+            onWidgetSettingsChanged()
+        }
         .onChange(of: widgetMistakeCount) { _, _ in
             onWidgetSettingsChanged()
         }
@@ -934,6 +944,7 @@ struct WidgetSettingsView: View {
         defaults?.set(widgetMistakeCount, forKey: "anki_hub_widget_mistake_count_v1")
         defaults?.set(widgetShowTodo, forKey: "anki_hub_widget_show_todo_v1")
         defaults?.set(widgetTodoCount, forKey: "anki_hub_widget_todo_count_v1")
+        defaults?.set(widgetShowCalendar, forKey: "anki_hub_widget_show_calendar_v1")
         defaults?.set(widgetStyle, forKey: "anki_hub_widget_style_v1")
         defaults?.set(widgetTimerMinutes, forKey: "anki_hub_widget_timer_minutes_v1")
     }

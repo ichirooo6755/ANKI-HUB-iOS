@@ -1793,7 +1793,7 @@ struct QuizView: View {
 
                 // Score
                 Text("\(accuracy)%")
-                    .font(.system(size: 64, weight: .bold, design: .rounded))
+                    .font(.system(size: 64, weight: .bold, design: .default))
                     .foregroundStyle(accuracy >= 80 ? .green : accuracy >= 60 ? .blue : .orange)
 
                 Text(accuracy >= 80 ? "素晴らしい！" : accuracy >= 60 ? "よくできました！" : "もう少し頑張ろう！")

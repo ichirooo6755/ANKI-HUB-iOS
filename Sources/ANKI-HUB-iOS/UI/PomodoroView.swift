@@ -424,7 +424,7 @@ struct TimerView: View {
                             ? "+\(timeString(from: overtimeSeconds))"
                             : timeString(from: timeRemaining)
                     )
-                    .font(.system(size: isCompact ? 52 : 64, weight: .thin, design: .rounded))
+                    .font(.system(size: isCompact ? 52 : 64, weight: .thin, design: .default))
                     .foregroundStyle(theme.primaryText)
                     .contentTransition(.numericText())
                     .monospacedDigit()
@@ -589,7 +589,7 @@ struct TimerView: View {
 
                 VStack {
                     Text(stopwatchString(from: stopwatchTime))
-                        .font(.system(size: 52, weight: .thin, design: .rounded))
+                        .font(.system(size: 52, weight: .thin, design: .default))
                         .contentTransition(.numericText())
                         .monospacedDigit()
 

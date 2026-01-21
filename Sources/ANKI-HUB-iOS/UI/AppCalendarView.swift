@@ -35,19 +35,19 @@ struct AppCalendarView: View {
         return VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    Circle()
                         .fill(accent.opacity(0.2))
-                        .frame(width: 34, height: 34)
-                    Image(systemName: "calendar.circle.fill")
-                        .font(.system(size: 16, weight: .semibold))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: "calendar")
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(accent)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("月間カレンダー")
-                        .font(.headline.weight(.bold))
+                        .font(.title3.weight(.bold))
                         .foregroundStyle(theme.primaryText)
                     Text("学習記録がある日を可視化")
-                        .font(.caption)
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                 }
                 Spacer()
@@ -57,10 +57,14 @@ struct AppCalendarView: View {
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(theme.primaryText)
-                            .frame(width: 28, height: 28)
-                            .background(accent.opacity(0.15))
+                            .foregroundStyle(accent)
+                            .frame(width: 30, height: 30)
+                            .background(accent.opacity(0.12))
                             .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(accent.opacity(0.25), lineWidth: 1)
+                            )
                     }
                     .buttonStyle(.plain)
 
@@ -73,10 +77,14 @@ struct AppCalendarView: View {
                     } label: {
                         Image(systemName: "chevron.right")
                             .font(.caption.weight(.semibold))
-                            .foregroundStyle(theme.primaryText)
-                            .frame(width: 28, height: 28)
-                            .background(accent.opacity(0.15))
+                            .foregroundStyle(accent)
+                            .frame(width: 30, height: 30)
+                            .background(accent.opacity(0.12))
                             .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(accent.opacity(0.25), lineWidth: 1)
+                            )
                     }
                     .buttonStyle(.plain)
                 }
@@ -178,19 +186,19 @@ struct AppCalendarView: View {
         return VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    Circle()
                         .fill(accent.opacity(0.2))
-                        .frame(width: 34, height: 34)
+                        .frame(width: 36, height: 36)
                     Image(systemName: "calendar")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(accent)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("学習履歴")
-                        .font(.headline.weight(.bold))
+                        .font(.title3.weight(.bold))
                         .foregroundStyle(theme.primaryText)
                     Text("直近3週間の記録")
-                        .font(.caption)
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                 }
                 Spacer()
@@ -219,8 +227,18 @@ struct AppCalendarView: View {
                         .foregroundStyle(theme.onColor(for: accent))
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(accent)
+                        .background(
+                            LinearGradient(
+                                colors: [accent.opacity(0.95), accent.opacity(0.75)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                         .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(accent.opacity(0.35), lineWidth: 1)
+                        )
                     }
                     .buttonStyle(.plain)
                 }
@@ -366,9 +384,9 @@ struct AppCalendarView: View {
         case 1:
             return accent.opacity(0.25)
         case 2:
-            return accent.opacity(0.5)
+            return accent.opacity(0.55)
         case 3:
-            return accent.opacity(0.85)
+            return accent.opacity(0.9)
         default:
             return surface.opacity(0.4)
         }

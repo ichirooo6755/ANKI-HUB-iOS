@@ -33,43 +33,9 @@ struct StudyView: View {
                             }
                         }
 
-                        VStack(alignment: .leading, spacing: 15) {
-                            SectionHeader(title: "ツール", subtitle: "学習を支える機能", trailing: nil)
-
+                        VStack(alignment: .leading, spacing: 16) {
+                            SectionHeader(title: "ツール", subtitle: "目的別に整理", trailing: nil)
                             ToolsGridView()
-
-                            NavigationLink(destination: PastExamAnalysisView()) {
-                                HStack(spacing: 12) {
-                                    let bg = theme.currentPalette.color(
-                                        .primary, isDark: theme.effectiveIsDark)
-                                    ZStack {
-                                        Circle()
-                                            .fill(bg.opacity(0.18))
-                                            .frame(width: 46, height: 46)
-                                        Image(systemName: "chart.xyaxis.line")
-                                            .foregroundStyle(bg)
-                                    }
-
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("過去問解析")
-                                            .font(.headline)
-                                            .foregroundStyle(theme.primaryText)
-                                        Text("スコア管理・傾向分析")
-                                            .font(.caption)
-                                            .foregroundStyle(theme.secondaryText)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .foregroundStyle(theme.secondaryText)
-                                }
-                                .padding(16)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
-                                        .opacity(theme.effectiveIsDark ? 0.95 : 0.98)
-                                )
-                            }
-                            .buttonStyle(.plain)
                         }
                         .padding(.bottom, 20)
                     }
@@ -182,37 +148,71 @@ struct KobunStudyMenuView: View {
 }
 
 struct ToolsGridView: View {
+    @ObservedObject private var theme = ThemeManager.shared
+
     var body: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            NavigationLink(destination: WordbookView()) {
-                ToolCard(icon: "book.fill", title: "単語帳", color: .blue)
+        VStack(alignment: .leading, spacing: 18) {
+            toolSection(title: "計画・管理", subtitle: "教材とタスクを整理") {
+                NavigationLink(destination: WordbookView()) {
+                    ToolCard(icon: "book.fill", title: "単語帳", color: .blue)
+                }
+                NavigationLink(destination: BookshelfView()) {
+                    ToolCard(icon: "books.vertical.fill", title: "教材", color: .cyan)
+                }
+                NavigationLink(destination: TodoView()) {
+                    ToolCard(icon: "list.bullet", title: "やること", color: .teal)
+                }
+                NavigationLink(destination: PaperWordbookSyncView()) {
+                    ToolCard(icon: "book.pages.fill", title: "紙の単語帳", color: .brown)
+                }
             }
-            NavigationLink(destination: BookshelfView()) {
-                ToolCard(icon: "books.vertical.fill", title: "教材", color: .cyan)
+
+            toolSection(title: "学習サポート", subtitle: "集中とインプットを支援") {
+                NavigationLink(destination: TimerView()) {
+                    ToolCard(icon: "timer", title: "タイマー", color: .red)
+                }
+                NavigationLink(destination: FocusedMemorizationView()) {
+                    ToolCard(icon: "brain.head.profile", title: "集中暗記", color: .orange)
+                }
+                NavigationLink(destination: ScanView()) {
+                    ToolCard(icon: "doc.viewfinder", title: "スキャン", color: .yellow)
+                }
+                NavigationLink(destination: FrontCameraView()) {
+                    ToolCard(icon: "camera.fill", title: "ミラー", color: .pink)
+                }
             }
-            NavigationLink(destination: TodoView()) {
-                ToolCard(icon: "list.bullet", title: "やること", color: .teal)
+
+            toolSection(title: "記録・分析", subtitle: "成果を可視化") {
+                NavigationLink(destination: AppCalendarView()) {
+                    ToolCard(icon: "calendar", title: "カレンダー", color: .green)
+                }
+                NavigationLink(destination: ReportView()) {
+                    ToolCard(icon: "chart.pie.fill", title: "レポート", color: .purple)
+                }
+                NavigationLink(destination: PastExamAnalysisView()) {
+                    ToolCard(icon: "chart.xyaxis.line", title: "過去問解析", color: .indigo)
+                }
             }
-            NavigationLink(destination: TimerView()) {
-                ToolCard(icon: "timer", title: "タイマー", color: .red)
+        }
+    }
+
+    @ViewBuilder
+    private func toolSection(
+        title: String,
+        subtitle: String,
+        @ViewBuilder content: () -> some View
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(theme.primaryText)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(theme.secondaryText)
             }
-            NavigationLink(destination: FrontCameraView()) {
-                ToolCard(icon: "camera.fill", title: "ミラー", color: .pink)
-            }
-            NavigationLink(destination: AppCalendarView()) {
-                ToolCard(icon: "calendar", title: "カレンダー", color: .green)
-            }
-            NavigationLink(destination: ReportView()) {
-                ToolCard(icon: "chart.pie.fill", title: "レポート", color: .purple)
-            }
-            NavigationLink(destination: ScanView()) {
-                ToolCard(icon: "doc.viewfinder", title: "スキャン", color: .orange)
-            }
-            NavigationLink(destination: PaperWordbookSyncView()) {
-                ToolCard(icon: "book.pages.fill", title: "紙の単語帳", color: .brown)
-            }
-            NavigationLink(destination: FocusedMemorizationView()) {
-                ToolCard(icon: "brain.head.profile", title: "集中暗記", color: .orange)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                content()
             }
         }
     }

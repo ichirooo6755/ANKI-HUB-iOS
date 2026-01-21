@@ -125,9 +125,15 @@ struct DashboardView: View {
 
                         // Quick Action / Insight
                         VStack(alignment: .leading) {
-                            Text("Recommended")
-                                .font(.headline)
-                                .padding(.horizontal)
+                            HStack {
+                                Text("Recommended")
+                                    .font(.title2.weight(.bold))
+                                Spacer()
+                                Text("今やるべきこと")
+                                    .font(.caption)
+                                    .foregroundStyle(themeManager.secondaryText)
+                            }
+                            .padding(.horizontal)
 
                             if totalDueCount > 0 {
                                 Button {
@@ -143,24 +149,34 @@ struct DashboardView: View {
                                         }
                                         Spacer()
                                         ZStack {
-                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                                .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.2))
-                                                .frame(width: 36, height: 36)
+                                            Circle()
+                                                .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.18))
+                                                .frame(width: 40, height: 40)
                                             Image(systemName: "clock.badge.exclamationmark")
-                                                .font(.system(size: 18, weight: .medium))
+                                                .font(.system(size: 20, weight: .semibold))
                                                 .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                         }
                                     }
-                                    .padding(16)
+                                    .padding(18)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
                                             .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
                                     )
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .stroke(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [
+                                                        themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.35),
+                                                        themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.08),
+                                                    ],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 1
+                                            )
                                     )
-                                    .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
+                                    .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
                                     .padding(.horizontal)
                                 }
                                 .buttonStyle(.plain)
@@ -179,24 +195,34 @@ struct DashboardView: View {
                                     }
                                     Spacer()
                                     ZStack {
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .fill(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.2))
-                                            .frame(width: 36, height: 36)
+                                        Circle()
+                                            .fill(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.18))
+                                            .frame(width: 40, height: 40)
                                         Image(systemName: "sparkles")
-                                            .font(.system(size: 18, weight: .medium))
+                                            .font(.system(size: 20, weight: .semibold))
                                             .foregroundStyle(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
-                                .padding(16)
+                                .padding(18)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                                         .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [
+                                                    themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.35),
+                                                    themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.08),
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
                                 )
-                                .shadow(color: themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
+                                .shadow(color: themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -213,24 +239,34 @@ struct DashboardView: View {
                                         }
                                         Spacer()
                                         ZStack {
-                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                                .fill(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.2))
-                                                .frame(width: 36, height: 36)
+                                            Circle()
+                                                .fill(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.18))
+                                                .frame(width: 40, height: 40)
                                             Image(systemName: "exclamationmark.triangle.fill")
-                                                .font(.system(size: 18, weight: .medium))
+                                                .font(.system(size: 20, weight: .semibold))
                                                 .foregroundStyle(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark))
                                         }
                                     }
-                                    .padding(16)
+                                    .padding(18)
                                     .background(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
                                             .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
                                     )
                                     .overlay(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .stroke(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [
+                                                        themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.35),
+                                                        themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.08),
+                                                    ],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 1
+                                            )
                                     )
-                                    .shadow(color: themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
+                                    .shadow(color: themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
                                     .padding(.horizontal)
                                 }
                                 .buttonStyle(.plain)
@@ -252,16 +288,26 @@ struct DashboardView: View {
                                 )
                                 .frame(width: 50, height: 50)
                             }
-                            .padding(16)
+                            .padding(18)
                             .background(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
                                     .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [
+                                                themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.35),
+                                                themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.08),
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
                             )
-                            .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
+                            .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
                             .padding(.horizontal)
 
                             // ToDo Card
@@ -278,24 +324,34 @@ struct DashboardView: View {
                                     }
                                     Spacer()
                                     ZStack {
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .fill(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.2))
-                                            .frame(width: 36, height: 36)
+                                        Circle()
+                                            .fill(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.18))
+                                            .frame(width: 40, height: 40)
                                         Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 18, weight: .medium))
+                                            .font(.system(size: 20, weight: .semibold))
                                             .foregroundStyle(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
-                                .padding(16)
+                                .padding(18)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                                         .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [
+                                                    themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.35),
+                                                    themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.08),
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
                                 )
-                                .shadow(color: themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
+                                .shadow(color: themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -314,24 +370,34 @@ struct DashboardView: View {
                                     }
                                     Spacer()
                                     ZStack {
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.2))
-                                            .frame(width: 36, height: 36)
+                                        Circle()
+                                            .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.18))
+                                            .frame(width: 40, height: 40)
                                         Image(systemName: "doc.text")
-                                            .font(.system(size: 18, weight: .medium))
+                                            .font(.system(size: 20, weight: .semibold))
                                             .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
-                                .padding(16)
+                                .padding(18)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                                         .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [
+                                                    themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.35),
+                                                    themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.08),
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
                                 )
-                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
+                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -350,24 +416,34 @@ struct DashboardView: View {
                                     }
                                     Spacer()
                                     ZStack {
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.2))
-                                            .frame(width: 36, height: 36)
+                                        Circle()
+                                            .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.18))
+                                            .frame(width: 40, height: 40)
                                         Image(systemName: "stopwatch.fill")
-                                            .font(.system(size: 18, weight: .medium))
+                                            .font(.system(size: 20, weight: .semibold))
                                             .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
-                                .padding(16)
+                                .padding(18)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                                         .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [
+                                                    themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.35),
+                                                    themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.08),
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
                                 )
-                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
+                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -389,24 +465,34 @@ struct DashboardView: View {
                                     }
                                     Spacer()
                                     ZStack {
-                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .fill(mirrorColor.opacity(0.2))
-                                            .frame(width: 36, height: 36)
+                                        Circle()
+                                            .fill(mirrorColor.opacity(0.18))
+                                            .frame(width: 40, height: 40)
                                         Image(systemName: "camera.fill")
-                                            .font(.system(size: 18, weight: .medium))
+                                            .font(.system(size: 20, weight: .semibold))
                                             .foregroundStyle(mirrorColor)
                                     }
                                 }
-                                .padding(16)
+                                .padding(18)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                                         .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
                                 )
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(mirrorColor.opacity(0.3), lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [
+                                                    mirrorColor.opacity(0.35),
+                                                    mirrorColor.opacity(0.08),
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 1
+                                        )
                                 )
-                                .shadow(color: mirrorColor.opacity(0.15), radius: 6, x: 0, y: 3)
+                                .shadow(color: mirrorColor.opacity(0.12), radius: 10, x: 0, y: 6)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)

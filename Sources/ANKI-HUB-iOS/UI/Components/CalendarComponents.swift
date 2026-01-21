@@ -15,31 +15,31 @@ struct CalendarStatCard: View {
         return VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    Circle()
                         .fill(color.opacity(0.2))
-                        .frame(width: 34, height: 34)
+                        .frame(width: 36, height: 36)
                     Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold))
                         .foregroundStyle(color)
                 }
                 Text(title)
-                    .font(.caption.weight(.medium))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(theme.secondaryText)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(value)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(.system(size: 32, weight: .bold, design: .default))
                     .foregroundStyle(theme.primaryText)
                 Text(unit)
                     .font(.caption2.weight(.medium))
                     .foregroundStyle(theme.secondaryText)
             }
         }
-        .padding(16)
+        .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [surface.opacity(0.98), highlight.opacity(0.92)],
@@ -49,10 +49,10 @@ struct CalendarStatCard: View {
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(color.opacity(0.25), lineWidth: 1)
         )
-        .shadow(color: color.opacity(0.12), radius: 6, x: 0, y: 3)
+        .shadow(color: color.opacity(0.12), radius: 10, x: 0, y: 6)
     }
 }
 
@@ -69,16 +69,27 @@ struct DayCell: View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
         let background = activityColor(activity, accent: accent, surface: surface)
         let textColor = activity > 0 ? theme.onColor(for: background) : theme.primaryText
+        let size: CGFloat = 36
+        let cornerRadius: CGFloat = 11
+        let shadowColor = activity > 0 ? background.opacity(0.25) : .clear
 
         return ZStack {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(background)
-                .frame(width: 36, height: 36)
+                .frame(width: size, height: size)
+                .shadow(color: shadowColor, radius: activity > 0 ? 4 : 0, x: 0, y: 2)
 
             if isToday {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .stroke(accent.opacity(0.6), lineWidth: 1)
-                    .frame(width: 36, height: 36)
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [accent.opacity(0.9), accent.opacity(0.35)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.2
+                    )
+                    .frame(width: size, height: size)
             }
 
             Text("\(Calendar.current.component(.day, from: date))")
@@ -88,7 +99,7 @@ struct DayCell: View {
             if hasJournal {
                 Circle()
                     .fill(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-                    .frame(width: 6, height: 6)
+                    .frame(width: 7, height: 7)
                     .offset(x: 12, y: -12)
             }
         }
@@ -97,13 +108,13 @@ struct DayCell: View {
     private func activityColor(_ level: Int, accent: Color, surface: Color) -> Color {
         switch level {
         case 1:
-            return accent.opacity(0.2)
+            return accent.opacity(0.25)
         case 2:
-            return accent.opacity(0.45)
+            return accent.opacity(0.55)
         case 3:
-            return accent.opacity(0.85)
+            return accent.opacity(0.9)
         default:
-            return surface.opacity(0.4)
+            return surface.opacity(0.35)
         }
     }
 }

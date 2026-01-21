@@ -20,8 +20,8 @@ struct MainTabView: View {
     
     enum Tab {
         case home
-        case calendar
         case study
+        case calendar
         case profile
     }
     
@@ -37,17 +37,17 @@ struct MainTabView: View {
                     }
                     .tag(Tab.home)
 
-                AppCalendarView()
-                    .tabItem {
-                        Label("カレンダー", systemImage: "calendar")
-                    }
-                    .tag(Tab.calendar)
-
                 StudyView()
                     .tabItem {
                         Label("学習", systemImage: "book.fill")
                     }
                     .tag(Tab.study)
+
+                AppCalendarView()
+                    .tabItem {
+                        Label("カレンダー", systemImage: "calendar")
+                    }
+                    .tag(Tab.calendar)
 
                 SettingsView()
                     .tabItem {

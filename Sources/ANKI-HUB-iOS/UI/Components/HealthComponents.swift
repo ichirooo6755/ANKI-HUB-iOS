@@ -59,7 +59,7 @@ struct HealthMetricCard: View {
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(value)
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .font(.system(size: 30, weight: .bold, design: .default))
                     .foregroundStyle(theme.primaryText)
                 if !unit.isEmpty {
                     Text(unit)

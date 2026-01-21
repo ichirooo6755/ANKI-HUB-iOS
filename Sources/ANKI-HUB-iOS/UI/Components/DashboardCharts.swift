@@ -16,10 +16,11 @@ struct DashboardCharts: View {
         }()
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
         let safeIndex = min(selectedPage, max(pages.count - 1, 0))
         let currentData = masteryData(for: pages[safeIndex])
 
-        VStack(spacing: 16) {
+        VStack(spacing: 24) {
             chartCard(accent: accent) {
                 HStack(spacing: 10) {
                     ZStack {
@@ -86,7 +87,7 @@ struct DashboardCharts: View {
                                             .font(.caption)
                                             .foregroundStyle(theme.secondaryText)
                                         Text("\(totalMastered)")
-                                            .font(.system(.title, design: .rounded).weight(.bold))
+                                            .font(.system(.title, design: .default).weight(.bold))
                                             .minimumScaleFactor(0.5)
                                             .lineLimit(1)
                                             .foregroundStyle(theme.primaryText)
@@ -134,6 +135,9 @@ struct DashboardCharts: View {
                     }
                 }
             }
+
+            Divider()
+                .overlay(border.opacity(0.5))
 
             chartCard(accent: primary) {
                 HStack(spacing: 10) {
@@ -208,27 +212,11 @@ struct DashboardCharts: View {
     }
 
     private func chartCard<Content: View>(accent: Color, @ViewBuilder content: () -> Content) -> some View {
-        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-        let highlight = theme.currentPalette.color(.background, isDark: theme.effectiveIsDark)
         return VStack(alignment: .leading, spacing: 16) {
             content()
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [surface.opacity(0.98), highlight.opacity(0.9)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(accent.opacity(0.25), lineWidth: 1)
-        )
-        .shadow(color: accent.opacity(0.12), radius: 8, x: 0, y: 4)
+        .padding(.horizontal, 4)
+        .padding(.vertical, 4)
     }
 
     private var heatmapDays: [HeatmapDay] {

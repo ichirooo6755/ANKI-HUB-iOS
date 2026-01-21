@@ -26,6 +26,7 @@ private let widgetShowMistakesKey = "anki_hub_widget_show_mistakes_v1"
 private let widgetMistakeCountKey = "anki_hub_widget_mistake_count_v1"
 private let widgetShowTodoKey = "anki_hub_widget_show_todo_v1"
 private let widgetTodoCountKey = "anki_hub_widget_todo_count_v1"
+private let widgetShowCalendarKey = "anki_hub_widget_show_calendar_v1"
 private let widgetStyleKey = "anki_hub_widget_style_v1"
 private let widgetTimerMinutesKey = "anki_hub_widget_timer_minutes_v1"
 private let widgetThemePrimaryLightKey = "anki_hub_widget_theme_primary_light_v1"
@@ -55,6 +56,7 @@ fileprivate struct WidgetSettings {
     let mistakeCount: Int
     let showTodo: Bool
     let todoCount: Int
+    let showCalendar: Bool
     let style: String
     let timerMinutes: Int
 
@@ -67,11 +69,31 @@ fileprivate struct WidgetSettings {
         self.showTodo = defaults?.object(forKey: widgetShowTodoKey) as? Bool ?? false
         let todoCount = defaults?.integer(forKey: widgetTodoCountKey) ?? 2
         self.todoCount = max(1, min(3, todoCount))
+        self.showCalendar = defaults?.object(forKey: widgetShowCalendarKey) as? Bool ?? false
         self.style = defaults?.string(forKey: widgetStyleKey) ?? "system"
         let rawMinutes = defaults?.integer(forKey: widgetTimerMinutesKey) ?? 25
         self.timerMinutes = max(1, min(180, rawMinutes))
     }
 
+}
+
+fileprivate struct WidgetDailyEntry: Decodable {
+    let words: Int
+    let minutes: Int
+    let subjects: [String: Int]
+}
+
+fileprivate struct WidgetStoredStats: Decodable {
+    let streak: Int
+    let todayMinutes: Int
+    let dailyHistory: [String: WidgetDailyEntry]
+}
+
+struct WidgetCalendarDay: Identifiable {
+    let id = UUID()
+    let date: Date
+    let level: Int
+    let isToday: Bool
 }
 
 #if canImport(AppIntents) && swift(>=6.0) && os(iOS)
@@ -260,6 +282,7 @@ struct StudyEntry: TimelineEntry {
     let todayMinutes: Int
     let mistakes: [String]
     let todos: [String]
+    let calendarDays: [WidgetCalendarDay]
     fileprivate let settings: WidgetSettings
 }
 
@@ -272,6 +295,7 @@ struct Provider: TimelineProvider {
             todayMinutes: 20,
             mistakes: [],
             todos: [],
+            calendarDays: [],
             settings: WidgetSettings(defaults: defaults)
         )
     }
@@ -346,31 +370,33 @@ struct Provider: TimelineProvider {
             }
         }
 
-        if let data = defaults?.data(forKey: learningStatsKey) {
-            struct Stored: Decodable {
-                let streak: Int
-                let todayMinutes: Int
-            }
-            if let decoded = try? JSONDecoder().decode(Stored.self, from: data) {
-                let todos = loadTodos(defaults: defaults, settings: settings)
-                return StudyEntry(
-                    date: date,
-                    streak: decoded.streak,
-                    todayMinutes: decoded.todayMinutes,
-                    mistakes: settings.showMistakes ? mistakes : [],
-                    todos: settings.showTodo ? todos : [],
-                    settings: settings
-                )
-            }
+        if let data = defaults?.data(forKey: learningStatsKey),
+            let decoded = try? JSONDecoder().decode(WidgetStoredStats.self, from: data)
+        {
+            let todos = loadTodos(defaults: defaults, settings: settings)
+            let calendarDays = settings.showCalendar
+                ? calendarDays(for: date, history: decoded.dailyHistory)
+                : []
+            return StudyEntry(
+                date: date,
+                streak: decoded.streak,
+                todayMinutes: decoded.todayMinutes,
+                mistakes: settings.showMistakes ? mistakes : [],
+                todos: settings.showTodo ? todos : [],
+                calendarDays: calendarDays,
+                settings: settings
+            )
         }
 
         let todos = loadTodos(defaults: defaults, settings: settings)
+        let calendarDays = settings.showCalendar ? calendarDays(for: date, history: [:]) : []
         return StudyEntry(
             date: date,
             streak: 0,
             todayMinutes: 0,
             mistakes: settings.showMistakes ? mistakes : [],
             todos: settings.showTodo ? todos : [],
+            calendarDays: calendarDays,
             settings: settings
         )
     }
@@ -398,6 +424,38 @@ struct Provider: TimelineProvider {
 
         return Array(pending.prefix(settings.todoCount))
     }
+
+    private func calendarDays(for date: Date, history: [String: WidgetDailyEntry])
+        -> [WidgetCalendarDay]
+    {
+        let calendar = Calendar.current
+        let days = (0..<21).compactMap { offset -> WidgetCalendarDay? in
+            guard let day = calendar.date(byAdding: .day, value: -offset, to: date) else { return nil }
+            let entry = history[dateKey(day)]
+            let level = activityLevel(for: entry)
+            return WidgetCalendarDay(
+                date: day,
+                level: level,
+                isToday: calendar.isDateInToday(day)
+            )
+        }
+        return Array(days.reversed())
+    }
+
+    private func activityLevel(for entry: WidgetDailyEntry?) -> Int {
+        let minutes = entry?.minutes ?? 0
+        let words = entry?.words ?? 0
+        if minutes >= 60 || words >= 80 { return 3 }
+        if minutes >= 30 || words >= 40 { return 2 }
+        if minutes > 0 || words > 0 { return 1 }
+        return 0
+    }
+
+    private func dateKey(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
 }
 
 struct StudyWidgetEntryView: View {
@@ -412,6 +470,10 @@ struct StudyWidgetEntryView: View {
 
     private var accentColor: Color {
         themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+    }
+
+    private var surfaceColor: Color {
+        themeSnapshot?.resolvedSurface(for: colorScheme) ?? Color.secondary.opacity(0.2)
     }
 
     var body: some View {
@@ -454,18 +516,22 @@ struct StudyWidgetEntryView: View {
                     .font(.subheadline.weight(.semibold))
             }
 
-            if let m = entry.mistakes.first {
-                Text(m)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
+            if entry.settings.showCalendar {
+                calendarSection
+            } else {
+                if let m = entry.mistakes.first {
+                    Text(m)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
 
-            if entry.settings.showTodo, let t = entry.todos.first {
-                Text(t)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                if entry.settings.showTodo, let t = entry.todos.first {
+                    Text(t)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
 
             timerLink
@@ -497,7 +563,9 @@ struct StudyWidgetEntryView: View {
                 }
             }
 
-            if !entry.mistakes.isEmpty || !entry.todos.isEmpty {
+            if entry.settings.showCalendar {
+                calendarSection
+            } else if !entry.mistakes.isEmpty || !entry.todos.isEmpty {
                 VStack(alignment: .leading, spacing: 3) {
                     ForEach(entry.mistakes.prefix(2), id: \.self) { m in
                         Text(m)
@@ -569,13 +637,67 @@ struct StudyWidgetEntryView: View {
                 .foregroundStyle(.secondary)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("\(value)")
-                    .font(.system(size: 30, weight: .semibold, design: .rounded))
+                    .font(.system(size: 30, weight: .semibold, design: .default))
                     .monospacedDigit()
                     .foregroundStyle(accentColor)
                 Text(unit)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
+        }
+    }
+
+    private var calendarSection: some View {
+        let days = calendarDays
+        let cellSize: CGFloat = family == .systemMedium ? 11 : 10
+        let spacing: CGFloat = family == .systemMedium ? 3 : 3
+        return VStack(alignment: .leading, spacing: 4) {
+            if family == .systemMedium {
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text("カレンダー")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            LazyVGrid(
+                columns: Array(repeating: GridItem(.flexible(), spacing: spacing), count: 7),
+                spacing: spacing
+            ) {
+                ForEach(days) { day in
+                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                        .fill(calendarColor(level: day.level))
+                        .frame(width: cellSize, height: cellSize)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                .stroke(day.isToday ? accentColor.opacity(0.7) : .clear, lineWidth: 1)
+                        )
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var calendarDays: [WidgetCalendarDay] {
+        let count = family == .systemMedium ? 21 : 7
+        if entry.calendarDays.count >= count {
+            return Array(entry.calendarDays.suffix(count))
+        }
+        return entry.calendarDays
+    }
+
+    private func calendarColor(level: Int) -> Color {
+        switch level {
+        case 1:
+            return accentColor.opacity(0.18)
+        case 2:
+            return accentColor.opacity(0.4)
+        case 3:
+            return accentColor.opacity(0.72)
+        default:
+            return surfaceColor.opacity(0.2)
         }
     }
 
@@ -792,7 +914,7 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                     ZStack {
                         FocusRing(progress: progress, size: 56, lineWidth: 5, accent: accentColor)
                         timerText(for: context, remaining: remaining)
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .font(.system(size: 14, weight: .semibold, design: .default))
                             .monospacedDigit()
                             .foregroundStyle(primaryTextColor)
                     }
@@ -866,7 +988,7 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                                 .fill(Color.black.opacity(0.4))
                             FocusRing(progress: progress, size: 72, lineWidth: 6, accent: accentColor)
                             timerText(for: context, remaining: remaining)
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .font(.system(size: 16, weight: .semibold, design: .default))
                                 .monospacedDigit()
                                 .foregroundStyle(primaryTextColor)
                         }
