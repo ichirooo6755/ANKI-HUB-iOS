@@ -10,28 +10,49 @@ struct CalendarStatCard: View {
     @ObservedObject private var theme = ThemeManager.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let highlight = theme.currentPalette.color(.background, isDark: theme.effectiveIsDark)
+        return VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.headline)
-                    .foregroundStyle(color)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(color.opacity(0.2))
+                        .frame(width: 34, height: 34)
+                    Image(systemName: icon)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(color)
+                }
                 Text(title)
-                    .font(.caption)
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(theme.secondaryText)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(value)
-                    .font(.system(size: 30, weight: .semibold, design: .rounded))
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(theme.primaryText)
                 Text(unit)
-                    .font(.caption)
+                    .font(.caption2.weight(.medium))
                     .foregroundStyle(theme.secondaryText)
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .liquidGlass(cornerRadius: 20)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [surface.opacity(0.98), highlight.opacity(0.92)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(color.opacity(0.25), lineWidth: 1)
+        )
+        .shadow(color: color.opacity(0.12), radius: 6, x: 0, y: 3)
     }
 }
 
@@ -50,14 +71,14 @@ struct DayCell: View {
         let textColor = activity > 0 ? theme.onColor(for: background) : theme.primaryText
 
         return ZStack {
-            Circle()
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(background)
-                .frame(height: 36)
+                .frame(width: 36, height: 36)
 
             if isToday {
-                Circle()
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .stroke(accent.opacity(0.6), lineWidth: 1)
-                    .frame(height: 36)
+                    .frame(width: 36, height: 36)
             }
 
             Text("\(Calendar.current.component(.day, from: date))")

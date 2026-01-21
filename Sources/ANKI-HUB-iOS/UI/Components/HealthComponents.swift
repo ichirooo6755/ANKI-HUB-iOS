@@ -40,23 +40,30 @@ struct HealthMetricCard: View {
     @ObservedObject private var theme = ThemeManager.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let highlight = theme.currentPalette.color(.background, isDark: theme.effectiveIsDark)
+        return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.headline)
-                    .foregroundStyle(color)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(color.opacity(0.2))
+                        .frame(width: 34, height: 34)
+                    Image(systemName: icon)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(color)
+                }
                 Text(title)
-                    .font(.caption)
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(theme.secondaryText)
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(value)
-                    .font(.system(size: 28, weight: .semibold, design: .rounded))
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(theme.primaryText)
                 if !unit.isEmpty {
                     Text(unit)
-                        .font(.caption)
+                        .font(.caption2.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                 }
             }
@@ -64,14 +71,20 @@ struct HealthMetricCard: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
-                .opacity(theme.effectiveIsDark ? 0.95 : 0.98)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [surface.opacity(0.98), highlight.opacity(0.92)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(color.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(color.opacity(0.25), lineWidth: 1)
         )
+        .shadow(color: color.opacity(0.12), radius: 6, x: 0, y: 3)
     }
 }
 

@@ -19,6 +19,7 @@ struct DashboardView: View {
         case examHistory
         case timer
         case timeline
+        case mirror
     }
 
     @State private var navigationPath = NavigationPath()
@@ -370,6 +371,45 @@ struct DashboardView: View {
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
+
+                            Button {
+                                navigationPath.append(Destination.mirror)
+                            } label: {
+                                let mirrorColor = themeManager.currentPalette.color(
+                                    .learning,
+                                    isDark: themeManager.effectiveIsDark
+                                )
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text("ミラー")
+                                            .font(.title3.weight(.bold))
+                                        Text("フロントカメラを即起動")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(themeManager.secondaryText)
+                                    }
+                                    Spacer()
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(mirrorColor.opacity(0.2))
+                                            .frame(width: 36, height: 36)
+                                        Image(systemName: "camera.fill")
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundStyle(mirrorColor)
+                                    }
+                                }
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(mirrorColor.opacity(0.3), lineWidth: 1)
+                                )
+                                .shadow(color: mirrorColor.opacity(0.15), radius: 6, x: 0, y: 3)
+                                .padding(.horizontal)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                     .padding(.top)
@@ -414,6 +454,8 @@ struct DashboardView: View {
                     TimerView()
                 case .timeline:
                     TimelineView()
+                case .mirror:
+                    FrontCameraView()
                 }
             }
         }

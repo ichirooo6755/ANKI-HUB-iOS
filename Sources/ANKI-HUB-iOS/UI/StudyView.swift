@@ -196,6 +196,9 @@ struct ToolsGridView: View {
             NavigationLink(destination: TimerView()) {
                 ToolCard(icon: "timer", title: "タイマー", color: .red)
             }
+            NavigationLink(destination: FrontCameraView()) {
+                ToolCard(icon: "camera.fill", title: "ミラー", color: .pink)
+            }
             NavigationLink(destination: AppCalendarView()) {
                 ToolCard(icon: "calendar", title: "カレンダー", color: .green)
             }
@@ -203,7 +206,7 @@ struct ToolsGridView: View {
                 ToolCard(icon: "chart.pie.fill", title: "レポート", color: .purple)
             }
             NavigationLink(destination: ScanView()) {
-                ToolCard(icon: "camera.viewfinder", title: "スキャン", color: .orange)
+                ToolCard(icon: "doc.viewfinder", title: "スキャン", color: .orange)
             }
             NavigationLink(destination: PaperWordbookSyncView()) {
                 ToolCard(icon: "book.pages.fill", title: "紙の単語帳", color: .brown)
