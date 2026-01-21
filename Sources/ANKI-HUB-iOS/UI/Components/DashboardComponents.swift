@@ -9,22 +9,39 @@ struct StatCard: View {
     @ObservedObject private var theme = ThemeManager.shared
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(color.opacity(0.2))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(color)
+                }
                 Text(title)
-                    .font(.caption)
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(theme.secondaryText)
+                Spacer()
             }
+            
             Text(value)
-                .font(.title2)
-                .bold()
+                .font(.title.weight(.bold))
                 .foregroundStyle(theme.primaryText)
+                .minimumScaleFactor(0.8)
+                .lineLimit(1)
         }
-        .padding()
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .liquidGlass()
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(color.opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: color.opacity(0.15), radius: 6, x: 0, y: 3)
     }
 }
 
@@ -35,39 +52,46 @@ struct SubjectCard: View {
 
     var body: some View {
         let isDark = theme.effectiveIsDark
-        let surface = theme.currentPalette.color(.surface, isDark: isDark)
         let textColor = theme.currentPalette.color(.text, isDark: isDark)
         let secondaryColor = theme.currentPalette.color(.secondary, isDark: isDark)
         
-        VStack(spacing: 12) {
-            // Icon with subtle background
+        VStack(spacing: 16) {
+            // Icon with enhanced pastel background
             ZStack {
-                Circle()
-                    .fill(subject.color.opacity(0.15))
-                    .frame(width: 56, height: 56)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(subject.color.opacity(0.25))
+                    .frame(width: 64, height: 64)
                 Image(systemName: subject.icon)
-                    .font(.system(size: 26, weight: .medium))
+                    .font(.system(size: 30, weight: .semibold))
                     .foregroundColor(subject.color)
             }
-
-            VStack(spacing: 4) {
+            
+            VStack(spacing: 6) {
                 Text(subject.displayName)
-                    .font(.system(.headline, design: .rounded))
-                    .fontWeight(.semibold)
+                    .font(.headline.weight(.bold))
                     .foregroundColor(textColor)
+                    .multilineTextAlignment(.center)
 
                 Text(subject.description)
-                    .font(.caption)
-                    .foregroundColor(secondaryColor.opacity(0.9))
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(secondaryColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             }
         }
-        .padding(.vertical, 20)
-        .padding(.horizontal, 12)
-        .frame(minHeight: 140)
+        .padding(.vertical, 24)
+        .padding(.horizontal, 16)
+        .frame(minHeight: 160)
         .frame(maxWidth: .infinity)
-        .liquidGlass(cornerRadius: 20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: isDark))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(subject.color.opacity(0.3), lineWidth: 1.5)
+        )
+        .shadow(color: subject.color.opacity(0.2), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -82,24 +106,32 @@ struct ToolCard: View {
         let isDark = theme.effectiveIsDark
         let textColor = theme.currentPalette.color(.text, isDark: isDark)
         
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(color.opacity(0.12))
-                    .frame(width: 44, height: 44)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(color.opacity(0.22))
+                    .frame(width: 50, height: 50)
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 24, weight: .semibold))
                     .foregroundColor(color)
             }
             Text(title)
-                .font(.system(.caption, design: .rounded))
-                .fontWeight(.semibold)
+                .font(.subheadline.weight(.semibold))
                 .foregroundColor(textColor)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, 20)
         .padding(.horizontal, 12)
-        .liquidGlass(cornerRadius: 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: isDark))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(color.opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: color.opacity(0.15), radius: 6, x: 0, y: 3)
     }
 }
 
@@ -114,36 +146,44 @@ struct GoalCountdownCard: View {
     var body: some View {
         let accent = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
 
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("目標まで")
-                        .font(.caption)
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                     Text(daysRemaining == 0 ? "今日が締切" : "あと\(daysRemaining)日")
-                        .font(.title3.bold())
+                        .font(.title2.weight(.bold))
                         .foregroundStyle(theme.primaryText)
                     Text("目標日 \(dateString(targetDate))")
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(theme.secondaryText)
                 }
                 Spacer()
                 CircularProgressView(progress: progress, color: accent, lineWidth: 6)
-                    .frame(width: 62, height: 62)
+                    .frame(width: 64, height: 64)
             }
 
             HStack {
                 Text("学習時間")
-                    .font(.caption)
+                    .font(.caption.weight(.medium))
                     .foregroundStyle(theme.secondaryText)
                 Spacer()
                 Text(progressText)
-                    .font(.caption)
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
             }
         }
-        .padding()
-        .liquidGlass()
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(accent.opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: accent.opacity(0.15), radius: 6, x: 0, y: 3)
     }
 
     private func dateString(_ date: Date) -> String {

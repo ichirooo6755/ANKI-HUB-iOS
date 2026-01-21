@@ -22,9 +22,11 @@
 		1FC5D8B3DEEB458B33056201 /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE32F1808DF4458315A2714E /* SupabaseAuthService.swift */; };
 		200431E047FDFACCFF413C21 /* DueReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F79BCB55DEDFE78F084EAA /* DueReviewView.swift */; };
 		23D6245B68DE4BB723F84A60 /* CustomVocabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4398A49B466FC3993E8172 /* CustomVocabView.swift */; };
+		E6A9F2F4C3D4B5A697887779 /* LockScreenMirrorGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */; };
 		263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */; };
 		2A0EF5C09EDB43D7B8FE26DC /* PaperWordbookSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741D8F69D11144E5DD9DB9BC /* PaperWordbookSyncView.swift */; };
 		2C1ABDC45CD5F8ADA035D35F /* SupabaseUserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1C5FE8DB7BFD3B11BD999F /* SupabaseUserService.swift */; };
+		E6A9F2F1C3D4B5A697887776 /* CustomSpeechTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2F0C3D4B5A697887775 /* CustomSpeechTranscriber.swift */; };
 		315D15A35EAC862834E16EDD /* RawData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40A5C945DE2F4DDC5048A9B7 /* RawData.swift */; };
 		3313FBF795251E8BA0E3145E /* BookshelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B579BC5A0B02A3EE39EC7AF /* BookshelfView.swift */; };
 		35DA4EA644A1A53F210825FB /* SupabaseInvitationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7FBE44B362F2B324B20A381 /* SupabaseInvitationService.swift */; };
@@ -187,6 +189,8 @@
 		8AFF1A9872CEA26C59B13B50 /* grammar.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = grammar.json; sourceTree = "<group>"; };
 		8B579BC5A0B02A3EE39EC7AF /* BookshelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfView.swift; sourceTree = "<group>"; };
 		8D687CD0B8AC7FC7F62849EB /* SupabaseStudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseStudyService.swift; sourceTree = "<group>"; };
+		E6A9F2F0C3D4B5A697887775 /* CustomSpeechTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSpeechTranscriber.swift; sourceTree = "<group>"; };
+		E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenMirrorGuideView.swift; sourceTree = "<group>"; };
 		91A8B460487D27F4E7824723 /* kanbun_grammar.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = kanbun_grammar.json; sourceTree = "<group>"; };
 		93E772878E5A32024827FECD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		955F72AD0CF329B18285B470 /* StudyMaterialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyMaterialManager.swift; sourceTree = "<group>"; };
@@ -242,6 +246,7 @@
 				305EDF981FCEF4E9139FACCC /* SupabaseSession.swift */,
 				8D687CD0B8AC7FC7F62849EB /* SupabaseStudyService.swift */,
 				FC1C5FE8DB7BFD3B11BD999F /* SupabaseUserService.swift */,
+				E6A9F2F0C3D4B5A697887775 /* CustomSpeechTranscriber.swift */,
 				08A4C6065EE246C8B4C348C4 /* TextRecognitionService.swift */,
 				0ADA96F2A157000729DE70FE /* ThemeManager.swift */,
 			);
@@ -378,6 +383,7 @@
 				84F79BCB55DEDFE78F084EAA /* DueReviewView.swift */,
 				2F42290185DB1686BC4377B5 /* ExamHistoryView.swift */,
 				495DCD2D9F9B3AD424880054 /* FocusedMemorizationView.swift */,
+				E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */,
 				15E4AE6F56E943FB5A0CDC9A /* MasteryColorEditorView.swift */,
 				741D8F69D11144E5DD9DB9BC /* PaperWordbookSyncView.swift */,
 				9AB7E98C8F52AF0968D7EE55 /* ProfileView.swift */,
@@ -597,6 +603,7 @@
 				08EB46CD21B1C06172C48F25 /* KanbunVerticalView.swift in Sources */,
 				933821302FE4FA11E4D77312 /* KanbunWebView.swift in Sources */,
 				FEDF02D06C6EF680639C553D /* KeychainService.swift in Sources */,
+				E6A9F2F4C3D4B5A697887779 /* LockScreenMirrorGuideView.swift in Sources */,
 				90E07E3EDEE626222E2CAB7F /* LearningManager.swift in Sources */,
 				AF206C45C76C127198A3CAA2 /* MainTabView.swift in Sources */,
 				77AB9498770C53CC1F152962 /* MasteryColorEditorView.swift in Sources */,
@@ -630,6 +637,7 @@
 				8B7D45F343760324ABCE6665 /* SupabaseSession.swift in Sources */,
 				DAB7FEA5CFBC62255ECD481F /* SupabaseStudyService.swift in Sources */,
 				2C1ABDC45CD5F8ADA035D35F /* SupabaseUserService.swift in Sources */,
+				E6A9F2F1C3D4B5A697887776 /* CustomSpeechTranscriber.swift in Sources */,
 				8BC36D7EE75F2A3584847441 /* SyncManager.swift in Sources */,
 				DE872ADCD44D6D444597E284 /* SyncStatusIndicator.swift in Sources */,
 				3C642F950B41EAD1F28AC092 /* TextRecognitionService.swift in Sources */,
@@ -800,7 +808,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
 		};
@@ -898,7 +906,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 5.9;
 			};
 			name = Debug;
 		};

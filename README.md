@@ -122,6 +122,10 @@ open ANKI-HUB-iOS.xcodeproj
 | `InputModeView`の型チェック失敗 | View構造破損と`SpeechTranscriber`名競合 | `InputModeSessionView`に分割し`CustomSpeechTranscriber`で統一 |
 | macOSビルドでiOS専用APIエラー | `.topBarTrailing`/`textInputAutocapitalization`/`AVAudioSession`が未対応 | `#if os(iOS)`でガードしmacOSでは`.automatic`等に切替 |
 | `StudyMaterial`の公開APIで型エラー | `Subject`がinternalのままpublic型に露出 | `Subject`の公開範囲をpublicに統一 |
+| `CustomSpeechTranscriber`が見つからない | `CustomSpeechTranscriber.swift`がターゲット未登録 | pbxprojに登録してSourcesへ追加 |
+| `CustomSpeechTranscriber`の`override init`でビルド失敗 | `ObservableObject`のinitにoverrideが不要 | `override`と`super.init()`を削除 |
+| `LockScreenMirrorGuideView`が見つからない | `LockScreenMirrorGuideView.swift`がターゲット未登録 | pbxprojに登録してSourcesへ追加 |
+| `BookshelfView`で`formatMinutes`が見つからない | `MaterialCardView`が親Viewのprivate関数へアクセス | file-privateの`formatMinutes`を追加 |
 
 ### クイズ・学習関連
 
@@ -208,6 +212,23 @@ open ANKI-HUB-iOS.xcodeproj
   - `DashboardComponents.swift`: `StatCard`, `SubjectCard`, `ToolCard`, `GoalCountdownCard`
   - `SettingsIcon.swift`: 設定系画面のアイコン統一
 - **Liquid Glass適用**: 各種カードUIに統一されたBlurエフェクトとシャドウを適用。
+- **BookshelfView UI改善**:
+  - カード背景を不透明化し、コントラストを強化してフラットデザインに近づけた
+  - アイコンを大きくし、パステル背景色（opacity 0.25）を採用
+  - タイポグラフィ階層を改善：数字を大きく（title3.weight(.bold)）、見出しを太字に
+  - 空の状態を魅力的に：ポジティブなメッセージとグラデーションアイコン、カラフルなボタンに
+  - 検索バーをモダンなデザインに：アイコン拡大、背景不透明化、ボーダー追加
+- **DashboardComponents改善**:
+  - StatCard：数字を大きく（title.weight(.bold)）、アイコンをパステル背景で強調
+  - SubjectCard：アイコンを64x64に拡大、パステル背景とシャドウで統一感を向上
+  - ToolCard：アイコンを50x50に拡大、統一されたパステルデザインを採用
+  - GoalCountdownCard：タイポグラフィを強化し、日付表示を太字に改善
+- **DashboardView改善**:
+  - Recommendedセクションの全カードを統一デザインに改善
+  - liquidGlassから不透明背景とシャドウのモダンデザインに変更
+  - アイコンを36x36のパステル背景で強調
+  - タイポグラフィを改善：見出しを太字に、サブテキストをmediumウェイトに
+  - 復習待ち、タイムライン、復習待ち、今日の復習、やることリスト、テスト履歴、タイマーカードを改善
 
 ---
 

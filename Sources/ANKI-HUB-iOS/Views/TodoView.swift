@@ -1,6 +1,6 @@
 import Combine
 import SwiftUI
-import UserNotifications
+@preconcurrency import UserNotifications
 
 #if canImport(Speech)
     import Speech
@@ -317,9 +317,7 @@ class TodoManager: ObservableObject {
     // MARK: - Notifications
 
     private func scheduleNotification(for item: TodoItem, at date: Date) {
-        let center = UNUserNotificationCenter.current()
-
-        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
             guard granted else { return }
 
             let content = UNMutableNotificationContent()
@@ -337,7 +335,7 @@ class TodoManager: ObservableObject {
                 trigger: trigger
             )
 
-            center.add(request)
+            UNUserNotificationCenter.current().add(request)
         }
     }
 

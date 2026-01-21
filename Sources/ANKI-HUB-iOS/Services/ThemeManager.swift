@@ -178,6 +178,7 @@ struct ThemePalette: Codable, Equatable {
     var text: String
     var border: String
     var selection: String
+    var action: String
 
     // Status colors
     var mastered: String
@@ -193,6 +194,7 @@ struct ThemePalette: Codable, Equatable {
     var textDark: String
     var borderDark: String
     var selectionDark: String
+    var actionDark: String
 
     // Computed Colors (SwiftUI)
     func color(_ key: ThemeColorKey, isDark: Bool) -> Color {
@@ -209,6 +211,7 @@ struct ThemePalette: Codable, Equatable {
             case .text: return textDark
             case .border: return borderDark
             case .selection: return selectionDark
+            case .action: return actionDark
             default: break
             }
         }
@@ -222,6 +225,7 @@ struct ThemePalette: Codable, Equatable {
         case .text: return text
         case .border: return border
         case .selection: return selection
+        case .action: return action
         case .mastered: return mastered
         case .almost: return almost
         case .learning: return learning
@@ -232,7 +236,7 @@ struct ThemePalette: Codable, Equatable {
 }
 
 enum ThemeColorKey {
-    case primary, secondary, accent, background, surface, text, border, selection
+    case primary, secondary, accent, background, surface, text, border, selection, action
     case mastered, almost, learning, weak, new
 }
 
@@ -599,6 +603,7 @@ class ThemeManager: ObservableObject {
         learning: String,
         weak: String,
         new: String,
+        action: String? = nil,
         isDarkBase: Bool = false
     ) -> ThemePalette {
         if isDarkBase {
@@ -611,6 +616,7 @@ class ThemeManager: ObservableObject {
                 text: text,
                 border: border,
                 selection: selection,
+                action: action ?? selection,
                 mastered: mastered,
                 almost: almost,
                 learning: learning,
@@ -621,7 +627,8 @@ class ThemeManager: ObservableObject {
                 surfaceDark: surface,
                 textDark: text,
                 borderDark: border,
-                selectionDark: selection
+                selectionDark: selection,
+                actionDark: action ?? selection
             )
         }
 
@@ -634,6 +641,7 @@ class ThemeManager: ObservableObject {
             text: text,
             border: border,
             selection: selection,
+            action: action ?? selection,
             mastered: mastered,
             almost: almost,
             learning: learning,
@@ -644,7 +652,8 @@ class ThemeManager: ObservableObject {
             surfaceDark: "#1e293b",
             textDark: "#f8fafc",
             borderDark: "#334155",
-            selectionDark: selection
+            selectionDark: selection,
+            actionDark: action ?? selection
         )
     }
 
@@ -653,190 +662,236 @@ class ThemeManager: ObservableObject {
         "default": ThemePalette(
             primary: "#34C759", secondary: "#8E8E93", accent: "#FF9F0A", background: "#0B0B0C",
             surface: "#1C1C1E", text: "#F2F2F7", border: "#2C2C2E", selection: "#34C759",
+            action: "#00E050",
             mastered: "#34C759", almost: "#FFD60A", learning: "#0A84FF", weak: "#FF453A",
             new: "#8E8E93",
             primaryDark: "#34C759", backgroundDark: "#0B0B0C", surfaceDark: "#1C1C1E",
-            textDark: "#F2F2F7", borderDark: "#2C2C2E", selectionDark: "#34C759"
+            textDark: "#F2F2F7", borderDark: "#2C2C2E", selectionDark: "#34C759",
+            actionDark: "#39FF14"
         ),
         "ocean": ThemePalette(
             primary: "#0ea5e9", secondary: "#64748b", accent: "#f59e0b", background: "#f0f9ff",
             surface: "#ffffff", text: "#0c4a6e", border: "#bae6fd", selection: "#0ea5e9",
+            action: "#00E5FF",
             mastered: "#10b981", almost: "#f59e0b", learning: "#f97316", weak: "#ef4444",
             new: "#94a3b8",
             primaryDark: "#0ea5e9", backgroundDark: "#071f30", surfaceDark: "#0c4a6e",
-            textDark: "#e0f2fe", borderDark: "#075985", selectionDark: "#38bdf8"
+            textDark: "#e0f2fe", borderDark: "#075985", selectionDark: "#38bdf8",
+            actionDark: "#00FFFF"
         ),
         "forest": ThemePalette(
             primary: "#16a34a", secondary: "#64748b", accent: "#84cc16", background: "#f0fdf4",
             surface: "#ffffff", text: "#14532d", border: "#bbf7d0", selection: "#16a34a",
+            action: "#39FF14",
             mastered: "#22c55e", almost: "#84cc16", learning: "#a3e635", weak: "#dc2626",
             new: "#a8a29e",
             primaryDark: "#22c55e", backgroundDark: "#052e16", surfaceDark: "#14532d",
-            textDark: "#dcfce7", borderDark: "#14532d", selectionDark: "#4ade80"
+            textDark: "#dcfce7", borderDark: "#14532d", selectionDark: "#4ade80",
+            actionDark: "#39FF14"
         ),
         "sunset": ThemePalette(
             primary: "#f43f5e", secondary: "#64748b", accent: "#fb7185", background: "#ffe4e6",
             surface: "#fff1f2", text: "#881337", border: "#fecdd3", selection: "#e11d48",
+            action: "#FF0055",
             mastered: "#f43f5e", almost: "#fb7185", learning: "#fda4af", weak: "#881337",
             new: "#9ca3af",
             primaryDark: "#f43f5e", backgroundDark: "#4c0519", surfaceDark: "#881337",
-            textDark: "#ffe4e6", borderDark: "#881337", selectionDark: "#fb7185"
+            textDark: "#ffe4e6", borderDark: "#881337", selectionDark: "#fb7185",
+            actionDark: "#FF2D55"
         ),
         "night": ThemePalette(
             primary: "#7c3aed", secondary: "#64748b", accent: "#a78bfa", background: "#f3e8ff",
             surface: "#faf5ff", text: "#4c1d95", border: "#c4b5fd", selection: "#7c3aed",
+            action: "#7F00FF",
             mastered: "#818cf8", almost: "#a78bfa", learning: "#6366f1", weak: "#ec4899",
             new: "#71717a",
             primaryDark: "#7c3aed", backgroundDark: "#1c1040", surfaceDark: "#2e1065",
-            textDark: "#ede9fe", borderDark: "#5b21b6", selectionDark: "#7c3aed"
+            textDark: "#ede9fe", borderDark: "#5b21b6", selectionDark: "#7c3aed",
+            actionDark: "#8F00FF"
         ),
         "sakura": ThemePalette(
             primary: "#f472b6", secondary: "#64748b", accent: "#f9a8d4", background: "#fdf2f8",
             surface: "#ffffff", text: "#831843", border: "#fbcfe8", selection: "#f472b6",
+            action: "#FF0080",
             mastered: "#ec4899", almost: "#f9a8d4", learning: "#e879f9", weak: "#f43f5e",
             new: "#d1d5db",
             primaryDark: "#f472b6", backgroundDark: "#500724", surfaceDark: "#831843",
-            textDark: "#fdf2f8", borderDark: "#831843", selectionDark: "#f472b6"
+            textDark: "#fdf2f8", borderDark: "#831843", selectionDark: "#f472b6",
+            actionDark: "#FF00CC"
         ),
         "matcha": ThemePalette(
             primary: "#84cc16", secondary: "#64748b", accent: "#bef264", background: "#ecfccb",
             surface: "#f7fee7", text: "#3f6212", border: "#d9f99d", selection: "#65a30d",
+            action: "#76E600",
             mastered: "#84cc16", almost: "#bef264", learning: "#a3e635", weak: "#3f6212",
             new: "#9ca3af",
             primaryDark: "#84cc16", backgroundDark: "#1a2e05", surfaceDark: "#3f6212",
-            textDark: "#ecfccb", borderDark: "#3f6212", selectionDark: "#84cc16"
+            textDark: "#ecfccb", borderDark: "#3f6212", selectionDark: "#84cc16",
+            actionDark: "#A2FF00"
         ),
         "coffee": ThemePalette(
             primary: "#d97706", secondary: "#64748b", accent: "#fcd34d", background: "#fef3c7",
             surface: "#fffbeb", text: "#78350f", border: "#fde68a", selection: "#b45309",
+            action: "#FF9500",
             mastered: "#d97706", almost: "#fcd34d", learning: "#f59e0b", weak: "#78350f",
             new: "#9ca3af",
             primaryDark: "#d97706", backgroundDark: "#451a03", surfaceDark: "#78350f",
-            textDark: "#fef3c7", borderDark: "#78350f", selectionDark: "#d97706"
+            textDark: "#fef3c7", borderDark: "#78350f", selectionDark: "#d97706",
+            actionDark: "#FFB000"
         ),
         "monochrome": ThemePalette(
             primary: "#525252", secondary: "#a3a3a3", accent: "#737373", background: "#FFFFFF",
             surface: "#FAFAFA", text: "#000000", border: "#e5e5e5", selection: "#404040",
+            action: "#FF3B30",
             mastered: "#525252", almost: "#a3a3a3", learning: "#737373", weak: "#171717",
             new: "#d4d4d4",
             primaryDark: "#d4d4d4", backgroundDark: "#000000", surfaceDark: "#171717",
-            textDark: "#FFFFFF", borderDark: "#404040", selectionDark: "#d4d4d4"
+            textDark: "#FFFFFF", borderDark: "#404040", selectionDark: "#d4d4d4",
+            actionDark: "#FF453A"
         ),
         "cyberpunk": ThemePalette(
             primary: "#00ff41", secondary: "#fdfd00", accent: "#00ffff", background: "#f8fafc",
             surface: "#ffffff", text: "#0f172a", border: "#cbd5e1", selection: "#00ffff",
+            action: "#FF00FF",
             mastered: "#00ff41", almost: "#fdfd00", learning: "#ff00ff", weak: "#ff0055",
             new: "#94a3b8",
             primaryDark: "#00ff41", backgroundDark: "#000507", surfaceDark: "#00151a",
-            textDark: "#2aa198", borderDark: "#586e75", selectionDark: "#2aa198"
+            textDark: "#2aa198", borderDark: "#586e75", selectionDark: "#2aa198",
+            actionDark: "#FF0099"
         ),
         "nordic": ThemePalette(
             primary: "#5e81ac", secondary: "#81a1c1", accent: "#88c0d0", background: "#d8dee9",
             surface: "#eceff4", text: "#2e3440", border: "#e5e9f0", selection: "#5e81ac",
+            action: "#B48EAD",
             mastered: "#5e81ac", almost: "#81a1c1", learning: "#88c0d0", weak: "#bf616a",
             new: "#d8dee9",
             primaryDark: "#5e81ac", backgroundDark: "#2e3440", surfaceDark: "#3b4252",
-            textDark: "#eceff4", borderDark: "#4c566a", selectionDark: "#88c0d0"
+            textDark: "#eceff4", borderDark: "#4c566a", selectionDark: "#88c0d0",
+            actionDark: "#B48EAD"
         ),
         "dracula": ThemePalette(
             primary: "#bd93f9", secondary: "#6272a4", accent: "#ffb86c", background: "#f8fafc",
             surface: "#ffffff", text: "#1f2937", border: "#e5e7eb", selection: "#bd93f9",
+            action: "#FF79C6",
             mastered: "#50fa7b", almost: "#f1fa8c", learning: "#ffb86c", weak: "#ff5555",
             new: "#94a3b8",
             primaryDark: "#bd93f9", backgroundDark: "#191a21", surfaceDark: "#282a36",
-            textDark: "#f8f8f2", borderDark: "#44475a", selectionDark: "#ff79c6"
+            textDark: "#f8f8f2", borderDark: "#44475a", selectionDark: "#ff79c6",
+            actionDark: "#FF79C6"
         ),
         // --- Art Presets ---
         "monaLisa": ThemePalette(
             primary: "#8b7355", secondary: "#c4a574", accent: "#c9b896", background: "#f5efe0",
             surface: "#fdf8e8", text: "#3d2914", border: "#c9b896", selection: "#7c6543",
+            action: "#C0392B",
             mastered: "#8b7355", almost: "#c4a574", learning: "#a67c52", weak: "#6b4423",
             new: "#d4c4a8",
             primaryDark: "#8b7355", backgroundDark: "#1a150f", surfaceDark: "#2a2218",
-            textDark: "#e8dcc8", borderDark: "#5c4a35", selectionDark: "#a67c52"
+            textDark: "#e8dcc8", borderDark: "#5c4a35", selectionDark: "#a67c52",
+            actionDark: "#E74C3C"
         ),
         "starryNight": ThemePalette(
             primary: "#1e3a6d", secondary: "#f4d03f", accent: "#7eb3e0", background: "#e8f2fc",
             surface: "#f0f7ff", text: "#1a2f4a", border: "#7eb3e0", selection: "#1e3a6d",
+            action: "#F1C40F",
             mastered: "#4a90d9", almost: "#f4d03f", learning: "#5eb3f4", weak: "#2d4a87",
             new: "#8bacd0",
             primaryDark: "#1e3a6d", backgroundDark: "#0a1222", surfaceDark: "#0f1a2d",
-            textDark: "#b8d4f0", borderDark: "#2d5a8c", selectionDark: "#5eb3f4"
+            textDark: "#b8d4f0", borderDark: "#2d5a8c", selectionDark: "#5eb3f4",
+            actionDark: "#F39C12"
         ),
         "sunflowers": ThemePalette(
             primary: "#e8a317", secondary: "#f4c430", accent: "#e8d080", background: "#fff8e0",
             surface: "#fffef5", text: "#5c4a1a", border: "#e8d080", selection: "#d4a520",
+            action: "#27AE60",
             mastered: "#f4c430", almost: "#e8a317", learning: "#d4942a", weak: "#8b4513",
             new: "#f5e6b8",
             primaryDark: "#e8a317", backgroundDark: "#1c180a", surfaceDark: "#2a2410",
-            textDark: "#f5e6b8", borderDark: "#a67c20", selectionDark: "#f4c430"
+            textDark: "#f5e6b8", borderDark: "#a67c20", selectionDark: "#f4c430",
+            actionDark: "#2ECC71"
         ),
         "theScream": ThemePalette(
             primary: "#c43c00", secondary: "#f4a460", accent: "#e8a060", background: "#ffeee0",
             surface: "#fff8f0", text: "#4a2a1a", border: "#e8a060", selection: "#c43c00",
+            action: "#2980B9",
             mastered: "#ff6b35", almost: "#f4a460", learning: "#e85d04", weak: "#8b0000",
             new: "#d4a574",
             primaryDark: "#c43c00", backgroundDark: "#1c1008", surfaceDark: "#2a1a10",
-            textDark: "#f4d4b8", borderDark: "#8b4a20", selectionDark: "#ff6b35"
+            textDark: "#f4d4b8", borderDark: "#8b4a20", selectionDark: "#ff6b35",
+            actionDark: "#3498DB"
         ),
         // --- City/Modern Presets ---
         "rushHour": ThemePalette(
             primary: "#e85d04", secondary: "#ffd93d", accent: "#d0d0d0", background: "#f0ece8",
             surface: "#fafaf8", text: "#3a3028", border: "#d0d0d0", selection: "#e85d04",
+            action: "#FF5733",
             mastered: "#ff6b35", almost: "#ffd93d", learning: "#ff8c42", weak: "#c73e1d",
             new: "#a0a0a0",
             primaryDark: "#e85d04", backgroundDark: "#12100e", surfaceDark: "#1a1816",
-            textDark: "#e0d8d0", borderDark: "#505050", selectionDark: "#ff6b35"
+            textDark: "#e0d8d0", borderDark: "#505050", selectionDark: "#ff6b35",
+            actionDark: "#FF4500"
         ),
         "skyscrapers": ThemePalette(
             primary: "#3a6a8a", secondary: "#8ab4c8", accent: "#90a8b8", background: "#e4ecf0",
             surface: "#f5f8fa", text: "#1a2a38", border: "#90a8b8", selection: "#3a6a8a",
+            action: "#00CED1",
             mastered: "#4a7c9b", almost: "#8ab4c8", learning: "#6a9cb0", weak: "#2a4a5b",
             new: "#a8c0d0",
             primaryDark: "#3a6a8a", backgroundDark: "#0a1014", surfaceDark: "#10181c",
-            textDark: "#b0c4d0", borderDark: "#3a5060", selectionDark: "#5a8aa4"
+            textDark: "#b0c4d0", borderDark: "#3a5060", selectionDark: "#5a8aa4",
+            actionDark: "#00E5FF"
         ),
         "glassCity": ThemePalette(
             primary: "#4a9ac0", secondary: "#b8e0f0", accent: "#a8d0e0", background: "#e8f4fa",
             surface: "#f8fcff", text: "#1a3040", border: "#a8d0e0", selection: "#4a9ac0",
+            action: "#00BFFF",
             mastered: "#7ec8e3", almost: "#b8e0f0", learning: "#98d4e8", weak: "#4a8aa0",
             new: "#c8e0ec",
             primaryDark: "#4a9ac0", backgroundDark: "#081018", surfaceDark: "#0c1820",
-            textDark: "#b8d8ec", borderDark: "#3a6070", selectionDark: "#6ab4d4"
+            textDark: "#b8d8ec", borderDark: "#3a6070", selectionDark: "#6ab4d4",
+            actionDark: "#1E90FF"
         ),
         "neonStreet": ThemePalette(
             primary: "#d946ef", secondary: "#0ea5e9", accent: "#c026d3", background: "#fdf4ff",
             surface: "#ffffff", text: "#4a044e", border: "#f0abfc", selection: "#e879f9",
+            action: "#FF00AA",
             mastered: "#d946ef", almost: "#0ea5e9", learning: "#e879f9", weak: "#86198f",
             new: "#94a3b8",
             primaryDark: "#e040a0", backgroundDark: "#0a0818", surfaceDark: "#1a1020",
-            textDark: "#f0e0f8", borderDark: "#5a3a7a", selectionDark: "#e040a0"
+            textDark: "#f0e0f8", borderDark: "#5a3a7a", selectionDark: "#e040a0",
+            actionDark: "#FF00FF"
         ),
         "nightView": ThemePalette(
             primary: "#0284c7", secondary: "#f43f5e", accent: "#f59e0b", background: "#f0f9ff",
             surface: "#ffffff", text: "#0c4a6e", border: "#bae6fd", selection: "#38bdf8",
+            action: "#007AFF",
             mastered: "#fbbf24", almost: "#f43f5e", learning: "#0ea5e9", weak: "#0c4a6e",
             new: "#94a3b8",
             primaryDark: "#00a0c0", backgroundDark: "#0a0a1a", surfaceDark: "#1a1a2a",
-            textDark: "#e8e8f0", borderDark: "#3a3a5a", selectionDark: "#00a0c0"
+            textDark: "#e8e8f0", borderDark: "#3a3a5a", selectionDark: "#00a0c0",
+            actionDark: "#0A84FF"
         ),
 
         "midnight": ThemePalette(
             primary: "#4f46e5", secondary: "#94a3b8", accent: "#6366f1", background: "#f8fafc",
             surface: "#ffffff", text: "#1e293b", border: "#e2e8f0", selection: "#818cf8",
+            action: "#6366f1",
             mastered: "#34d399", almost: "#fbbf24", learning: "#fb923c", weak: "#f87171",
             new: "#475569",
             primaryDark: "#818cf8", backgroundDark: "#0f172a", surfaceDark: "#1e293b",
-            textDark: "#e2e8f0", borderDark: "#334155", selectionDark: "#818cf8"
+            textDark: "#e2e8f0", borderDark: "#334155", selectionDark: "#818cf8",
+            actionDark: "#4F46E5"
         ),
 
         "fugaku36": ThemePalette(
             primary: "#d97706", secondary: "#916016", accent: "#f59e0b", background: "#fffbeb",
             surface: "#ffffff", text: "#1e3a8a", border: "#fcd34d", selection: "#b45309",
+            action: "#FF3B30",
             mastered: "#4ade80", almost: "#fcd34d", learning: "#f59e0b", weak: "#f87171",
             new: "#94a3b8",
             primaryDark: "#d9c179", backgroundDark: "#010326", surfaceDark: "#011140",
-            textDark: "#f2d1b3", borderDark: "#8c857d", selectionDark: "#d9c179"
+            textDark: "#f2d1b3", borderDark: "#8c857d", selectionDark: "#d9c179",
+            actionDark: "#FF453A"
         ),
         "nature": ThemeManager.makePreset(
             selection: "#6393A6",
@@ -848,7 +903,8 @@ class ThemeManager: ObservableObject {
             almost: "#6393A6",
             learning: "#BF785E",
             weak: "#EF4444",
-            new: "#9CA3AF"
+            new: "#9CA3AF",
+            action: "#22C55E"
         ),
         "travel": ThemeManager.makePreset(
             selection: "#A0D9D9",
@@ -860,15 +916,18 @@ class ThemeManager: ObservableObject {
             almost: "#D9C589",
             learning: "#BF9765",
             weak: "#A62626",
-            new: "#A0D9D9"
+            new: "#A0D9D9",
+            action: "#F59E0B"
         ),
         "tunnel": ThemePalette(
             primary: "#0d9488", secondary: "#0f766e", accent: "#14b8a6", background: "#f0fdfa",
             surface: "#ffffff", text: "#134e4a", border: "#99f6e4", selection: "#0f766e",
+            action: "#14b8a6",
             mastered: "#10b981", almost: "#14b8a6", learning: "#0e7490", weak: "#f43f5e",
             new: "#94a3b8",
             primaryDark: "#f2668b", backgroundDark: "#011f26", surfaceDark: "#025e73",
-            textDark: "#f2668b", borderDark: "#026873", selectionDark: "#f2668b"
+            textDark: "#f2668b", borderDark: "#026873", selectionDark: "#f2668b",
+            actionDark: "#00CED1"
         ),
         "circle": ThemeManager.makePreset(
             selection: "#184040",
@@ -880,15 +939,18 @@ class ThemeManager: ObservableObject {
             almost: "#A9D9CB",
             learning: "#184040",
             weak: "#F2F2F2",
-            new: "#F2F2F2"
+            new: "#F2F2F2",
+            action: "#00BFA5"
         ),
         "fugaku": ThemePalette(
             primary: "#d9bb84", secondary: "#916016", accent: "#d9bb84", background: "#fffbeb",
             surface: "#ffffff", text: "#422006", border: "#fcd34d", selection: "#b45309",
+            action: "#D35400",
             mastered: "#4ade80", almost: "#d9bb84", learning: "#60a5fa", weak: "#f87171",
             new: "#94a3b8",
             primaryDark: "#d9bb84", backgroundDark: "#051931", surfaceDark: "#1f2937",
-            textDark: "#d9bb84", borderDark: "#4a7348", selectionDark: "#d9bb84"
+            textDark: "#d9bb84", borderDark: "#4a7348", selectionDark: "#d9bb84",
+            actionDark: "#E67E22"
         ),
         "image1": ThemeManager.makePreset(
             selection: "#1F67A6",
@@ -900,7 +962,8 @@ class ThemeManager: ObservableObject {
             almost: "#2474A6",
             learning: "#7B838C",
             weak: "#011640",
-            new: "#E9ECF2"
+            new: "#E9ECF2",
+            action: "#FFD700"
         ),
         "image5": ThemeManager.makePreset(
             selection: "#A63333",
@@ -912,7 +975,8 @@ class ThemeManager: ObservableObject {
             almost: "#BF2626",
             learning: "#BFBDB0",
             weak: "#0D0D0D",
-            new: "#F2F0D8"
+            new: "#F2F0D8",
+            action: "#FF4500"
         ),
         "img1136": ThemeManager.makePreset(
             selection: "#05AFF2",
@@ -924,39 +988,48 @@ class ThemeManager: ObservableObject {
             almost: "#F2E394",
             learning: "#809FA6",
             weak: "#05AFF2",
-            new: "#05C7F2"
+            new: "#05C7F2",
+            action: "#FFD700"
         ),
         "img1136_2": ThemePalette(
             primary: "#05c7f2", secondary: "#03a64a", accent: "#05aff2", background: "#ecfdf5",
             surface: "#ffffff", text: "#064e3b", border: "#6ee7b7", selection: "#05c7f2",
+            action: "#F1C40F",
             mastered: "#048c4d", almost: "#03a64a", learning: "#05c7f2", weak: "#05aff2",
             new: "#94a3b8",
             primaryDark: "#05c7f2", backgroundDark: "#022601", surfaceDark: "#022601",
-            textDark: "#05aff2", borderDark: "#03a64a", selectionDark: "#05c7f2"
+            textDark: "#05aff2", borderDark: "#03a64a", selectionDark: "#05c7f2",
+            actionDark: "#F39C12"
         ),
         "img1834": ThemePalette(
             primary: "#d99c9c", secondary: "#8cf25c", accent: "#d99c9c", background: "#f8fafc",
             surface: "#ffffff", text: "#0f172a", border: "#e2e8f0", selection: "#d99c9c",
+            action: "#E74C3C",
             mastered: "#8cf25c", almost: "#d99c9c", learning: "#d9d1c7", weak: "#a61c28",
             new: "#94a3b8",
             primaryDark: "#d99c9c", backgroundDark: "#012340", surfaceDark: "#012340",
-            textDark: "#d9d1c7", borderDark: "#d9d1c7", selectionDark: "#d99c9c"
+            textDark: "#d9d1c7", borderDark: "#d9d1c7", selectionDark: "#d99c9c",
+            actionDark: "#C0392B"
         ),
         "img2815": ThemePalette(
             primary: "#7ebfd9", secondary: "#48592e", accent: "#7ebfd9", background: "#f8fafc",
             surface: "#ffffff", text: "#0f172a", border: "#e2e8f0", selection: "#7ebfd9",
+            action: "#27AE60",
             mastered: "#48592e", almost: "#7ebfd9", learning: "#c4e5f2", weak: "#8c4227",
             new: "#94a3b8",
             primaryDark: "#7ebfd9", backgroundDark: "#0d0d0d", surfaceDark: "#2c3540",
-            textDark: "#c4e5f2", borderDark: "#2c3540", selectionDark: "#7ebfd9"
+            textDark: "#c4e5f2", borderDark: "#2c3540", selectionDark: "#7ebfd9",
+            actionDark: "#2ECC71"
         ),
         "img2815_2": ThemePalette(
             primary: "#cee8f2", secondary: "#48592e", accent: "#7ebfd9", background: "#f8fafc",
             surface: "#ffffff", text: "#0f172a", border: "#7ebfd9", selection: "#cee8f2",
+            action: "#3498DB",
             mastered: "#48592e", almost: "#7ebfd9", learning: "#cee8f2", weak: "#8c4227",
             new: "#94a3b8",
             primaryDark: "#cee8f2", backgroundDark: "#2c3540", surfaceDark: "#ffffff",
-            textDark: "#cee8f2", borderDark: "#7ebfd9", selectionDark: "#cee8f2"
+            textDark: "#cee8f2", borderDark: "#7ebfd9", selectionDark: "#cee8f2",
+            actionDark: "#2980B9"
         ),
         "img2815_3": ThemeManager.makePreset(
             selection: "#C4E5F2",
@@ -969,6 +1042,7 @@ class ThemeManager: ObservableObject {
             learning: "#434D59",
             weak: "#161D26",
             new: "#C4E5F2",
+            action: "#00E5FF",
             isDarkBase: true
         ),
 
@@ -982,15 +1056,18 @@ class ThemeManager: ObservableObject {
             almost: "#84cc16",
             learning: "#eab308",
             weak: "#ef4444",
-            new: "#6b7280"
+            new: "#6b7280",
+            action: "#39FF14"
         ),
         "pinkNoir": ThemePalette(
             primary: "#db2777", secondary: "#f472b6", accent: "#db2777", background: "#fdf2f8",
             surface: "#ffffff", text: "#831843", border: "#fbcfe8", selection: "#db2777",
+            action: "#1D2833",
             mastered: "#ec4899", almost: "#f472b6", learning: "#a855f7", weak: "#ef4444",
             new: "#9ca3af",
             primaryDark: "#db2777", backgroundDark: "#0a0a0a", surfaceDark: "#18181b",
-            textDark: "#fce7f3", borderDark: "#831843", selectionDark: "#db2777"
+            textDark: "#fce7f3", borderDark: "#831843", selectionDark: "#db2777",
+            actionDark: "#FFFFFF"
         ),
         "sunshine": ThemeManager.makePreset(
             selection: "#eab308",
@@ -1002,7 +1079,8 @@ class ThemeManager: ObservableObject {
             almost: "#facc15",
             learning: "#f97316",
             weak: "#ef4444",
-            new: "#9ca3af"
+            new: "#9ca3af",
+            action: "#FF4500"
         ),
         "lavenderDream": ThemeManager.makePreset(
             selection: "#8b5cf6",
@@ -1014,7 +1092,8 @@ class ThemeManager: ObservableObject {
             almost: "#c4b5fd",
             learning: "#818cf8",
             weak: "#f87171",
-            new: "#94a3b8"
+            new: "#94a3b8",
+            action: "#D946EF"
         ),
         "coffeeBreak": ThemeManager.makePreset(
             selection: "#92400e",
@@ -1026,15 +1105,18 @@ class ThemeManager: ObservableObject {
             almost: "#d97706",
             learning: "#b45309",
             weak: "#dc2626",
-            new: "#78716c"
+            new: "#78716c",
+            action: "#D97706"
         ),
         "retroGaming": ThemePalette(
             primary: "#10b981", secondary: "#4ade80", accent: "#06b6d4", background: "#f0fdfa",
             surface: "#ffffff", text: "#064e3b", border: "#67e8f9", selection: "#10b981",
+            action: "#D35400",
             mastered: "#4ade80", almost: "#a3e635", learning: "#facc15", weak: "#f87171",
             new: "#22d3ee",
             primaryDark: "#10b981", backgroundDark: "#020617", surfaceDark: "#0f172a",
-            textDark: "#4ade80", borderDark: "#06b6d4", selectionDark: "#10b981"
+            textDark: "#4ade80", borderDark: "#06b6d4", selectionDark: "#10b981",
+            actionDark: "#E67E22"
         ),
 
         "spring": ThemeManager.makePreset(
@@ -1047,7 +1129,8 @@ class ThemeManager: ObservableObject {
             almost: "#fda4af",
             learning: "#fdba74",
             weak: "#f87171",
-            new: "#d1d5db"
+            new: "#d1d5db",
+            action: "#FF1493"
         ),
         "summer": ThemeManager.makePreset(
             selection: "#0284c7",
@@ -1059,7 +1142,8 @@ class ThemeManager: ObservableObject {
             almost: "#0ea5e9",
             learning: "#f59e0b",
             weak: "#ef4444",
-            new: "#94a3b8"
+            new: "#94a3b8",
+            action: "#00BFFF"
         ),
         "autumn": ThemeManager.makePreset(
             selection: "#c2410c",
@@ -1071,7 +1155,8 @@ class ThemeManager: ObservableObject {
             almost: "#f59e0b",
             learning: "#ea580c",
             weak: "#dc2626",
-            new: "#a8a29e"
+            new: "#a8a29e",
+            action: "#FF4500"
         ),
         "winter": ThemeManager.makePreset(
             selection: "#475569",
@@ -1083,7 +1168,8 @@ class ThemeManager: ObservableObject {
             almost: "#94a3b8",
             learning: "#a1a1aa",
             weak: "#9ca3af",
-            new: "#e5e7eb"
+            new: "#e5e7eb",
+            action: "#38BDF8"
         ),
         "morning": ThemeManager.makePreset(
             selection: "#fbbf24",
@@ -1095,7 +1181,8 @@ class ThemeManager: ObservableObject {
             almost: "#fef08a",
             learning: "#fed7aa",
             weak: "#fecaca",
-            new: "#f1f5f9"
+            new: "#f1f5f9",
+            action: "#F59E0B"
         ),
         "noon": ThemeManager.makePreset(
             selection: "#eab308",
@@ -1107,7 +1194,8 @@ class ThemeManager: ObservableObject {
             almost: "#facc15",
             learning: "#fb923c",
             weak: "#ef4444",
-            new: "#9ca3af"
+            new: "#9ca3af",
+            action: "#FF8C00"
         ),
         "dusk": ThemeManager.makePreset(
             selection: "#ea580c",
@@ -1119,7 +1207,8 @@ class ThemeManager: ObservableObject {
             almost: "#fbbf24",
             learning: "#f97316",
             weak: "#dc2626",
-            new: "#a8a29e"
+            new: "#a8a29e",
+            action: "#FF4500"
         ),
         "clearSky": ThemeManager.makePreset(
             selection: "#0284c7",
@@ -1131,7 +1220,8 @@ class ThemeManager: ObservableObject {
             almost: "#0ea5e9",
             learning: "#06b6d4",
             weak: "#ef4444",
-            new: "#94a3b8"
+            new: "#94a3b8",
+            action: "#00BFFF"
         ),
         "cloudy": ThemeManager.makePreset(
             selection: "#64748b",
@@ -1143,7 +1233,8 @@ class ThemeManager: ObservableObject {
             almost: "#64748b",
             learning: "#94a3b8",
             weak: "#78716c",
-            new: "#d1d5db"
+            new: "#d1d5db",
+            action: "#38BDF8"
         ),
         "rainy": ThemeManager.makePreset(
             selection: "#475569",
@@ -1155,7 +1246,8 @@ class ThemeManager: ObservableObject {
             almost: "#3b82f6",
             learning: "#6366f1",
             weak: "#8b5cf6",
-            new: "#a1a1aa"
+            new: "#a1a1aa",
+            action: "#60A5FA"
         ),
         "snow": ThemeManager.makePreset(
             selection: "#3b82f6",
@@ -1167,7 +1259,8 @@ class ThemeManager: ObservableObject {
             almost: "#e2e8f0",
             learning: "#cbd5e1",
             weak: "#e5e7eb",
-            new: "#f3f4f6"
+            new: "#f3f4f6",
+            action: "#60A5FA"
         ),
         "wind": ThemeManager.makePreset(
             selection: "#14b8a6",
@@ -1179,7 +1272,8 @@ class ThemeManager: ObservableObject {
             almost: "#a7f3d0",
             learning: "#99f6e4",
             weak: "#fca5a5",
-            new: "#d1fae5"
+            new: "#d1fae5",
+            action: "#2DD4BF"
         ),
         "oceanDepth": ThemeManager.makePreset(
             selection: "#0284c7",
@@ -1191,7 +1285,8 @@ class ThemeManager: ObservableObject {
             almost: "#38bdf8",
             learning: "#0ea5e9",
             weak: "#f43f5e",
-            new: "#94a3b8"
+            new: "#94a3b8",
+            action: "#00FFFF"
         ),
         "desert": ThemeManager.makePreset(
             selection: "#b45309",
@@ -1203,7 +1298,8 @@ class ThemeManager: ObservableObject {
             almost: "#f59e0b",
             learning: "#d97706",
             weak: "#b91c1c",
-            new: "#d6d3d1"
+            new: "#d6d3d1",
+            action: "#D97706"
         ),
         "skyGrad": ThemeManager.makePreset(
             selection: "#0ea5e9",
@@ -1215,7 +1311,8 @@ class ThemeManager: ObservableObject {
             almost: "#93c5fd",
             learning: "#a5b4fc",
             weak: "#fda4af",
-            new: "#cbd5e1"
+            new: "#cbd5e1",
+            action: "#38BDF8"
         ),
         "moonlight": ThemeManager.makePreset(
             selection: "#6366f1",
@@ -1227,7 +1324,8 @@ class ThemeManager: ObservableObject {
             almost: "#a5b4fc",
             learning: "#818cf8",
             weak: "#f9a8d4",
-            new: "#d1d5db"
+            new: "#d1d5db",
+            action: "#818CF8"
         ),
         "fog": ThemeManager.makePreset(
             selection: "#6b7280",
@@ -1239,7 +1337,8 @@ class ThemeManager: ObservableObject {
             almost: "#a1a1aa",
             learning: "#a8a29e",
             weak: "#9ca3af",
-            new: "#e5e7eb"
+            new: "#e5e7eb",
+            action: "#9CA3AF"
         ),
         "lightning": ThemeManager.makePreset(
             selection: "#eab308",
@@ -1251,7 +1350,8 @@ class ThemeManager: ObservableObject {
             almost: "#a855f7",
             learning: "#6366f1",
             weak: "#ef4444",
-            new: "#94a3b8"
+            new: "#94a3b8",
+            action: "#FFFF00"
         ),
 
         "lastSupper": ThemeManager.makePreset(
@@ -1264,7 +1364,8 @@ class ThemeManager: ObservableObject {
             almost: "#c9a66b",
             learning: "#a08050",
             weak: "#5c3d2e",
-            new: "#d4c4a0"
+            new: "#d4c4a0",
+            action: "#D35400"
         ),
         "waterLilies": ThemeManager.makePreset(
             selection: "#4a8a7a",
@@ -1276,7 +1377,8 @@ class ThemeManager: ObservableObject {
             almost: "#a8c8e8",
             learning: "#90b090",
             weak: "#5a7a5a",
-            new: "#c8d8c8"
+            new: "#c8d8c8",
+            action: "#2ECC71"
         ),
         "guernica": ThemeManager.makePreset(
             selection: "#3a3a3a",
@@ -1288,7 +1390,8 @@ class ThemeManager: ObservableObject {
             almost: "#808080",
             learning: "#606060",
             weak: "#2a2a2a",
-            new: "#c0c0c0"
+            new: "#c0c0c0",
+            action: "#FF0000"
         ),
         "girlWithPearl": ThemeManager.makePreset(
             selection: "#2a5a7b",
@@ -1300,7 +1403,8 @@ class ThemeManager: ObservableObject {
             almost: "#f4d03f",
             learning: "#5a8aab",
             weak: "#2a4a6b",
-            new: "#a0b8c8"
+            new: "#a0b8c8",
+            action: "#F1C40F"
         ),
         "nightWatch": ThemeManager.makePreset(
             selection: "#7a5a1a",
@@ -1312,7 +1416,8 @@ class ThemeManager: ObservableObject {
             almost: "#8b4513",
             learning: "#a67c00",
             weak: "#3c280a",
-            new: "#9a8060"
+            new: "#9a8060",
+            action: "#FFD700"
         ),
         "libertyLeading": ThemeManager.makePreset(
             selection: "#2a4a7a",
@@ -1324,7 +1429,8 @@ class ThemeManager: ObservableObject {
             almost: "#c43c3a",
             learning: "#e8d8a8",
             weak: "#4a2a1a",
-            new: "#8a9aaa"
+            new: "#8a9aaa",
+            action: "#E74C3C"
         ),
         "theKiss": ThemeManager.makePreset(
             selection: "#a67c00",
@@ -1336,7 +1442,8 @@ class ThemeManager: ObservableObject {
             almost: "#c9a66b",
             learning: "#b8860b",
             weak: "#6b4423",
-            new: "#e8d8a8"
+            new: "#e8d8a8",
+            action: "#F39C12"
         ),
         "americanGothic": ThemeManager.makePreset(
             selection: "#4a5a3a",
@@ -1348,7 +1455,8 @@ class ThemeManager: ObservableObject {
             almost: "#8b7355",
             learning: "#707860",
             weak: "#3a3a2a",
-            new: "#b8b8a0"
+            new: "#b8b8a0",
+            action: "#27AE60"
         ),
         "theGleaners": ThemeManager.makePreset(
             selection: "#7a6030",
@@ -1360,7 +1468,8 @@ class ThemeManager: ObservableObject {
             almost: "#8b7355",
             learning: "#a08050",
             weak: "#5a4a30",
-            new: "#d8c8a8"
+            new: "#d8c8a8",
+            action: "#E67E22"
         ),
         "lasMeninas": ThemeManager.makePreset(
             selection: "#5a4a30",
@@ -1372,7 +1481,8 @@ class ThemeManager: ObservableObject {
             almost: "#c0a080",
             learning: "#a08060",
             weak: "#4a3a2a",
-            new: "#d0c0a0"
+            new: "#d0c0a0",
+            action: "#C0392B"
         ),
         "shepherdess": ThemeManager.makePreset(
             selection: "#5a7a4a",
@@ -1384,7 +1494,8 @@ class ThemeManager: ObservableObject {
             almost: "#c9a66b",
             learning: "#8aaa7a",
             weak: "#4a5a3a",
-            new: "#c8d4b8"
+            new: "#c8d4b8",
+            action: "#2ECC71"
         ),
         "ophelia": ThemeManager.makePreset(
             selection: "#4a7a5a",
@@ -1396,7 +1507,8 @@ class ThemeManager: ObservableObject {
             almost: "#a08090",
             learning: "#7aaa8a",
             weak: "#3a5a4a",
-            new: "#b0c0b8"
+            new: "#b0c0b8",
+            action: "#9B59B6"
         ),
         "bedroomArles": ThemeManager.makePreset(
             selection: "#3a70a0",
@@ -1408,7 +1520,8 @@ class ThemeManager: ObservableObject {
             almost: "#f4c430",
             learning: "#5aaa5a",
             weak: "#8b4513",
-            new: "#a8c8e0"
+            new: "#a8c8e0",
+            action: "#F39C12"
         ),
         "towerBabel": ThemeManager.makePreset(
             selection: "#6a5030",
@@ -1420,7 +1533,8 @@ class ThemeManager: ObservableObject {
             almost: "#c9a66b",
             learning: "#8a7050",
             weak: "#5a4030",
-            new: "#c8b8a0"
+            new: "#c8b8a0",
+            action: "#D35400"
         ),
         "luncheonBoating": ThemeManager.makePreset(
             selection: "#4a7a9a",
@@ -1432,7 +1546,8 @@ class ThemeManager: ObservableObject {
             almost: "#e8a870",
             learning: "#7aaaca",
             weak: "#3a5a7a",
-            new: "#a8c0d0"
+            new: "#a8c0d0",
+            action: "#3498DB"
         ),
         "grandJatte": ThemeManager.makePreset(
             selection: "#5a8a5a",
@@ -1444,7 +1559,8 @@ class ThemeManager: ObservableObject {
             almost: "#d4a87a",
             learning: "#8aba8a",
             weak: "#4a6a4a",
-            new: "#b8c8a8"
+            new: "#b8c8a8",
+            action: "#2ECC71"
         ),
 
         "cityMorning": ThemeManager.makePreset(
@@ -1457,7 +1573,8 @@ class ThemeManager: ObservableObject {
             almost: "#ffd700",
             learning: "#98d8c8",
             weak: "#708090",
-            new: "#b0c4de"
+            new: "#b0c4de",
+            action: "#2980B9"
         ),
         "concrete": ThemeManager.makePreset(
             selection: "#5a5a5a",
@@ -1469,7 +1586,8 @@ class ThemeManager: ObservableObject {
             almost: "#9a9a9a",
             learning: "#808080",
             weak: "#4a4a4a",
-            new: "#c0c0c0"
+            new: "#c0c0c0",
+            action: "#E74C3C"
         ),
         "underground": ThemeManager.makePreset(
             selection: "#a08020",
@@ -1481,7 +1599,8 @@ class ThemeManager: ObservableObject {
             almost: "#f0c040",
             learning: "#c09020",
             weak: "#8a6a10",
-            new: "#a0a090"
+            new: "#a0a090",
+            action: "#F1C40F"
         ),
         "rainyIntersection": ThemeManager.makePreset(
             selection: "#4a6a88",
@@ -1493,7 +1612,8 @@ class ThemeManager: ObservableObject {
             almost: "#7a9ab0",
             learning: "#5a7a9a",
             weak: "#3a4a5a",
-            new: "#9aaaba"
+            new: "#9aaaba",
+            action: "#3498DB"
         ),
         "eveningStation": ThemeManager.makePreset(
             selection: "#d06830",
@@ -1505,7 +1625,8 @@ class ThemeManager: ObservableObject {
             almost: "#ffa560",
             learning: "#e87830",
             weak: "#a05020",
-            new: "#b8a090"
+            new: "#b8a090",
+            action: "#E67E22"
         ),
         "officeDistrict": ThemeManager.makePreset(
             selection: "#3a6080",
@@ -1517,7 +1638,8 @@ class ThemeManager: ObservableObject {
             almost: "#6890a8",
             learning: "#5a80a0",
             weak: "#3a5070",
-            new: "#98b0c0"
+            new: "#98b0c0",
+            action: "#2980B9"
         ),
         "redevelopment": ThemeManager.makePreset(
             selection: "#3a80b0",
@@ -1529,7 +1651,8 @@ class ThemeManager: ObservableObject {
             almost: "#4a90c0",
             learning: "#90b0c0",
             weak: "#4a5a6a",
-            new: "#a8b8c8"
+            new: "#a8b8c8",
+            action: "#E67E22"
         ),
         "oldTown": ThemeManager.makePreset(
             selection: "#6a5a40",
@@ -1541,7 +1664,8 @@ class ThemeManager: ObservableObject {
             almost: "#a08060",
             learning: "#9a7a5a",
             weak: "#5a4a3a",
-            new: "#c8b8a0"
+            new: "#c8b8a0",
+            action: "#D35400"
         ),
         "backAlley": ThemeManager.makePreset(
             selection: "#4a6a40",
@@ -1553,7 +1677,8 @@ class ThemeManager: ObservableObject {
             almost: "#a09080",
             learning: "#7a9a6a",
             weak: "#3a4a30",
-            new: "#a0a890"
+            new: "#a0a890",
+            action: "#27AE60"
         ),
         "rooftop": ThemeManager.makePreset(
             selection: "#4a90b0",
@@ -1577,7 +1702,8 @@ class ThemeManager: ObservableObject {
             almost: "#9a9a8a",
             learning: "#8a9a7a",
             weak: "#4a5a4a",
-            new: "#b0b8a8"
+            new: "#b0b8a8",
+            action: "#4ADE80"
         ),
         "downtown": ThemeManager.makePreset(
             selection: "#e04080",
@@ -1589,7 +1715,8 @@ class ThemeManager: ObservableObject {
             almost: "#ffd93d",
             learning: "#4ecdc4",
             weak: "#c44569",
-            new: "#a0a0b0"
+            new: "#a0a0b0",
+            action: "#FF1493"
         ),
         "lateNight": ThemeManager.makePreset(
             selection: "#3a5068",
@@ -1602,6 +1729,7 @@ class ThemeManager: ObservableObject {
             learning: "#5a7088",
             weak: "#2a3a48",
             new: "#7888a0",
+            action: "#60A5FA",
             isDarkBase: true
         ),
         "trafficSign": ThemeManager.makePreset(
@@ -1614,7 +1742,8 @@ class ThemeManager: ObservableObject {
             almost: "#ffd700",
             learning: "#ff6b00",
             weak: "#e02020",
-            new: "#808080"
+            new: "#808080",
+            action: "#FFFF00"
         ),
         "cityOutline": ThemeManager.makePreset(
             selection: "#4a6080",
@@ -1626,7 +1755,8 @@ class ThemeManager: ObservableObject {
             almost: "#8aa0b0",
             learning: "#7090a8",
             weak: "#3a4a5a",
-            new: "#a0b0c0"
+            new: "#a0b0c0",
+            action: "#38BDF8"
         ),
     ]
 
@@ -1639,10 +1769,12 @@ class ThemeManager: ObservableObject {
         self.currentPalette = ThemePalette(
             primary: "#34C759", secondary: "#8E8E93", accent: "#FF9F0A", background: "#0B0B0C",
             surface: "#1C1C1E", text: "#F2F2F7", border: "#2C2C2E", selection: "#34C759",
+            action: "#00E050",
             mastered: "#34C759", almost: "#FFD60A", learning: "#0A84FF", weak: "#FF453A",
             new: "#8E8E93",
             primaryDark: "#34C759", backgroundDark: "#0B0B0C", surfaceDark: "#1C1C1E",
-            textDark: "#F2F2F7", borderDark: "#2C2C2E", selectionDark: "#34C759"
+            textDark: "#F2F2F7", borderDark: "#2C2C2E", selectionDark: "#34C759",
+            actionDark: "#39FF14"
         )
 
         let id = UserDefaults.standard.string(forKey: "selectedThemeId") ?? "default"

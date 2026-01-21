@@ -127,21 +127,26 @@ struct BookshelfView: View {
     }
 
     private var searchBar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
+                .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(theme.secondaryText)
             TextField("教材を検索", text: $searchText)
 #if os(iOS)
                 .textInputAutocapitalization(.never)
 #endif
+                .font(.subheadline)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(
-            theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-                .opacity(theme.effectiveIsDark ? 0.9 : 0.96)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
         )
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(theme.currentPalette.color(.border, isDark: theme.effectiveIsDark).opacity(0.3), lineWidth: 1)
+        )
     }
 
     private var filterChips: some View {
@@ -185,20 +190,76 @@ struct BookshelfView: View {
     }
 
     private var emptyState: some View {
-        ContentUnavailableView {
-            Label("教材がありません", systemImage: "books.vertical")
-        } description: {
-            Text("教材を登録して学習記録に紐づけましょう")
-        } actions: {
+        VStack(spacing: 24) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.2),
+                                theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark).opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 120, height: 120)
+                
+                Image(systemName: "books.vertical.fill")
+                    .font(.system(size: 48, weight: .medium))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark),
+                                theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            
+            VStack(spacing: 12) {
+                Text("学習を始めましょう")
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(theme.primaryText)
+                
+                Text("教材を登録して学習記録をつければ、\nあなたの成長を可視化できます")
+                    .font(.subheadline)
+                    .foregroundStyle(theme.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+            }
+            
             Button {
                 showAddSheet = true
             } label: {
-                Label("教材を追加", systemImage: "plus")
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 20, weight: .medium))
+                    Text("教材を追加")
+                        .font(.headline.weight(.semibold))
+                }
+                .foregroundStyle(theme.onColor(for: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)))
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark),
+                            theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.8)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(Capsule())
+                .shadow(color: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.3), radius: 8, x: 0, y: 4)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.plain)
         }
-        .tint(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
-        .padding(.vertical, 10)
+        .padding(.vertical, 40)
+        .frame(maxWidth: .infinity)
     }
 
     private var summaryMetrics: some View {
@@ -235,6 +296,14 @@ struct BookshelfView: View {
     }
 }
 
+fileprivate func formatMinutes(_ minutes: Int) -> String {
+    let hours = minutes / 60
+    let remainder = minutes % 60
+    if hours == 0 { return "\(remainder)分" }
+    if remainder == 0 { return "\(hours)時間" }
+    return "\(hours)時間\(remainder)分"
+}
+
 private struct MaterialCardView: View {
     let material: StudyMaterial
     @ObservedObject private var theme = ThemeManager.shared
@@ -243,21 +312,22 @@ private struct MaterialCardView: View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
         let accent = material.subject?.color
             ?? theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
-        return HStack(spacing: 14) {
+        return HStack(spacing: 16) {
             ZStack {
-                Circle()
-                    .fill(accent.opacity(0.18))
-                    .frame(width: 46, height: 46)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(accent.opacity(0.25))
+                    .frame(width: 52, height: 52)
                 Image(systemName: material.type.icon)
+                    .font(.system(size: 24, weight: .medium))
                     .foregroundStyle(accent)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(material.title)
-                    .font(.headline)
+                    .font(.headline.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
 
-                HStack(spacing: 6) {
+                HStack(spacing: 8) {
                     if let subject = material.subject {
                         PillBadge(title: subject.displayName, color: subject.color)
                     }
@@ -267,27 +337,30 @@ private struct MaterialCardView: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(formatMinutes(material.totalMinutes))
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(theme.primaryText)
+            VStack(alignment: .trailing, spacing: 6) {
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text(formatMinutes(material.totalMinutes))
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(theme.primaryText)
+                }
                 if let last = material.lastStudiedAt {
                     Text(dateString(last))
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(theme.secondaryText)
                 }
             }
         }
-        .padding(16)
+        .padding(18)
         .frame(maxWidth: .infinity)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(surface.opacity(theme.effectiveIsDark ? 0.95 : 0.98))
+                .fill(surface)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(accent.opacity(0.18), lineWidth: 1)
+                .stroke(accent.opacity(0.3), lineWidth: 1.5)
         )
+        .shadow(color: accent.opacity(0.2), radius: 8, x: 0, y: 4)
     }
 
     private func dateString(_ date: Date) -> String {

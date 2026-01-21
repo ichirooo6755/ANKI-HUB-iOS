@@ -135,20 +135,31 @@ struct DashboardView: View {
                                     HStack {
                                         VStack(alignment: .leading) {
                                             Text("復習待ち（期限到来）")
-                                                .font(.title3.bold())
+                                                .font(.title3.weight(.bold))
                                             Text("\(totalDueCount)語")
-                                                .font(.subheadline)
-                                                .foregroundStyle(ThemeManager.shared.secondaryText)
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundStyle(themeManager.secondaryText)
                                         }
                                         Spacer()
-                                        Image(systemName: "clock.badge.exclamationmark")
-                                            .foregroundStyle(
-                                                ThemeManager.shared.currentPalette.color(
-                                                    .accent,
-                                                    isDark: ThemeManager.shared.effectiveIsDark))
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.2))
+                                                .frame(width: 36, height: 36)
+                                            Image(systemName: "clock.badge.exclamationmark")
+                                                .font(.system(size: 18, weight: .medium))
+                                                .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
+                                        }
                                     }
-                                    .padding()
-                                    .liquidGlass()
+                                    .padding(16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .stroke(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                    )
+                                    .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
                                     .padding(.horizontal)
                                 }
                                 .buttonStyle(.plain)
@@ -160,19 +171,31 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("タイムライン")
-                                            .font(.title3.bold())
+                                            .font(.title3.weight(.bold))
                                         Text("学習ログを投稿")
-                                            .font(.subheadline)
+                                            .font(.subheadline.weight(.medium))
                                             .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
-                                    Image(systemName: "sparkles")
-                                        .foregroundStyle(
-                                            themeManager.currentPalette.color(
-                                                .primary, isDark: themeManager.effectiveIsDark))
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.2))
+                                            .frame(width: 36, height: 36)
+                                        Image(systemName: "sparkles")
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundStyle(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark))
+                                    }
                                 }
-                                .padding()
-                                .liquidGlass()
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                )
+                                .shadow(color: themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -182,41 +205,62 @@ struct DashboardView: View {
                                     HStack {
                                         VStack(alignment: .leading) {
                                             Text("復習待ち")
-                                                .font(.title3.bold())
+                                                .font(.title3.weight(.bold))
                                             Text("\(totalWeakCount)語")
-                                                .font(.subheadline)
-                                                .foregroundStyle(ThemeManager.shared.secondaryText)
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundStyle(themeManager.secondaryText)
                                         }
                                         Spacer()
-                                        Image(systemName: "exclamationmark.triangle.fill")
-                                            .foregroundStyle(
-                                                ThemeManager.shared.currentPalette.color(
-                                                    .selection,
-                                                    isDark: ThemeManager.shared.effectiveIsDark))
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                .fill(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.2))
+                                                .frame(width: 36, height: 36)
+                                            Image(systemName: "exclamationmark.triangle.fill")
+                                                .font(.system(size: 18, weight: .medium))
+                                                .foregroundStyle(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark))
+                                        }
                                     }
-                                    .padding()
-                                    .padding()
-                                    .liquidGlass()
+                                    .padding(16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .stroke(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                    )
+                                    .shadow(color: themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
                                     .padding(.horizontal)
                                 }
+                                .buttonStyle(.plain)
                             }
 
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text("今日の復習")
-                                        .font(.title3.bold())
+                                        .font(.title3.weight(.bold))
                                     Text("\(learningStats.todayMinutes)分")
-                                        .font(.subheadline)
-                                        .foregroundStyle(ThemeManager.shared.secondaryText)
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(themeManager.secondaryText)
                                 }
                                 Spacer()
                                 CircularProgressView(
-                                    progress: Double(learningStats.todayMinutes) / 30.0
+                                    progress: Double(learningStats.todayMinutes) / 30.0,
+                                    color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark),
+                                    lineWidth: 6
                                 )
                                 .frame(width: 50, height: 50)
                             }
-                            .padding()
-                            .liquidGlass()
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .stroke(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                            )
+                            .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
                             .padding(.horizontal)
 
                             // ToDo Card
@@ -226,18 +270,31 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("やることリスト")
-                                            .font(.title3.bold())
+                                            .font(.title3.weight(.bold))
+                                        Text("学習タスクを管理")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
-                                    Image(systemName: "list.bullet")
-                                        .foregroundStyle(
-                                            ThemeManager.shared.currentPalette.color(
-                                                .primary,
-                                                isDark: ThemeManager.shared.effectiveIsDark))
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.2))
+                                            .frame(width: 36, height: 36)
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundStyle(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark))
+                                    }
                                 }
-                                .padding()
-                                .padding()
-                                .liquidGlass()
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                )
+                                .shadow(color: themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -249,18 +306,31 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("テスト履歴")
-                                            .font(.title3.bold())
+                                            .font(.title3.weight(.bold))
+                                        Text("過去の成績を確認")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
-                                    Image(systemName: "doc.text")
-                                        .foregroundStyle(
-                                            ThemeManager.shared.currentPalette.color(
-                                                .accent, isDark: ThemeManager.shared.effectiveIsDark
-                                            ))
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.2))
+                                            .frame(width: 36, height: 36)
+                                        Image(systemName: "doc.text")
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
+                                    }
                                 }
-                                .padding()
-                                .padding()
-                                .liquidGlass()
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                )
+                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -272,18 +342,31 @@ struct DashboardView: View {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("タイマー")
-                                            .font(.title3.bold())
+                                            .font(.title3.weight(.bold))
+                                        Text("集中時間を管理")
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
-                                    Image(systemName: "stopwatch.fill")
-                                        .foregroundStyle(
-                                            ThemeManager.shared.currentPalette.color(
-                                                .accent, isDark: ThemeManager.shared.effectiveIsDark
-                                            ))
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.2))
+                                            .frame(width: 36, height: 36)
+                                        Image(systemName: "stopwatch.fill")
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
+                                    }
                                 }
-                                .padding()
-                                .padding()
-                                .liquidGlass()
+                                .padding(16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.3), lineWidth: 1)
+                                )
+                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.15), radius: 6, x: 0, y: 3)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)

@@ -18,9 +18,8 @@ class CustomSpeechTranscriber: ObservableObject {
     @Published var transcription = ""
     @Published var transcript = ""
     
-    override init() {
+    init() {
         self.speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "ja_JP"))
-        super.init()
     }
     
     func requestPermissions() async -> Bool {
