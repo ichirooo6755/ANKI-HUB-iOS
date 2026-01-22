@@ -119,7 +119,7 @@ struct ReportView: View {
                         .font(.headline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text("弱点語彙を集中で復習")
-                        .font(.footnote)
+                        .font(.callout)
                         .foregroundStyle(theme.secondaryText)
                 }
                 Spacer()
@@ -149,7 +149,7 @@ struct ReportView: View {
                     .minimumScaleFactor(0.6)
             }
             Text(title)
-                .font(.footnote.weight(.medium))
+                .font(.callout.weight(.medium))
                 .foregroundStyle(theme.secondaryText)
         }
         .padding(12)
@@ -225,9 +225,13 @@ struct MasteryPieChart: View {
     
     var body: some View {
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
         let safeIndex = min(selectedPage, max(pages.count - 1, 0))
         let currentPage = pages[safeIndex]
         let currentData = masteryData(for: currentPage)
+        let totalCount = currentData.reduce(0) { $0 + $1.count }
+        let masteredCount = currentData.first(where: { $0.level == .mastered })?.count ?? 0
+        let summaryText = "合計\(totalCount)語、習熟\(masteredCount)語"
         return VStack(alignment: .leading, spacing: 16) {
             TabView(selection: $selectedPage) {
                 ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
@@ -240,20 +244,13 @@ struct MasteryPieChart: View {
                                 ZStack {
                                     Circle()
                                         .stroke(accent.opacity(0.2), lineWidth: 12)
-                                        .frame(width: 140, height: 140)
+                                        .frame(width: 160, height: 160)
                                     Image(systemName: "sparkles")
                                         .font(.title3.weight(.semibold))
                                         .foregroundStyle(accent)
                                 }
-                                Text("学習を始めよう")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(theme.primaryText)
-                                Text("クイズやタイマーの記録がここに表示されます")
-                                    .font(.footnote)
-                                    .foregroundStyle(theme.secondaryText)
-                                    .multilineTextAlignment(.center)
                             }
-                            .frame(height: 240)
+                            .frame(height: 200)
                         } else {
                             Chart(data) { item in
                                 SectorMark(
@@ -264,11 +261,11 @@ struct MasteryPieChart: View {
                                 .foregroundStyle(item.level.color)
                                 .cornerRadius(5)
                             }
-                            .frame(height: 240)
+                            .frame(height: 260)
                             .chartOverlay { _ in
                                 VStack(spacing: 4) {
                                     Text("覚えた")
-                                        .font(.footnote)
+                                        .font(.callout)
                                         .foregroundStyle(theme.secondaryText)
                                     Text("\(totalMastered)")
                                         .font(.title2.weight(.bold))
@@ -290,15 +287,26 @@ struct MasteryPieChart: View {
             #else
                 .tabViewStyle(.automatic)
             #endif
+            .accessibilityLabel(Text("習熟度分布"))
+            .accessibilityValue(Text(summaryText))
+
+            #if os(iOS)
+                HStack(spacing: 6) {
+                    ForEach(0..<pages.count, id: \.self) { idx in
+                        Circle()
+                            .fill(idx == safeIndex ? accent.opacity(0.9) : border.opacity(0.35))
+                            .frame(width: idx == safeIndex ? 6 : 5, height: idx == safeIndex ? 6 : 5)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 4)
+            #endif
 
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(currentPage.subject?.displayName ?? "総合")
-                    .font(.footnote.weight(.semibold))
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
                 Spacer()
-                Text("左右スワイプで科目切替")
-                    .font(.footnote)
-                    .foregroundStyle(theme.secondaryText)
             }
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -309,11 +317,11 @@ struct MasteryPieChart: View {
                             .fill(level.color)
                             .frame(width: 12, height: 12)
                         Text(level.label)
-                            .font(.footnote.weight(.medium))
+                            .font(.callout.weight(.medium))
                             .foregroundStyle(theme.primaryText)
                         Spacer()
                         Text("\(count)")
-                            .font(.footnote.weight(.semibold))
+                            .font(.callout.weight(.semibold))
                             .monospacedDigit()
                             .foregroundStyle(theme.secondaryText)
                     }
@@ -415,6 +423,11 @@ struct WeeklyActivityChart: View {
     var body: some View {
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
         let isEmpty = weeklyData.allSatisfy { $0.words == 0 }
+        let maxEntry = weeklyData.max { $0.words < $1.words }
+        let totalWords = weeklyData.reduce(0) { $0 + $1.words }
+        let summaryText = maxEntry == nil
+            ? "合計\(totalWords)語"
+            : "合計\(totalWords)語、最多は\(maxEntry?.day ?? "-")の\(maxEntry?.words ?? 0)語"
         return VStack(alignment: .leading, spacing: 12) {
             if isEmpty {
                 VStack(spacing: 8) {
@@ -425,7 +438,7 @@ struct WeeklyActivityChart: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text("クイズやタイマーを使うと推移が表示されます")
-                        .font(.footnote)
+                        .font(.callout)
                         .foregroundStyle(theme.secondaryText)
                         .multilineTextAlignment(.center)
                 }
@@ -458,6 +471,17 @@ struct WeeklyActivityChart: View {
                         y: .value("Words", item.words)
                     )
                     .foregroundStyle(primary)
+                    .symbolSize(item.day == maxEntry?.day ? 80 : 40)
+                    .annotation(position: .top, alignment: .center) {
+                        if let maxEntry, item.day == maxEntry.day {
+                            Text("\(item.words)語")
+                                .font(.callout.weight(.semibold))
+                                .foregroundStyle(theme.primaryText)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(.ultraThinMaterial, in: Capsule())
+                        }
+                    }
                 }
                 .chartYAxisLabel("学習語数", position: .leading)
                 .chartXAxisLabel("曜日")
@@ -472,7 +496,7 @@ struct WeeklyActivityChart: View {
                                     .monospacedDigit()
                             }
                         }
-                        .font(.footnote)
+                        .font(.callout)
                         .foregroundStyle(theme.secondaryText)
                     }
                 }
@@ -482,10 +506,13 @@ struct WeeklyActivityChart: View {
                             .foregroundStyle(primary.opacity(0.12))
                         AxisTick()
                         AxisValueLabel()
-                            .font(.footnote)
+                            .font(.callout)
                             .foregroundStyle(theme.secondaryText)
                     }
                 }
+                .accessibilityLabel(Text("週間推移チャート"))
+                .accessibilityValue(Text(summaryText))
+                .accessibilityHint(Text("曜日ごとの学習語数を示します"))
                 .frame(height: 220)
             }
         }
@@ -527,6 +554,10 @@ struct SubjectStrengthChart: View {
         let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
         let isEmpty = subjectStrength.allSatisfy { $0.score == 0 }
+        let maxSubject = subjectStrength.max { $0.score < $1.score }
+        let summaryText = maxSubject == nil
+            ? "データがありません"
+            : "最高は\(maxSubject?.subject ?? "-")の\(Int(maxSubject?.score ?? 0))%"
         return VStack(alignment: .leading, spacing: 12) {
             if isEmpty {
                 VStack(spacing: 8) {
@@ -537,7 +568,7 @@ struct SubjectStrengthChart: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
                     Text("学習が進むと科目ごとの棒グラフが表示されます")
-                        .font(.footnote)
+                        .font(.callout)
                         .foregroundStyle(theme.secondaryText)
                         .multilineTextAlignment(.center)
                 }
@@ -557,6 +588,13 @@ struct SubjectStrengthChart: View {
                         )
                     )
                     .cornerRadius(8)
+                    .annotation(position: .top, alignment: .center) {
+                        if item.subject == maxSubject?.subject {
+                            Text("\(Int(item.score))%")
+                                .font(.callout.weight(.semibold))
+                                .foregroundStyle(theme.primaryText)
+                        }
+                    }
                 }
                 .frame(height: 220)
                 .chartYScale(domain: 0...100)
@@ -573,7 +611,7 @@ struct SubjectStrengthChart: View {
                                     .monospacedDigit()
                             }
                         }
-                        .font(.footnote)
+                        .font(.callout)
                         .foregroundStyle(theme.secondaryText)
                     }
                 }
@@ -581,10 +619,12 @@ struct SubjectStrengthChart: View {
                     AxisMarks(values: subjectStrength.map { $0.subject }) { _ in
                         AxisTick()
                         AxisValueLabel()
-                            .font(.footnote)
+                            .font(.callout)
                             .foregroundStyle(theme.secondaryText)
                     }
                 }
+                .accessibilityLabel(Text("科目別習熟度チャート"))
+                .accessibilityValue(Text(summaryText))
             }
         }
     }

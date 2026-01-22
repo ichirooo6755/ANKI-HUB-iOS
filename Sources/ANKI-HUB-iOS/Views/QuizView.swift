@@ -13,6 +13,7 @@ struct QuizView: View {
     @EnvironmentObject var masteryTracker: MasteryTracker
     @EnvironmentObject var learningStats: LearningStats
     @EnvironmentObject var rankUpManager: RankUpManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @ObservedObject private var theme = ThemeManager.shared
 
@@ -124,27 +125,11 @@ struct QuizView: View {
         return Button {
             addCurrentWordToWordbook()
         } label: {
-            let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
-            let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-            let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
-
             Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
                 .font(.title3.weight(.semibold))
-                .foregroundStyle(accent)
-                .frame(width: 40, height: 40)
-                .background(surface.opacity(theme.effectiveIsDark ? 0.85 : 0.95))
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(border.opacity(0.6), lineWidth: 1)
-                )
-                .shadow(
-                    color: Color.black.opacity(theme.effectiveIsDark ? 0.25 : 0.08),
-                    radius: 4,
-                    x: 0,
-                    y: 2
-                )
-                .contentShape(Circle())
+                .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+                .padding(4)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -447,6 +432,8 @@ struct QuizView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                    .accessibilityLabel(Text("モード"))
+                    .accessibilityValue(Text(mode.rawValue))
 
                     Toggle(isOn: $mistakesSessionMode) {
                         HStack {
@@ -476,7 +463,10 @@ struct QuizView: View {
                         .foregroundStyle(.secondary)
                         .padding(.top)
 
-                    HStack(spacing: 8) {
+                    LazyVGrid(
+                        columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4),
+                        spacing: 8
+                    ) {
                         ForEach(
                             [
                                 MasteryLevel.new, MasteryLevel.weak, MasteryLevel.learning,
@@ -493,12 +483,14 @@ struct QuizView: View {
                                 VStack(spacing: 4) {
                                     Circle()
                                         .fill(level.color)
-                                        .frame(width: 20, height: 20)
+                                        .frame(width: 18, height: 18)
                                     Text(level.label)
-                                        .font(.caption.weight(.medium))
+                                        .font(.caption2.weight(.semibold))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.75)
                                 }
+                                .frame(maxWidth: .infinity)
                                 .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
                                 .background(
                                     masteryFilters.contains(level)
                                         ? level.color.opacity(0.2) : Color.gray.opacity(0.1)
@@ -559,6 +551,48 @@ struct QuizView: View {
                         Text("全問").tag(0)
                     }
                     .pickerStyle(.segmented)
+                    .accessibilityLabel(Text("問題数"))
+                    .accessibilityValue(Text(questionCount == 0 ? "全問" : "\(questionCount)問"))
+
+                    Text("制限時間")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .padding(.top)
+
+                    let timeLimitLabel = timerLimitSetting == 0
+                        ? "制限なし"
+                        : "\(timerLimitSetting)秒"
+                    let timeLimitBinding = Binding<Double>(
+                        get: { Double(timerLimitSetting) },
+                        set: { timerLimitSetting = Int($0.rounded()) }
+                    )
+
+                    LabeledContent {
+                        Text(timeLimitLabel)
+                            .font(.callout.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(theme.secondaryText)
+                    } label: {
+                        Text("1問あたり")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(theme.primaryText)
+                    }
+
+                    Slider(value: timeLimitBinding, in: 0...120, step: 5) {
+                        Text("制限時間")
+                    } minimumValueLabel: {
+                        Text("0")
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(theme.secondaryText)
+                    } maximumValueLabel: {
+                        Text("120")
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                    .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+                    .accessibilityValue(Text(timeLimitLabel))
 
                     // Chapter Selection (multi-select)
                     if subject == .seikei || subject == .kobun {
@@ -583,7 +617,8 @@ struct QuizView: View {
                                                 .foregroundStyle(theme.primaryText)
                                                 .multilineTextAlignment(.leading)
                                                 .lineLimit(2)
-                                                .minimumScaleFactor(0.85)
+                                                .fixedSize(horizontal: false, vertical: true)
+                                                .layoutPriority(1)
                                         }
                                         .frame(maxWidth: .infinity, alignment: .leading)
                                         .padding(10)
@@ -598,9 +633,6 @@ struct QuizView: View {
                                 }
                             }
                             
-                            Text("選択中: \(selectedChaptersDisplay)")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 8)
@@ -623,42 +655,11 @@ struct QuizView: View {
                                 .foregroundStyle(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
                             Text("デフォルトに戻す")
                         }
-                    }
-                    .padding(.top)
-
-                    // Time Limit
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Image(systemName: "timer")
-                                .foregroundStyle(
-                                    theme.currentPalette.color(
-                                        .accent, isDark: theme.effectiveIsDark))
-                            Text("制限時間: \(timeLimit == 0 ? "なし" : "\(timeLimit)秒")")
-                        }
-                        .font(.callout.weight(.semibold))
-                        .monospacedDigit()
+                        .font(.footnote)
                         .foregroundStyle(.secondary)
-
-                        Text("※政経は穴埋め数に応じて+10秒/穴")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-
-                        Slider(
-                            value: Binding(
-                                get: { Double(timeLimit) },
-                                set: {
-                                    timeLimit = Int($0)
-                                    baseTimeLimit = Int($0)
-                                }
-                            ), in: 0...60, step: 5
-                        )
-                        .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
                     }
-                    .padding(.top)
+                    .padding(.horizontal)
                 }
-                .padding()
-                .liquidGlass(cornerRadius: 16)
-                .padding(.horizontal)
 
                 Button {
                     startQuiz()
@@ -968,28 +969,28 @@ struct QuizView: View {
     // MARK: - Quiz Content View
 
     private var quizContentView: some View {
-        VStack(spacing: 0) {
-            quizProgressHeader
-                .padding(.top, 12)
+        ScrollView {
+            VStack(spacing: 16) {
+                quizProgressHeader
+                    .padding(.top, 12)
 
-            Spacer()
-
-            Group {
-                if questions.indices.contains(currentIndex) {
-                    switch mode {
-                    case .fourChoice:
-                        fourChoiceView
-                    case .typing:
-                        typingView
-                    case .card:
-                        cardView
+                Group {
+                    if questions.indices.contains(currentIndex) {
+                        switch mode {
+                        case .fourChoice:
+                            fourChoiceView
+                        case .typing:
+                            typingView
+                        case .card:
+                            cardView
+                        }
+                    } else {
+                        EmptyView()
                     }
-                } else {
-                    EmptyView()
                 }
             }
-
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .padding(.bottom, 24)
         }
     }
 
@@ -1487,14 +1488,23 @@ struct QuizView: View {
             rankUpManager.recordTestAnswer(isCorrect: isCorrect)
         }
 
-        withAnimation(.spring(duration: 0.3)) {
+        if reduceMotion {
             showResult = true
             showFeedbackOverlay = true
+        } else {
+            withAnimation(.spring(duration: 0.3)) {
+                showResult = true
+                showFeedbackOverlay = true
+            }
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + feedbackOverlayHideDelay) {
-            withAnimation {
+            if self.reduceMotion {
                 self.showFeedbackOverlay = false
+            } else {
+                withAnimation {
+                    self.showFeedbackOverlay = false
+                }
             }
         }
 
@@ -1502,8 +1512,12 @@ struct QuizView: View {
         if isCorrect {
             DispatchQueue.main.asyncAfter(deadline: .now() + autoAdvanceDelay) {
                 if self.showResult && self.currentIndex < self.questions.count {
-                    withAnimation {
+                    if self.reduceMotion {
                         self.nextQuestion()
+                    } else {
+                        withAnimation {
+                            self.nextQuestion()
+                        }
                     }
                 }
             }
@@ -1656,46 +1670,57 @@ struct QuizView: View {
             .offset(x: cardDragX)
             .rotationEffect(.degrees(Double(cardDragX / 14.0)))
             .onTapGesture {
-                withAnimation(.spring(response: 0.3)) {
+                if reduceMotion {
                     showAnswer.toggle()
+                } else {
+                    withAnimation(.spring(response: 0.3)) {
+                        showAnswer.toggle()
+                    }
                 }
             }
             .simultaneousGesture(
                 DragGesture()
                     .onChanged { value in
                         guard showAnswer, !showResult, !isProcessingAnswer else { return }
-                        cardDragX = value.translation.width
+                        if !reduceMotion {
+                            cardDragX = value.translation.width
+                        }
                     }
                     .onEnded { value in
                         guard showAnswer, !showResult, !isProcessingAnswer else {
-                            withAnimation(.spring(response: 0.3)) { cardDragX = 0 }
+                            if !reduceMotion {
+                                withAnimation(.spring(response: 0.3)) { cardDragX = 0 }
+                            }
                             return
                         }
 
                         let threshold: CGFloat = 90
+                        // In reduce motion, use smaller threshold or just detect swipe direction without animation
                         if value.translation.width > threshold {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
-                                cardDragX = 500
+                            if !reduceMotion {
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
+                                    cardDragX = 500
+                                }
                             }
                             recordCardAnswer(isCorrect: true)
                         } else if value.translation.width < -threshold {
-                            withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
-                                cardDragX = -500
+                            if !reduceMotion {
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
+                                    cardDragX = -500
+                                }
                             }
                             recordCardAnswer(isCorrect: false)
                         } else {
-                            withAnimation(.spring(response: 0.3)) {
-                                cardDragX = 0
+                            if !reduceMotion {
+                                withAnimation(.spring(response: 0.3)) {
+                                    cardDragX = 0
+                                }
                             }
                         }
                     }
             )
 
-            if !showAnswer {
-                Text("タップで答えを表示")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            } else {
+            if showAnswer {
                 HStack(spacing: 16) {
                     Button {
                         #if os(iOS)

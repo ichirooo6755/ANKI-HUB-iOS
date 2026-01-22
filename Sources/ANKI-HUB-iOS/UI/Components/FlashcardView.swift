@@ -4,6 +4,7 @@ struct FlashcardView: View {
     let vocabulary: Vocabulary
     let subject: Subject
     @ObservedObject var theme = ThemeManager.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     @State private var offset: CGSize = .zero
     @Binding var isFlipped: Bool
@@ -43,7 +44,7 @@ struct FlashcardView: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 200)
                     .opacity(isFlipped ? 1 : 0)
-                    .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                    .rotation3DEffect(reduceMotion ? .zero : .degrees(180), axis: (x: 0, y: 1, z: 0))
                 } else {
                     let backSubtextParts = [
                         showsHintOnBack ? (vocabulary.hint ?? "") : "",
@@ -57,7 +58,7 @@ struct FlashcardView: View {
                         isRedSheet: isRedSheetEnabled
                     )
                         .opacity(isFlipped ? 1 : 0)
-                        .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                        .rotation3DEffect(reduceMotion ? .zero : .degrees(180), axis: (x: 0, y: 1, z: 0))
                 }
                 
                 // Front (Question)
@@ -89,10 +90,12 @@ struct FlashcardView: View {
                                 onBookmark()
                             } label: {
                                 Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
-                                    .font(.title3)
+                                    .font(.title3.weight(.semibold))
                                     .foregroundStyle(
                                         theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
                                     )
+                                    .padding(4)
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                             .padding(8)
@@ -107,35 +110,52 @@ struct FlashcardView: View {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(color, lineWidth: 4)
             )
-            .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+            .rotation3DEffect(reduceMotion ? .zero : .degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
             .offset(x: offset.width, y: 0)
-            .rotationEffect(.degrees(Double(offset.width / 20)))
+            .rotationEffect(reduceMotion ? .zero : .degrees(Double(offset.width / 20)))
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
-                        offset = gesture.translation
-                        if offset.width > 0 {
-                            color = .green.opacity(0.6)
-                        } else {
-                            color = .red.opacity(0.6)
+                        if !reduceMotion {
+                            offset = gesture.translation
+                            if offset.width > 0 {
+                                color = .green.opacity(0.6)
+                            } else {
+                                color = .red.opacity(0.6)
+                            }
                         }
                     }
-                    .onEnded { _ in
-                        withAnimation {
-                            if offset.width > 100 {
+                    .onEnded { gesture in
+                        if reduceMotion {
+                            let width = gesture.translation.width
+                            if width > 100 {
                                 onSwipeRight()
-                            } else if offset.width < -100 {
+                            } else if width < -100 {
                                 onSwipeLeft()
-                            } else {
-                                offset = .zero
-                                color = .clear
+                            }
+                            offset = .zero
+                            color = .clear
+                        } else {
+                            withAnimation {
+                                if offset.width > 100 {
+                                    onSwipeRight()
+                                } else if offset.width < -100 {
+                                    onSwipeLeft()
+                                } else {
+                                    offset = .zero
+                                    color = .clear
+                                }
                             }
                         }
                     }
             )
             .onTapGesture {
-                withAnimation(.spring()) {
+                if reduceMotion {
                     isFlipped.toggle()
+                } else {
+                    withAnimation(.spring()) {
+                        isFlipped.toggle()
+                    }
                 }
             }
         }

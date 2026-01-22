@@ -101,7 +101,7 @@ struct WordbookView: View {
                     ContentUnavailableView(
                         "単語がありません",
                         systemImage: "book.closed",
-                        description: Text("右上の＋ボタンから単語を追加してください")
+                        description: Text("")
                     )
                 } else {
                     List {
@@ -111,7 +111,7 @@ struct WordbookView: View {
                                     Button(role: .destructive) {
                                         removeWord(word)
                                     } label: {
-                                        Label("外す", systemImage: removeBookmarkIconName)
+                                        Image(systemName: removeBookmarkIconName)
                                     }
                                 }
                         }

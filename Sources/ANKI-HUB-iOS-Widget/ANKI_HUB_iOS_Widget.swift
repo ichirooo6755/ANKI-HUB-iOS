@@ -44,6 +44,8 @@ private let scanStartRequestKey = "anki_hub_scan_start_request_v1"
 private let frontCameraStartRequestKey = "anki_hub_front_camera_start_request_v1"
 private let controlTimerURL = URL(string: "sugwranki://timer/start?minutes=25")!
 private let controlFrontCameraURL = URL(string: "sugwranki://camera/front")!
+private let controlScanURL = URL(string: "sugwranki://scan/start")!
+private let controlStudyTabURL = URL(string: "sugwranki://tab/study")!
 
 private let widgetAccent = Color(red: 0.96, green: 0.36, blue: 0.20)
 
@@ -120,6 +122,32 @@ struct FrontCameraControlWidget: ControlWidget {
         }
         .displayName("ミラー")
         .description("ロック画面からミラーを起動します")
+    }
+}
+
+@available(iOS 18.0, *)
+struct ScanControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "ScanControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlScanURL)) {
+                Label("スキャン", systemImage: "doc.viewfinder")
+            }
+        }
+        .displayName("スキャン")
+        .description("ロック画面からスキャンを起動します")
+    }
+}
+
+@available(iOS 18.0, *)
+struct StudyTabControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "StudyTabControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlStudyTabURL)) {
+                Label("学習", systemImage: "book.fill")
+            }
+        }
+        .displayName("学習")
+        .description("学習タブを開きます")
     }
 }
 #endif
@@ -788,6 +816,8 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
             if #available(iOS 18.0, *) {
                 TimerStartControlWidget()
                 FrontCameraControlWidget()
+                ScanControlWidget()
+                StudyTabControlWidget()
             }
         #endif
     }

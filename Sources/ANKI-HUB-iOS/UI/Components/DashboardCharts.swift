@@ -20,29 +20,13 @@ struct DashboardCharts: View {
         let safeIndex = min(selectedPage, max(pages.count - 1, 0))
         let currentData = masteryData(for: pages[safeIndex])
 
-        VStack(spacing: 24) {
-            chartCard(accent: accent) {
-                HStack(spacing: 10) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(accent.opacity(0.2))
-                            .frame(width: 34, height: 34)
-                        Image(systemName: "chart.pie.fill")
-                            .font(.callout.weight(.semibold))
-                            .foregroundStyle(accent)
-                    }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("習熟度")
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(theme.primaryText)
-                        Text("左右スワイプで科目切替")
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(theme.secondaryText)
-                    }
+        VStack(spacing: 20) {
+            chartCard(accent: accent, icon: "chart.pie.fill") {
+                HStack {
+                    Text("習熟度")
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(theme.primaryText)
                     Spacer()
-                    Image(systemName: "arrow.left.and.right")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(theme.secondaryText)
                 }
 
                 TabView(selection: $selectedPage) {
@@ -52,25 +36,19 @@ struct DashboardCharts: View {
                         let isEmpty = data.allSatisfy { $0.count == 0 }
                         VStack(spacing: 12) {
                             if isEmpty {
-                                VStack(spacing: 8) {
-                                    ZStack {
-                                        Circle()
-                                            .stroke(accent.opacity(0.2), lineWidth: 12)
-                                            .frame(width: 120, height: 120)
-                                        Image(systemName: "sparkles")
-                                            .font(.title3.weight(.semibold))
-                                            .foregroundStyle(accent)
-                                    }
-                                    Text("学習を始めよう")
-                                        .font(.headline.weight(.semibold))
-                                        .foregroundStyle(theme.primaryText)
-                                    Text("クイズやタイマーの記録がここに表示されます")
-                                        .font(.footnote)
-                                        .foregroundStyle(theme.secondaryText)
-                                        .multilineTextAlignment(.center)
+                                ZStack {
+                                    Circle()
+                                        .stroke(accent.opacity(0.16), lineWidth: 10)
+                                        .frame(width: 160, height: 160)
+                                    Image(systemName: "sparkles")
+                                        .font(.title3.weight(.semibold))
+                                        .foregroundStyle(accent)
                                 }
-                                .frame(height: 200)
+                                .frame(height: 260)
                             } else {
+                                let totalCount = data.reduce(0) { $0 + $1.count }
+                                let masteredCount = data.first(where: { $0.level == .mastered })?.count ?? 0
+                                let summaryText = "合計\(totalCount)語、習熟\(masteredCount)語"
                                 Chart(data) { item in
                                     SectorMark(
                                         angle: .value("Count", item.count),
@@ -80,14 +58,17 @@ struct DashboardCharts: View {
                                     .cornerRadius(5)
                                     .foregroundStyle(item.level.color)
                                 }
-                                .frame(height: 200)
+                                .frame(height: 260)
+                                .accessibilityLabel(Text("習熟度ドーナツチャート"))
+                                .accessibilityValue(Text(summaryText))
                                 .chartOverlay { _ in
                                     VStack(spacing: 4) {
                                         Text("覚えた")
-                                            .font(.footnote)
+                                            .font(.caption2)
+                                            .fontWeight(.medium)
                                             .foregroundStyle(theme.secondaryText)
                                         Text("\(totalMastered)")
-                                            .font(.title2.weight(.bold))
+                                            .font(.system(size: 48, weight: .black, design: .default))
                                             .monospacedDigit()
                                             .minimumScaleFactor(0.5)
                                             .lineLimit(1)
@@ -98,18 +79,30 @@ struct DashboardCharts: View {
                             }
 
                             Text(page.subject?.displayName ?? "総合")
-                                .font(.footnote.weight(.semibold))
+                                .font(.caption2.weight(.medium))
                                 .foregroundStyle(theme.secondaryText)
                         }
                         .padding(.horizontal, 4)
                         .tag(index)
                     }
                 }
-                .frame(height: 240)
+                .frame(height: 340)
                 #if os(iOS)
-                    .tabViewStyle(.page(indexDisplayMode: .automatic))
+                    .tabViewStyle(.page(indexDisplayMode: .never))
                 #else
                     .tabViewStyle(.automatic)
+                #endif
+
+                #if os(iOS)
+                    HStack(spacing: 6) {
+                        ForEach(0..<pages.count, id: \.self) { idx in
+                            Circle()
+                                .fill(idx == safeIndex ? accent.opacity(0.9) : border.opacity(0.35))
+                                .frame(width: idx == safeIndex ? 6 : 5, height: idx == safeIndex ? 6 : 5)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 4)
                 #endif
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -120,11 +113,11 @@ struct DashboardCharts: View {
                                 .fill(level.color)
                                 .frame(width: 12, height: 12)
                             Text(level.label)
-                                .font(.footnote.weight(.medium))
+                                .font(.caption.weight(.medium))
                                 .foregroundStyle(theme.primaryText)
                             Spacer()
                             Text("\(count)")
-                                .font(.footnote.weight(.semibold))
+                                .font(.caption.weight(.semibold))
                                 .monospacedDigit()
                                 .foregroundStyle(theme.secondaryText)
                         }
@@ -138,45 +131,20 @@ struct DashboardCharts: View {
                 }
             }
 
-            Divider()
-                .overlay(border.opacity(0.5))
-
-            chartCard(accent: primary) {
-                HStack(spacing: 10) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(primary.opacity(0.2))
-                            .frame(width: 34, height: 34)
-                        Image(systemName: "square.grid.3x3.fill")
-                            .font(.callout.weight(.semibold))
-                            .foregroundStyle(primary)
-                    }
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("学習ヒートマップ")
-                            .font(.title3.weight(.bold))
-                            .foregroundStyle(theme.primaryText)
-                        Text("直近3週間の学習強度")
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(theme.secondaryText)
-                    }
+            chartCard(accent: primary, icon: "square.grid.3x3.fill") {
+                HStack {
+                    Text("ヒートマップ")
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(theme.primaryText)
                     Spacer()
                 }
 
                 if learningStats.dailyHistory.isEmpty {
-                    VStack(spacing: 8) {
-                        Image(systemName: "calendar.badge.plus")
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(primary)
-                        Text("まだ学習記録がありません")
-                            .font(.headline.weight(.semibold))
-                            .foregroundStyle(theme.primaryText)
-                        Text("タイマーやクイズを完了するとここに反映されます")
-                            .font(.footnote)
-                            .foregroundStyle(theme.secondaryText)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    Image(systemName: "calendar.badge.plus")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
                 } else {
                     LazyVGrid(
                         columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7),
@@ -192,33 +160,97 @@ struct DashboardCharts: View {
                         }
                     }
 
-                    HStack(spacing: 6) {
-                        Text("少")
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(theme.secondaryText)
+                    HStack(spacing: 8) {
                         ForEach(0..<4) { level in
-                            HeatmapCell(
-                                level: level,
-                                accent: primary,
-                                surface: theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark),
-                                isToday: false
-                            )
+                            HStack(spacing: 6) {
+                                HeatmapCell(
+                                    level: level,
+                                    accent: primary,
+                                    surface: theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark),
+                                    isToday: false
+                                )
+                                Text(legendText(for: level))
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(theme.secondaryText)
+                            }
                         }
-                        Text("多")
-                            .font(.footnote.weight(.medium))
-                            .foregroundStyle(theme.secondaryText)
+                        Spacer()
                     }
                 }
             }
         }
     }
 
-    private func chartCard<Content: View>(accent: Color, @ViewBuilder content: () -> Content) -> some View {
-        return VStack(alignment: .leading, spacing: 16) {
-            content()
+    private func chartCard<Content: View>(
+        accent: Color,
+        icon: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let style = theme.widgetCardStyle
+
+        let fill: AnyShapeStyle = {
+            switch style {
+            case "neo":
+                return AnyShapeStyle(
+                    LinearGradient(
+                        colors: [surface.opacity(theme.effectiveIsDark ? 0.86 : 0.98), accent.opacity(0.18)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            case "outline":
+                return AnyShapeStyle(surface.opacity(0.001))
+            default:
+                return AnyShapeStyle(surface.opacity(theme.effectiveIsDark ? 0.92 : 0.98))
+            }
+        }()
+        let stroke: Color = {
+            switch style {
+            case "neo":
+                return accent.opacity(0.22)
+            case "outline":
+                return accent.opacity(0.32)
+            default:
+                return accent.opacity(0.14)
+            }
+        }()
+        let shadowRadius: CGFloat = {
+            switch style {
+            case "outline":
+                return 0
+            case "neo":
+                return 10
+            default:
+                return 8
+            }
+        }()
+        let shadowColor: Color = {
+            switch style {
+            case "neo":
+                return accent.opacity(theme.effectiveIsDark ? 0.18 : 0.10)
+            case "outline":
+                return .clear
+            default:
+                return Color.black.opacity(theme.effectiveIsDark ? 0.24 : 0.06)
+            }
+        }()
+
+        return ZStack(alignment: .topTrailing) {
+            Image(systemName: icon)
+                .font(.system(size: 110, weight: .bold, design: .default))
+                .foregroundStyle(accent.opacity(theme.effectiveIsDark ? (style == "neo" ? 0.20 : 0.16) : (style == "neo" ? 0.16 : 0.12)))
+                .offset(x: 18, y: -18)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 16) {
+                content()
+            }
+            .padding(18)
         }
-        .padding(.horizontal, 4)
-        .padding(.vertical, 4)
+        .background(RoundedRectangle(cornerRadius: 28, style: .continuous).fill(fill))
+        .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(stroke, lineWidth: 1))
+        .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: 4)
     }
 
     private var heatmapDays: [HeatmapDay] {
@@ -241,6 +273,21 @@ struct DashboardCharts: View {
         if minutes >= 30 || words >= 40 { return 2 }
         if minutes > 0 || words > 0 { return 1 }
         return 0
+    }
+
+    private func legendText(for level: Int) -> String {
+        switch level {
+        case 0:
+            return "0"
+        case 1:
+            return "1+"
+        case 2:
+            return "30分/40語"
+        case 3:
+            return "60分/80語"
+        default:
+            return ""
+        }
     }
 
     private func dateKey(_ date: Date) -> String {
@@ -325,12 +372,17 @@ struct DashboardCharts: View {
         let isToday: Bool
 
         var body: some View {
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
+            let size: CGFloat = 18
+            let shape = RoundedRectangle(cornerRadius: 6, style: .continuous)
+            shape
                 .fill(color)
-                .frame(width: 16, height: 16)
+                .frame(width: size, height: size)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .stroke(isToday ? accent.opacity(0.6) : .clear, lineWidth: 1)
+                    shape
+                        .stroke(
+                            isToday ? accent.opacity(0.7) : accent.opacity(level == 0 ? 0.08 : 0),
+                            lineWidth: isToday ? 1.5 : 1
+                        )
                 )
         }
 

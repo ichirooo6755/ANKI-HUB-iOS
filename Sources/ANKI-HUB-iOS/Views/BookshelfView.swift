@@ -40,7 +40,7 @@ struct BookshelfView: View {
                     VStack(spacing: 20) {
                         SectionHeader(
                             title: "教材ライブラリ",
-                            subtitle: "学習素材と記録をまとめて管理",
+                            subtitle: nil,
                             trailing: "\(manager.materials.count)件"
                         )
 
@@ -69,7 +69,7 @@ struct BookshelfView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 SectionHeader(
                                     title: "最近の学習記録",
-                                    subtitle: "最新\(recentRecords.count)件",
+                                    subtitle: nil,
                                     trailing: nil
                                 )
 
@@ -219,26 +219,11 @@ struct BookshelfView: View {
                     )
             }
 
-            VStack(spacing: 12) {
-                Text("学習を始めましょう")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(theme.primaryText)
-                    .accessibilityAddTraits(.isHeader)
-
-                Text("教材を登録して学習記録をつければ、\nあなたの成長を可視化できます")
-                    .font(.footnote)
-                    .foregroundStyle(theme.secondaryText)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(3)
-            }
-
             Button {
                 showAddSheet = true
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.callout.weight(.semibold))
-                    Text("教材を追加")
                         .font(.callout.weight(.semibold))
                 }
                 .foregroundStyle(theme.onColor(for: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)))
@@ -864,7 +849,17 @@ struct ManualRecordSheet: View {
         NavigationStack {
             Form {
                 Section("学習時間") {
-                    Stepper("\(minutes)分", value: $minutes, in: 5...480, step: 5)
+                    Stepper(value: $minutes, in: 5...480, step: 5) {
+                        HStack {
+                            Text("学習時間")
+                            Spacer()
+                            Text("\(minutes)分")
+                                .font(.callout.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                    }
+                    .accessibilityValue(Text("\(minutes)分"))
                 }
 
                 Section("日時") {

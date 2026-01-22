@@ -497,7 +497,7 @@ struct TodoView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         SectionHeader(
                             title: "タスク管理",
-                            subtitle: "今日の予定と進捗",
+                            subtitle: nil,
                             trailing: "\(manager.items.count)件"
                         )
                         summaryMetrics
@@ -573,23 +573,14 @@ struct TodoView: View {
                 .font(.largeTitle.weight(.semibold))
                 .foregroundStyle(theme.secondaryText)
 
-            Text("タスクがありません")
-                .font(.headline.weight(.semibold))
-                .foregroundStyle(theme.secondaryText)
-
             Button {
                 showAddSheet = true
             } label: {
-                Label("タスクを追加", systemImage: "plus")
-                    .font(.callout.weight(.semibold))
-                    .padding()
-                    .background(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
-                    .foregroundStyle(
-                        theme.onColor(
-                            for: theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
-                        )
-                    )
-                    .cornerRadius(12)
+                Image(systemName: "plus")
+                    .font(.callout.weight(.bold))
+                    .foregroundStyle(theme.onColor(for: theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)))
+                    .frame(width: 44, height: 44)
+                    .background(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark), in: Circle())
             }
         }
     }

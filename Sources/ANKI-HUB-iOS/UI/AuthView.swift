@@ -3,6 +3,7 @@ import SwiftUI
 struct AuthView: View {
     @EnvironmentObject var authManager: AuthManager
     @Environment(\.dismiss) var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @ObservedObject private var theme = ThemeManager.shared
     
@@ -141,12 +142,17 @@ struct AuthView: View {
             }
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
-                startAnimation.toggle()
-            }
-            
-            withAnimation(.spring(duration: 0.8).delay(0.2)) {
+            if reduceMotion {
                 showContent = true
+                startAnimation = false
+            } else {
+                withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
+                    startAnimation.toggle()
+                }
+                
+                withAnimation(.spring(duration: 0.8).delay(0.2)) {
+                    showContent = true
+                }
             }
         }
         .onChange(of: authManager.currentUser) { _, newValue in

@@ -111,7 +111,7 @@ class ExamResultManager: ObservableObject {
 
     func addResult(
         year: Int, type: ExamResult.ExamType, subject: String, university: String, faculty: String, score: Int,
-        total: Int, reflection: String
+        total: Int, reflection: String, date: Date = Date()
     ) {
         let percent = total > 0 ? Int(Double(score) / Double(total) * 100) : 0
         let newResult = ExamResult(
@@ -123,7 +123,7 @@ class ExamResultManager: ObservableObject {
             score: score,
             total: total,
             percent: percent,
-            date: Date(),
+            date: date,
             reflection: reflection
         )
         results.append(newResult)
@@ -140,8 +140,18 @@ class ExamResultManager: ObservableObject {
             faculty: "",
             score: score,
             total: total,
-            reflection: ""
+            reflection: "",
+            date: Date()
         )
+    }
+
+    func results(forDay date: Date) -> [ExamResult] {
+        let calendar = Calendar.current
+        let dayStart = calendar.startOfDay(for: date)
+        guard let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return [] }
+        return results
+            .filter { $0.date >= dayStart && $0.date < nextDay }
+            .sorted { $0.date > $1.date }
     }
 
     func updateReflection(id: UUID, reflection: String) {

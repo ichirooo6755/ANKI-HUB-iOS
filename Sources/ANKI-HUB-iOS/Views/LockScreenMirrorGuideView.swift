@@ -38,9 +38,6 @@ struct LockScreenMirrorGuideView: View {
                 Text("ロック画面からミラーを起動")
                     .font(.headline)
                     .foregroundStyle(theme.primaryText)
-                Text("アプリと同じカメラUIでスムーズに利用できます")
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
             }
 
             Spacer()
@@ -59,22 +56,22 @@ struct LockScreenMirrorGuideView: View {
                 GuideStepRow(
                     index: "1",
                     title: "ロック画面を長押し",
-                    detail: "「カスタマイズ」を選択"
+                    detail: ""
                 )
                 GuideStepRow(
                     index: "2",
                     title: "ロック画面タブを選択",
-                    detail: "ホーム画面ではなくロック画面側"
+                    detail: ""
                 )
                 GuideStepRow(
                     index: "3",
                     title: "コントロールの「+」をタップ",
-                    detail: "一覧から「ミラー」を追加"
+                    detail: ""
                 )
                 GuideStepRow(
                     index: "4",
                     title: "追加後はロック画面から起動",
-                    detail: "タップするとミラーが開きます"
+                    detail: ""
                 )
             }
         }
@@ -148,13 +145,15 @@ private struct GuideStepRow: View {
                 .background(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
                 .clipShape(Circle())
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
-                Text(detail)
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
+                if !detail.isEmpty {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(theme.secondaryText)
+                }
             }
 
             Spacer()

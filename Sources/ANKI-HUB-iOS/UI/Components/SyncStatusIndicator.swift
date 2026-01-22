@@ -3,6 +3,7 @@ import SwiftUI
 struct SyncStatusIndicator: View {
     @ObservedObject var syncManager = SyncManager.shared
     @State private var rotation: Double = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 6) {
@@ -11,12 +12,20 @@ struct SyncStatusIndicator: View {
                 .foregroundColor(syncColor)
                 .onChange(of: syncManager.isSyncing) { _, isSyncing in
                     if isSyncing {
-                        withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
-                            rotation = 360
+                        if reduceMotion {
+                            rotation = 0
+                        } else {
+                            withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
+                                rotation = 360
+                            }
                         }
                     } else {
-                        withAnimation {
+                        if reduceMotion {
                             rotation = 0
+                        } else {
+                            withAnimation {
+                                rotation = 0
+                            }
                         }
                     }
                 }

@@ -13,16 +13,22 @@ struct StudyView: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
-                        SectionHeader(
-                            title: "学習ダッシュボード",
-                            subtitle: "今日の学習を開始しましょう",
-                            trailing: "\(stats.streak)日連続"
-                        )
+                        StudySectionCard(
+                            accent: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                        ) {
+                            SectionHeader(
+                                title: "学習ダッシュボード",
+                                subtitle: nil,
+                                trailing: "\(stats.streak)日連続"
+                            )
 
-                        summaryMetrics
+                            summaryMetrics
+                        }
 
-                        VStack(alignment: .leading, spacing: 15) {
-                            SectionHeader(title: "学習科目", subtitle: "科目を選んでスタート", trailing: nil)
+                        StudySectionCard(
+                            accent: theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+                        ) {
+                            SectionHeader(title: "学習科目", subtitle: nil, trailing: nil)
 
                             LazyVGrid(
                                 columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 15
@@ -33,11 +39,8 @@ struct StudyView: View {
                             }
                         }
 
-                        VStack(alignment: .leading, spacing: 16) {
-                            SectionHeader(title: "ツール", subtitle: "目的別に整理", trailing: nil)
-                            ToolsGridView()
-                        }
-                        .padding(.bottom, 20)
+                        ToolsGridView()
+                            .padding(.bottom, 20)
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 12)
@@ -52,21 +55,30 @@ struct StudyView: View {
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
         let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
         let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+        let todayProgress = min(1.0, Double(stats.todayMinutes) / 30.0)
+        let masteredProgress = stats.totalWords == 0
+            ? 0
+            : min(1.0, Double(stats.masteredCount) / Double(stats.totalWords))
+        let cardHeight: CGFloat = 148
         return HStack(spacing: 12) {
             HealthMetricCard(
                 title: "今日の学習",
                 value: "\(stats.todayMinutes)",
                 unit: "分",
                 icon: "clock.fill",
-                color: accent
+                color: accent,
+                progress: todayProgress
             )
+            .frame(minHeight: cardHeight)
             HealthMetricCard(
                 title: "習得語彙",
                 value: "\(stats.masteredCount)",
                 unit: "語",
                 icon: "checkmark.seal.fill",
-                color: mastered
+                color: mastered,
+                progress: masteredProgress
             )
+            .frame(minHeight: cardHeight)
             HealthMetricCard(
                 title: "総単語数",
                 value: "\(stats.totalWords)",
@@ -74,6 +86,7 @@ struct StudyView: View {
                 icon: "books.vertical.fill",
                 color: primary
             )
+            .frame(minHeight: cardHeight)
         }
     }
 }
@@ -109,15 +122,15 @@ struct KobunStudyMenuView: View {
 
             VStack(spacing: 16) {
                 NavigationLink(destination: ChapterSelectionView(subject: .kobun)) {
-                    menuCard(title: "単語クイズ", subtitle: "チャプター別に4択/タイピング/カード")
+                    menuCard(title: "単語クイズ")
                 }
 
                 NavigationLink(destination: FocusedMemorizationView(subject: .kobun)) {
-                    menuCard(title: "インプットモード", subtitle: "3日集中で仕分け→高速復習")
+                    menuCard(title: "インプットモード")
                 }
 
                 NavigationLink(destination: KobunParticleQuizView()) {
-                    menuCard(title: "助詞クイズ", subtitle: "助詞表の穴埋め（表形式UI）")
+                    menuCard(title: "助詞クイズ")
                 }
 
                 Spacer()
@@ -128,22 +141,31 @@ struct KobunStudyMenuView: View {
         .applyAppTheme()
     }
 
-    private func menuCard(title: String, subtitle: String) -> some View {
-        HStack {
+    private func menuCard(title: String) -> some View {
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let shadow = Color.black.opacity(theme.effectiveIsDark ? 0.35 : 0.08)
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        return HStack {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(.headline)
+                    .font(.headline.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
             }
             Spacer()
             Image(systemName: "chevron.right")
-                .foregroundStyle(.secondary)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(theme.secondaryText)
         }
-        .padding()
-        .liquidGlass()
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(surface.opacity(theme.effectiveIsDark ? 0.9 : 0.98))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(accent.opacity(0.2), lineWidth: 1)
+        )
+        .shadow(color: shadow, radius: 10, x: 0, y: 6)
     }
 }
 
@@ -152,45 +174,54 @@ struct ToolsGridView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            toolSection(title: "計画・管理", subtitle: "教材とタスクを整理") {
+            toolSection(
+                title: "計画・管理",
+                accent: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+            ) {
                 NavigationLink(destination: WordbookView()) {
-                    ToolCard(icon: "book.fill", title: "単語帳", color: .blue)
+                    ToolCard(title: "単語帳", icon: "book.fill", color: .blue)
                 }
                 NavigationLink(destination: BookshelfView()) {
-                    ToolCard(icon: "books.vertical.fill", title: "教材", color: .cyan)
+                    ToolCard(title: "教材", icon: "books.vertical.fill", color: .cyan)
                 }
                 NavigationLink(destination: TodoView()) {
-                    ToolCard(icon: "list.bullet", title: "やること", color: .teal)
+                    ToolCard(title: "やること", icon: "list.bullet", color: .teal)
                 }
                 NavigationLink(destination: PaperWordbookSyncView()) {
-                    ToolCard(icon: "book.pages.fill", title: "紙の単語帳", color: .brown)
+                    ToolCard(title: "紙の単語帳", icon: "book.pages.fill", color: .brown)
                 }
             }
 
-            toolSection(title: "学習サポート", subtitle: "集中とインプットを支援") {
+            toolSection(
+                title: "学習サポート",
+                accent: theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+            ) {
                 NavigationLink(destination: TimerView()) {
-                    ToolCard(icon: "timer", title: "タイマー", color: .red)
+                    ToolCard(title: "タイマー", icon: "timer", color: .red)
                 }
                 NavigationLink(destination: FocusedMemorizationView()) {
-                    ToolCard(icon: "brain.head.profile", title: "集中暗記", color: .orange)
+                    ToolCard(title: "集中暗記", icon: "brain.head.profile", color: .orange)
                 }
                 NavigationLink(destination: ScanView()) {
-                    ToolCard(icon: "doc.viewfinder", title: "スキャン", color: .yellow)
+                    ToolCard(title: "スキャン", icon: "doc.viewfinder", color: .yellow)
                 }
                 NavigationLink(destination: FrontCameraView()) {
-                    ToolCard(icon: "camera.fill", title: "ミラー", color: .pink)
+                    ToolCard(title: "ミラー", icon: "camera.fill", color: .pink)
                 }
             }
 
-            toolSection(title: "記録・分析", subtitle: "成果を可視化") {
+            toolSection(
+                title: "記録・分析",
+                accent: theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
+            ) {
                 NavigationLink(destination: AppCalendarView()) {
-                    ToolCard(icon: "calendar", title: "カレンダー", color: .green)
+                    ToolCard(title: "カレンダー", icon: "calendar", color: .green)
                 }
                 NavigationLink(destination: ReportView()) {
-                    ToolCard(icon: "chart.pie.fill", title: "レポート", color: .purple)
+                    ToolCard(title: "レポート", icon: "chart.pie.fill", color: .purple)
                 }
                 NavigationLink(destination: PastExamAnalysisView()) {
-                    ToolCard(icon: "chart.xyaxis.line", title: "過去問解析", color: .indigo)
+                    ToolCard(title: "過去問解析", icon: "chart.xyaxis.line", color: .indigo)
                 }
             }
         }
@@ -199,22 +230,68 @@ struct ToolsGridView: View {
     @ViewBuilder
     private func toolSection(
         title: String,
-        subtitle: String,
+        accent: Color,
         @ViewBuilder content: () -> some View
     ) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
+        StudySectionCard(accent: accent) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text(title)
                     .font(.headline.weight(.semibold))
                     .foregroundStyle(theme.primaryText)
-                Text(subtitle)
-                    .font(.footnote)
-                    .foregroundStyle(theme.secondaryText)
-            }
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                content()
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    content()
+                }
             }
         }
+    }
+}
+
+struct StudySectionCard<Content: View>: View {
+    let accent: Color
+    let content: Content
+
+    @ObservedObject private var theme = ThemeManager.shared
+
+    init(accent: Color, @ViewBuilder content: () -> Content) {
+        self.accent = accent
+        self.content = content()
+    }
+
+    var body: some View {
+        let isDark = theme.effectiveIsDark
+        let surface = theme.currentPalette.color(.surface, isDark: isDark)
+        let highlight = theme.currentPalette.color(.background, isDark: isDark)
+        let shadow = Color.black.opacity(isDark ? 0.35 : 0.08)
+        let cardShape = RoundedRectangle(cornerRadius: 20, style: .continuous)
+        let cardGradient = LinearGradient(
+            colors: [surface.opacity(isDark ? 0.95 : 0.98), highlight.opacity(isDark ? 0.8 : 0.94)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        return VStack(alignment: .leading, spacing: 16) {
+            content
+        }
+        .padding(20)
+        .background(cardShape.fill(cardGradient))
+        .overlay(
+            cardShape
+                .stroke(
+                    LinearGradient(
+                        colors: [accent.opacity(0.35), accent.opacity(0.06)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .overlay(alignment: .topLeading) {
+            Capsule()
+                .fill(accent)
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.leading, 16)
+        }
+        .shadow(color: shadow, radius: 10, x: 0, y: 6)
     }
 }
 

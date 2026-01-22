@@ -278,6 +278,9 @@ class ThemeManager: ObservableObject {
     @AppStorage("anki_hub_wallpaper_kind") var wallpaperKind: String = ""
     @AppStorage("anki_hub_wallpaper_value") var wallpaperValue: String = ""
 
+    @AppStorage("anki_hub_wallpaper_enabled_v1") var wallpaperEnabled: Bool = true
+    @AppStorage("anki_hub_wallpaper_enabled_migrated_v1") var wallpaperEnabledMigrated: Bool = false
+
     // 0: system, 1: light, 2: dark
     @AppStorage("anki_hub_color_scheme_override_v1") var colorSchemeOverride: Int = 0 {
         didSet {
@@ -290,6 +293,8 @@ class ThemeManager: ObservableObject {
             objectWillChange.send()
         }
     }
+
+    @AppStorage("anki_hub_widget_card_style_v1") var widgetCardStyle: String = "soft"
 
     // Dual theme support: separate themes for light and dark modes
 
@@ -451,8 +456,9 @@ class ThemeManager: ObservableObject {
     #endif
 
     var background: AnyView {
+        migrateWallpaperEnabledIfNeeded()
         #if os(iOS)
-            if let img = bundledWallpaperImage() {
+            if wallpaperEnabled, let img = bundledWallpaperImage() {
                 // Liquid Glass Style: Clear wallpaper with minimal overlay
                 // The container views will handle readability with their own materials
                 return AnyView(
@@ -478,7 +484,7 @@ class ThemeManager: ObservableObject {
                 )
             }
 
-            if let img = photoWallpaperImage() {
+            if wallpaperEnabled, let img = photoWallpaperImage() {
                 return AnyView(
                     ZStack {
                         GeometryReader { proxy in
@@ -500,6 +506,14 @@ class ThemeManager: ObservableObject {
         #endif
 
         return AnyView(backgroundGradient.ignoresSafeArea())
+    }
+
+    private func migrateWallpaperEnabledIfNeeded() {
+        guard !wallpaperEnabledMigrated else { return }
+        if wallpaperKind == "bundle" || wallpaperKind == "photo" {
+            wallpaperEnabled = false
+        }
+        wallpaperEnabledMigrated = true
     }
 
     // Liquid Glass Effect Background
@@ -1807,6 +1821,7 @@ class ThemeManager: ObservableObject {
     func applyWallpaper(kind: String, value: String) {
         wallpaperKind = kind
         wallpaperValue = value
+        wallpaperEnabled = true
         requestAutoSyncOnMainActor()
     }
 

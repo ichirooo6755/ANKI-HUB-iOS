@@ -15,6 +15,7 @@ struct WallpaperGalleryView: View {
     #endif
     
     enum WallpaperOption: String, CaseIterable, Identifiable {
+        case presets = "プリセット"
         case solid = "単色"
         case gradient = "グラデーション"
         case photo = "写真"
@@ -93,6 +94,8 @@ struct WallpaperGalleryView: View {
                 .padding(.horizontal)
                 
                 switch selectedWallpaper {
+                case .presets:
+                    presetsGrid
                 case .solid:
                     solidColorGrid
                 case .gradient:
@@ -124,9 +127,99 @@ struct WallpaperGalleryView: View {
             case "solid":
                 selectedWallpaper = .solid
             default:
-                selectedWallpaper = .solid
+                selectedWallpaper = .presets
             }
         }
+    }
+
+    private struct VisualPreset: Identifiable {
+        let id: String
+        let name: String
+        let wallpaperKind: String
+        let wallpaperValue: String
+        let themeId: String
+        let previewColors: [Color]
+    }
+
+    private var presets: [VisualPreset] {
+        [
+            VisualPreset(
+                id: "neo_black",
+                name: "ネオブラック",
+                wallpaperKind: "gradient",
+                wallpaperValue: "#0B0B0D,#00FF7A",
+                themeId: "cyberpunk",
+                previewColors: [Color(hexOrName: "#0B0B0D") ?? .black, Color(hexOrName: "#00FF7A") ?? .green]
+            ),
+            VisualPreset(
+                id: "signal_red",
+                name: "シグナルレッド",
+                wallpaperKind: "gradient",
+                wallpaperValue: "#0B0B0D,#FF3B30",
+                themeId: "dracula",
+                previewColors: [Color(hexOrName: "#0B0B0D") ?? .black, Color(hexOrName: "#FF3B30") ?? .red]
+            ),
+            VisualPreset(
+                id: "soft_paper",
+                name: "ソフトペーパー",
+                wallpaperKind: "solid",
+                wallpaperValue: "#F2F2EE",
+                themeId: "nordic",
+                previewColors: [Color(hexOrName: "#F2F2EE") ?? .white, Color(hexOrName: "#D9D9D5") ?? .gray]
+            ),
+        ]
+    }
+
+    private var presetsGrid: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+            ForEach(presets) { preset in
+                Button {
+                    if preset.wallpaperKind == "gradient" {
+                        let parts = preset.wallpaperValue
+                            .split(separator: ",")
+                            .map { String($0) }
+                        if parts.count >= 2,
+                            let c1 = Color(hexOrName: parts[0]),
+                            let c2 = Color(hexOrName: parts[1]),
+                            let h1 = c1.toHexString(),
+                            let h2 = c2.toHexString()
+                        {
+                            theme.applyWallpaper(kind: "gradient", value: "\(h1),\(h2)")
+                        }
+                    } else if preset.wallpaperKind == "solid" {
+                        if let c = Color(hexOrName: preset.wallpaperValue),
+                            let h = c.toHexString()
+                        {
+                            theme.applyWallpaper(kind: "solid", value: h)
+                        }
+                    }
+                    theme.applyTheme(id: preset.themeId)
+                } label: {
+                    let selected = (
+                        theme.selectedThemeId == preset.themeId
+                            && theme.wallpaperKind == preset.wallpaperKind
+                            && theme.wallpaperValue == preset.wallpaperValue
+                    )
+                    VStack(spacing: 8) {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(
+                                LinearGradient(
+                                    colors: preset.previewColors,
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(height: 100)
+                            .overlay(selectionOverlay(isSelected: selected, cornerRadius: 16))
+                        Text(preset.name)
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal)
     }
 
     private let bundledWallpapers: [String] = [

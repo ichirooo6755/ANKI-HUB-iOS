@@ -1,10 +1,13 @@
 import SwiftUI
+import StoreKit
 
 struct DashboardView: View {
     @EnvironmentObject var authManager: AuthManager
     @EnvironmentObject var learningStats: LearningStats
     @EnvironmentObject var masteryTracker: MasteryTracker
     @EnvironmentObject var themeManager: ThemeManager
+
+    @Environment(\.requestReview) private var requestReview: RequestReviewAction
 
     @AppStorage("anki_hub_last_review_prompt_date") private var lastReviewPromptDate: String = ""
     @AppStorage("anki_hub_target_date_timestamp_v2") private var targetDateTimestamp: Double = 0
@@ -21,9 +24,10 @@ struct DashboardView: View {
         case timer
         case timeline
         case mirror
+        case inputMode
     }
 
-    @State private var navigationPath = NavigationPath()
+    @State private var navigationPath: [Destination] = []
 
     private var totalWeakCount: Int {
         let subjects = [Subject.english, .kobun, .kanbun, .seikei]
@@ -87,6 +91,48 @@ struct DashboardView: View {
     }
 
     var body: some View {
+        let heroAccent = themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark)
+        let heroSecondary = themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark)
+        let heroItems: [HeroCarouselItem] = [
+            HeroCarouselItem(
+                id: "timer",
+                title: "集中タイマー",
+                subtitle: "",
+                detail: "すぐ開始",
+                icon: "timer",
+                gradient: [heroAccent.opacity(0.95), heroSecondary.opacity(0.75)],
+                action: { navigate(to: .timer) }
+            ),
+            HeroCarouselItem(
+                id: "due",
+                title: "期限到来",
+                subtitle: "",
+                detail: "\(totalDueCount)語",
+                icon: "clock.badge.exclamationmark",
+                gradient: [heroSecondary.opacity(0.95), heroSecondary.opacity(0.6)],
+                action: { navigate(to: .due) }
+            ),
+            HeroCarouselItem(
+                id: "weak",
+                title: "苦手克服",
+                subtitle: "",
+                detail: "\(totalWeakCount)語",
+                icon: "bolt.fill",
+                gradient: [themeManager.currentPalette.color(.weak, isDark: themeManager.effectiveIsDark).opacity(0.95),
+                           themeManager.currentPalette.color(.weak, isDark: themeManager.effectiveIsDark).opacity(0.6)],
+                action: { navigate(to: .weak) }
+            ),
+            HeroCarouselItem(
+                id: "inputmode",
+                title: "インプット",
+                subtitle: "",
+                detail: "",
+                icon: "keyboard",
+                gradient: [themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.95),
+                           themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.65)],
+                action: { navigate(to: .inputMode) }
+            )
+        ]
         NavigationStack(path: $navigationPath) {
             ZStack {
                 ThemeManager.shared.background
@@ -98,9 +144,31 @@ struct DashboardView: View {
                 }
 
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 16) {
+                        Button {
+                            navigate(to: .weak)
+                        } label: {
+                            DashboardHeroHeader(
+                                title: "今日の学習 \(learningStats.todayMinutes)分",
+                                subtitle: "",
+                                caption: "学習時間",
+                                detail: goalProgressText,
+                                icon: "sparkles",
+                                accent: heroAccent,
+                                secondary: heroSecondary
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint(Text("苦手一括復習へ"))
+                        .padding(.horizontal)
+
+                        HeroCarouselView(items: heroItems)
+                            .frame(height: 190)
+                            .frame(maxWidth: .infinity)
+                            .padding(.bottom, 4)
+
                         // Header Stats
-                        HStack(spacing: 15) {
+                        HStack(spacing: 16) {
                             StatCard(
                                 title: "連続学習", value: "\(learningStats.streak)",
                                 icon: "flame.fill", color: .orange)
@@ -138,7 +206,7 @@ struct DashboardView: View {
 
                             if totalDueCount > 0 {
                                 Button {
-                                    navigationPath.append(Destination.due)
+                                    navigate(to: .due)
                                 } label: {
                                     HStack {
                                         VStack(alignment: .leading) {
@@ -185,7 +253,7 @@ struct DashboardView: View {
                             }
 
                             Button {
-                                navigationPath.append(Destination.timeline)
+                                navigate(to: .timeline)
                             } label: {
                                 HStack {
                                     VStack(alignment: .leading) {
@@ -283,12 +351,16 @@ struct DashboardView: View {
                                         .font(.footnote.weight(.medium))
                                         .monospacedDigit()
                                         .foregroundStyle(themeManager.secondaryText)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
                                 }
+                                .layoutPriority(1)
                                 Spacer()
                                 CircularProgressView(
                                     progress: Double(learningStats.todayMinutes) / 30.0,
                                     color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark),
-                                    lineWidth: 6
+                                    lineWidth: 6,
+                                    accessibilityLabel: "今日の復習進捗"
                                 )
                                 .frame(width: 50, height: 50)
                             }
@@ -316,7 +388,7 @@ struct DashboardView: View {
 
                             // ToDo Card
                             Button {
-                                navigationPath.append(Destination.todo)
+                                navigate(to: .todo)
                             } label: {
                                 HStack {
                                     VStack(alignment: .leading) {
@@ -362,15 +434,12 @@ struct DashboardView: View {
 
                             // Exam History Card
                             Button {
-                                navigationPath.append(Destination.examHistory)
+                                navigate(to: .examHistory)
                             } label: {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("テスト履歴")
                                             .font(.headline.weight(.semibold))
-                                        Text("過去の成績を確認")
-                                            .font(.footnote.weight(.medium))
-                                            .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
                                     ZStack {
@@ -408,15 +477,12 @@ struct DashboardView: View {
 
                             // Timer / Stopwatch Card
                             Button {
-                                navigationPath.append(Destination.timer)
+                                navigate(to: .timer)
                             } label: {
                                 HStack {
                                     VStack(alignment: .leading) {
                                         Text("タイマー")
                                             .font(.headline.weight(.semibold))
-                                        Text("集中時間を管理")
-                                            .font(.footnote.weight(.medium))
-                                            .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
                                     ZStack {
@@ -453,7 +519,7 @@ struct DashboardView: View {
                             .buttonStyle(.plain)
 
                             Button {
-                                navigationPath.append(Destination.mirror)
+                                navigate(to: .mirror)
                             } label: {
                                 let mirrorColor = themeManager.currentPalette.color(
                                     .learning,
@@ -463,9 +529,6 @@ struct DashboardView: View {
                                     VStack(alignment: .leading) {
                                         Text("ミラー")
                                             .font(.headline.weight(.semibold))
-                                        Text("フロントカメラを即起動")
-                                            .font(.footnote.weight(.medium))
-                                            .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
                                     ZStack {
@@ -497,24 +560,23 @@ struct DashboardView: View {
                                         )
                                 )
                                 .shadow(color: mirrorColor.opacity(0.12), radius: 10, x: 0, y: 6)
-                                .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
                         }
+                        .padding(.vertical, 24)
                     }
-                    .padding(.top)
                 }
-                .navigationTitle("ホーム")
-                .alert("復習待ち", isPresented: $showReviewPrompt) {
-                    Button("今すぐ復習") {
+                .coordinateSpace(name: "scroll")
+                .alert("レビューのお願い", isPresented: $showReviewPrompt) {
+                    Button("今はしない", role: .cancel) {
                         lastReviewPromptDate = todayKey()
-                        navigationPath.append(Destination.weak)
                     }
-                    Button("今日はしない", role: .cancel) {
+                    Button("レビューする") {
+                        requestReview()
                         lastReviewPromptDate = todayKey()
                     }
                 } message: {
-                    Text("苦手が\(totalWeakCount)語あります。今のうちに一括復習しましょう。")
+                    Text("\(totalWeakCount)語")
                 }
                 .toolbar {
                     ToolbarItem(placement: .automatic) {
@@ -546,6 +608,8 @@ struct DashboardView: View {
                     TimelineView()
                 case .mirror:
                     FrontCameraView()
+                case .inputMode:
+                    InputModeView()
                 }
             }
         }
@@ -562,11 +626,18 @@ struct DashboardView: View {
             }
         }
     }
-
+    
     private func todayKey() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: Date())
+    }
+
+    private func navigate(to destination: Destination) {
+        if navigationPath.last == destination {
+            return
+        }
+        navigationPath.append(destination)
     }
 
     private func dateFromKey(_ key: String) -> Date? {

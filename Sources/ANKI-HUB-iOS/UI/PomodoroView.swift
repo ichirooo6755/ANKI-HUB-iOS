@@ -113,7 +113,8 @@ struct TimerView: View {
 
     // UI State
     @State private var selectedTab: TimerTab = .timer
-    @State private var selectedMode: TimerMode = .focus
+    @AppStorage("pomodoro_mode_selection") private var selectedMode: TimerMode = .focus
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showSettings = false
 
     init(startRequest: TimerStartRequest? = nil) {
@@ -336,8 +337,12 @@ struct TimerView: View {
         let textColor = isSelected ? theme.primaryText : theme.secondaryText
 
         return Button {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            if reduceMotion {
                 selectedTab = tab
+            } else {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    selectedTab = tab
+                }
             }
         } label: {
             VStack(spacing: 6) {
@@ -412,7 +417,7 @@ struct TimerView: View {
                         style: StrokeStyle(lineWidth: 14, lineCap: .round, lineJoin: .round)
                     )
                     .rotationEffect(.degrees(-90))
-                    .animation(.linear(duration: 0.9), value: timeRemaining)
+                    .animation(reduceMotion ? nil : .linear(duration: 0.9), value: timeRemaining)
                     .padding(18)
 
                 // Time Display
@@ -688,23 +693,59 @@ struct TimerView: View {
         NavigationStack {
             Form {
                 Section("集中時間") {
-                    Stepper("\(focusMinutes)分", value: $focusMinutes, in: 1...120)
+                    Stepper(value: $focusMinutes, in: 1...120) {
+                        HStack {
+                            Text("集中時間")
+                            Spacer()
+                            Text("\(focusMinutes)分")
+                                .font(.callout.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                    }
+                    .accessibilityValue(Text("\(focusMinutes)分"))
                 }
 
                 Section("小休憩") {
-                    Stepper("\(shortBreakMinutes)分", value: $shortBreakMinutes, in: 1...30)
+                    Stepper(value: $shortBreakMinutes, in: 1...30) {
+                        HStack {
+                            Text("小休憩")
+                            Spacer()
+                            Text("\(shortBreakMinutes)分")
+                                .font(.callout.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                    }
+                    .accessibilityValue(Text("\(shortBreakMinutes)分"))
                 }
 
                 Section("長休憩") {
-                    Stepper("\(longBreakMinutes)分", value: $longBreakMinutes, in: 1...60)
+                    Stepper(value: $longBreakMinutes, in: 1...60) {
+                        HStack {
+                            Text("長休憩")
+                            Spacer()
+                            Text("\(longBreakMinutes)分")
+                                .font(.callout.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                    }
+                    .accessibilityValue(Text("\(longBreakMinutes)分"))
                 }
 
                 Section("カスタムタイマー") {
-                    Stepper(
-                        "\(customMinutes)分",
-                        value: $customMinutes,
-                        in: 1...120
-                    )
+                    Stepper(value: $customMinutes, in: 1...120) {
+                        HStack {
+                            Text("カスタム")
+                            Spacer()
+                            Text("\(customMinutes)分")
+                                .font(.callout.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(theme.secondaryText)
+                        }
+                    }
+                    .accessibilityValue(Text("\(customMinutes)分"))
                 }
             }
             .navigationTitle("タイマー設定")
@@ -1403,7 +1444,7 @@ struct TimerView: View {
                                     geometry.size.height * 0.6
                                         * CGFloat(isTimerMode ? progress : (1 - progress)))
                             )
-                            .animation(.linear(duration: 1), value: progress)
+                            .animation(reduceMotion ? nil : .linear(duration: 1), value: progress)
                     }
                     .frame(height: geometry.size.height * 0.6)
 

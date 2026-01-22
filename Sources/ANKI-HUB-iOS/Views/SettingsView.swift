@@ -86,7 +86,7 @@ struct SettingsView: View {
         }
     }
     @AppStorage("anki_hub_kobun_inputmode_use_all_v1") private var kobunInputModeUseAll: Bool =
-        false
+        true
     @AppStorage("anki_hub_timer_limit_seconds_v1") private var timerLimitSeconds: Int = 30
     @AppStorage("anki_hub_daily_study_reminder_enabled_v1") private var dailyStudyReminderEnabled:
         Bool = false
@@ -193,9 +193,12 @@ struct SettingsView: View {
         Section {
             if let user = authManager.currentUser {
                 HStack(spacing: 16) {
-                    Image(systemName: "person.circle.fill")
-                        .font(.title.weight(.semibold))
-                        .foregroundStyle(themeManager.color(.primary, scheme: colorScheme))
+                    SettingsIcon(
+                        icon: "person.fill",
+                        color: themeManager.color(.primary, scheme: colorScheme),
+                        foregroundColor: themeManager.onColor(
+                            for: themeManager.color(.primary, scheme: colorScheme))
+                    )
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(user.email)
@@ -276,9 +279,12 @@ struct SettingsView: View {
                     Text("目標時間")
                     Spacer()
                     Text(targetStudyMinutesText)
+                        .font(.callout.weight(.semibold))
+                        .monospacedDigit()
                         .foregroundStyle(themeManager.secondaryText)
                 }
             }
+            .accessibilityValue(Text(targetStudyMinutesText))
 
             Toggle(isOn: $kobunInputModeUseAll) {
                 Text("古文インプットモードを全単語で行う")
@@ -362,6 +368,13 @@ struct SettingsView: View {
             Toggle(isOn: $themeManager.useLiquidGlass) {
                 Text("Liquid Glass（コンテナ背景）")
             }
+
+            Picker("カード", selection: $themeManager.widgetCardStyle) {
+                Text("Soft").tag("soft")
+                Text("Outline").tag("outline")
+                Text("Neo").tag("neo")
+            }
+            .pickerStyle(.segmented)
 
             NavigationLink {
                 ThemeSettingsView()
@@ -544,19 +557,34 @@ struct SettingsView: View {
     private var timerSettingRow: some View {
         let rowBg = themeManager.color(.surface, scheme: colorScheme)
         return VStack(alignment: .leading, spacing: 8) {
-            HStack {
+            LabeledContent {
+                Text(timerLimitSeconds == 0 ? "制限なし" : "\(timerLimitSeconds)秒")
+                    .font(.callout.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(themeManager.secondaryText)
+            } label: {
                 Text("タイマー時間")
                     .font(.headline)
-                Spacer()
-                Text(timerLimitSeconds == 0 ? "制限なし" : "\(timerLimitSeconds)秒")
-                    .foregroundStyle(themeManager.secondaryText)
             }
 
-            Slider(value: timerLimitBinding, in: 0...120, step: 5)
-                .tint(themeManager.color(.primary, scheme: colorScheme))
+            Slider(value: timerLimitBinding, in: 0...120, step: 5) {
+                Text("タイマー時間")
+            } minimumValueLabel: {
+                Text("0")
+                    .font(.caption2)
+                    .monospacedDigit()
+                    .foregroundStyle(themeManager.secondaryText)
+            } maximumValueLabel: {
+                Text("120")
+                    .font(.caption2)
+                    .monospacedDigit()
+                    .foregroundStyle(themeManager.secondaryText)
+            }
+            .tint(themeManager.color(.primary, scheme: colorScheme))
+            .accessibilityValue(Text(timerLimitSeconds == 0 ? "制限なし" : "\(timerLimitSeconds)秒"))
 
             Text("0秒で制限なし")
-                .font(.caption)
+                .font(.footnote)
                 .foregroundStyle(themeManager.secondaryText)
         }
         .padding(.vertical, 4)
@@ -835,6 +863,7 @@ struct WidgetSettingsView: View {
                     Text("漢文").tag(Subject.kanbun.rawValue)
                     Text("政経").tag(Subject.seikei.rawValue)
                 }
+                .pickerStyle(.menu)
 
                 Toggle(isOn: $widgetShowStreak) {
                     Text("連続学習日数")
@@ -857,6 +886,7 @@ struct WidgetSettingsView: View {
                     Text("2件").tag(2)
                     Text("3件").tag(3)
                 }
+                .pickerStyle(.menu)
 
                 Toggle(isOn: $widgetShowTodo) {
                     Text("やることリスト")
@@ -867,18 +897,26 @@ struct WidgetSettingsView: View {
                     Text("2件").tag(2)
                     Text("3件").tag(3)
                 }
+                .pickerStyle(.menu)
 
                 Picker("見た目", selection: $widgetStyle) {
                     Text("システム").tag("system")
                     Text("ダーク").tag("dark")
                     Text("アクセント").tag("accent")
                 }
+                .pickerStyle(.menu)
 
-                Stepper(
-                    "タイマー（\(widgetTimerMinutes)分）",
-                    value: $widgetTimerMinutes,
-                    in: 1...180
-                )
+                Stepper(value: $widgetTimerMinutes, in: 1...180) {
+                    HStack {
+                        Text("タイマー")
+                        Spacer()
+                        Text("\(widgetTimerMinutes)分")
+                            .font(.callout.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(themeManager.secondaryText)
+                    }
+                }
+                .accessibilityValue(Text("\(widgetTimerMinutes)分"))
             }
             .listRowBackground(rowBg)
         }

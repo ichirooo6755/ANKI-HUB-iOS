@@ -108,6 +108,19 @@ struct MainTabView: View {
             if url.path == "/front" || url.path == "/start" {
                 startFrontCameraFlow()
             }
+        case "tab":
+            switch url.path {
+            case "/study":
+                selectedTab = .study
+            case "/calendar":
+                selectedTab = .calendar
+            case "/home":
+                selectedTab = .home
+            case "/profile":
+                selectedTab = .profile
+            default:
+                break
+            }
         default:
             break
         }

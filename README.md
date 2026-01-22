@@ -107,6 +107,19 @@ open ANKI-HUB-iOS.xcodeproj
 
 | 症状 | 原因 | 解決策 |
 |------|------|--------|
+| HealthMetricCard/StatCard/StatBoxのビルドエラー | Color.green/redの推論エラー、braceの不一致 | Color.green/redを明示的に指定、不足braceを追加 |
+| DashboardViewの構文エラー | VStackの閉じbrace不足 | bodyプロパティの閉じbraceを追加 |
+| DashboardViewのビルドエラー | ヒーロー追加時に余分な閉じ括弧が混入 | 余分な`}`を削除して`private func`のスコープを修正 |
+| StatBoxの引数エラー | 引数順序の不一致 | color引数をicon引数の前に移動 |
+| build.dbがロックされてビルド失敗 | 同一出力先で並行ビルドが実行中 | 既存ビルドを停止し、build/XCBuildData/build.dbを削除して再ビルド |
+
+### UIコンポーネント関連
+
+| 症状 | 原因 | 解決策 |
+|------|------|--------|
+| タイポグラフィ階層が不明瞭 | Label/Value/Unitの区別が不十分 | HIGガイドラインに従いLabelは小文字/灰色、Valueは太字/大文字、Unitは小文字に統一 |
+| アイコンスタイルが統一されていない | 背景なし、色のばらつき | パステルカラーの背景円/ボックスを追加、統一感のあるデザインに |
+| 動的要素がない | プログレスバーや変化率の表示なし | プログレスバーと変化率チップをオプションで追加 |
 | Widget側で型が見つからない | SwiftPMターゲット依存不足 | `ANKI-HUB-iOS-Shared`作成、依存追加 |
 | macOS互換性エラー | iOS専用API使用 | `#if os(iOS)`でガード |
 | 型チェックタイムアウト | List内の複雑なBinding | セクション分割、Binding切り出し |
@@ -126,6 +139,9 @@ open ANKI-HUB-iOS.xcodeproj
 | `CustomSpeechTranscriber`の`override init`でビルド失敗 | `ObservableObject`のinitにoverrideが不要 | `override`と`super.init()`を削除 |
 | `LockScreenMirrorGuideView`が見つからない | `LockScreenMirrorGuideView.swift`がターゲット未登録 | pbxprojに登録してSourcesへ追加 |
 | `BookshelfView`で`formatMinutes`が見つからない | `MaterialCardView`が親Viewのprivate関数へアクセス | file-privateの`formatMinutes`を追加 |
+| `DashboardView`で`Decodable`に`timer/due/weak/mirror`が見つからない | `NavigationPath.append`の型推論が`Decodable`に誤解決 | `Destination`を明示してappend |
+| `xcodebuild`で指定シミュレータが見つからない | 端末名が環境に存在しない | `xcodebuild -destination`を`xcrun simctl list`の実在デバイスに合わせる |
+| `xcodebuild`で`build.db`がロックされる | 同一ビルドディレクトリで並行ビルドが走っている | `build/`を削除して再ビルド |
 
 ### クイズ・学習関連
 
@@ -188,6 +204,30 @@ open ANKI-HUB-iOS.xcodeproj
 | 学習画面のカードテキストが薄くて見えない | liquidGlass透明度が高すぎ | 背景不透明度を上げ、SubjectCard/ToolCardをソリッド背景に変更 |
 | ダーク/ライトがコンテナごとに混在して見える | Form/Listのシステム背景がテーマ背景と混ざる | `applyAppTheme`で`scrollContentBackground(.hidden)`+テーマ背景を適用して統一 |
 | タブ導線の配置が画面によってズレる | `ContentView`と`MainTabView`でタブ構成が二重管理 | `ContentView`を`MainTabView`への委譲に統一 |
+| `InputModeView`がビルドできない | パッチ適用時に`// ...`のプレースホルダが混入し、View構造が破損 | 該当ファイルをgitの内容に復元し、必要な差分のみを最小単位で再適用 |
+| `TodoView`がビルドできない | パッチ競合で`struct`の境界が崩れ、関数/`body`定義が重複して構文破損 | `TodoView.swift`をgitの内容に復元し、追加変更はコンテキスト確認後に小さく適用 |
+| クイズ画面がスクロールできない | `quizContentView`が`ScrollView`で包まれていない | `quizContentView`を`ScrollView`化 |
+| ブックマークが目立ちすぎて配置が合わない | 円形背景/右上配置で視線が散る | 左端にアイコンのみ配置（Quiz/Flashcard/InputMode） |
+| ホームカードの遷移が不安定/入力モードが二重表示 | `navigationPath`に同一Destinationを連続append | `navigate(to:)`で重複遷移を抑制 |
+| ダッシュボード指標の数字が弱く丸ゴシック | ラベルと数値の階層差が不足 | 非丸ゴシック+サイズ/太さで数値強調 |
+| カレンダー見出しが冗長で凡例が分かりにくい | 見出し説明と凡例ラベル不足 | 見出し簡素化・学習量ラベル追加 |
+| 日付タップで学習記録/ジャーナルを編集できない | DayCellのタップ処理と編集UIがない | 日付編集シートで分/語数/ジャーナルを保存 |
+| 学習タブのコンテナが野暮ったい | 影/装飾が過剰で階層が曖昧 | Subject/Tool/Sectionカードをミニマルに再設計 |
+| ホーム最上部カードの遷移先が分かりにくい | ヒーローがタップ不能/目的不明 | 苦手一括復習へ遷移するボタンに変更 |
+| InputModeでチャプター8以降が出ない | 古文が先頭350語で制限され既存設定がfalse | 全単語デフォルト化＋初回移行で制限解除 |
+| 画面内の薄い説明文が多くてノイズ | サブタイトル/補足文が常時表示され視線を散らす | サブ説明文を削除し、見出しと主要情報だけに統一 |
+| 学習タブに大きな丸い背景エフェクトが出る | 壁紙（画像/写真）が全タブ共通の背景として描画されていた | 壁紙表示の有効フラグを追加し、既存ユーザーは自動でOFFに移行 |
+| メトリクスの数字が小さく情報が弱い | 数値とラベルの階層差が不足し、視認性が低い | ウィジェット風に再設計（巨大アイコン背景＋値を大きく、説明は薄く小さく） |
+| ブックマークUIの位置/揃えがバラつく | 画面ごとに左/右や余白が異なる | 単語カード右端にアイコンのみで統一し、余白/サイズを揃えた |
+| ヒートマップが何を表すか分かりにくい | 凡例が抽象的で学習量の基準が不明 | レベル0-3と閾値（分/語）を凡例に明記 |
+| スクロール時の表示が重い | ヒーロー等でblurを多用し描画負荷が高い | スクロール連動blurを撤廃し、描画コストを削減 |
+| 数字とラベルの優先順位が曖昧でプロっぽく見えない | タイポグラフィの強弱（サイズ/ウェイト）とカードの角丸・余白が揃っていない | 値をより大きく太く、ラベル/単位は小さく薄くし、角丸/余白を統一 |
+| UIに機能説明テキストが多くノイズ | サブタイトル/誘導文/空状態の説明を常時表示していた | 説明文を削除し、タイトル/数値/必要最小限の操作要素だけを表示（空文字は描画しない） |
+| 壁紙/テーマの雰囲気を一発で切り替えられない | 壁紙種別とテーマ設定が別操作で、統一されたプリセットが無かった | プリセット（壁紙＋テーマ）を3種追加し、1タップで適用できるようにした |
+| カレンダーで日付を押してもその日の学習内容を見られない | 日付タップが編集シート直行で、閲覧専用の詳細UIが無かった | 日付タップで詳細シート（分/語/科目内訳/ジャーナル）を表示し、必要なら編集へ遷移できるようにした |
+| ウィジェット/カードの見た目を複数から選べない | 1種類の描画スタイルに固定されていた | Soft/Outline/Neo の3スタイルを追加し、設定から切替できるようにした |
+| カレンダー日付で「この日にやる」を操作できない | 学習記録は見られるが、日付に紐付くToDoの追加/完了ができなかった | 日付詳細にその日のToDoを表示し、追加/完了切替できるようにした（dueDateで日付に紐付け） |
+| カレンダー日付とテスト履歴が連携できない | テスト結果保存が常に`Date()`で、任意の日付に紐付けられない | `ExamResultManager`に任意日付保存を追加し、日付詳細に当日のテスト一覧/追加/詳細表示を統合 |
 
 ### 機能追加
 
@@ -206,6 +246,7 @@ open ANKI-HUB-iOS.xcodeproj
 | `CalendarView` / `StudyView` 重複定義エラー | `StatCard`, `SubjectCard`等が複数ファイルで定義 | コンポーネントを`Components/`ディレクトリに外部化し、重複を削除 |
 | `SettingsView`の`accountSection`で構文崩れ | パッチ適用の差分競合でView構造が破損 | `accountSection`を再構築し`SettingsIcon`統一のレイアウトに修正 |
 | `CalendarView.swift`が空ファイルになりビルド不能 | ファイル内容が消失 | git履歴から復旧し、`CalendarStatCard`/`DayCell`に適合させた |
+| `xcodebuild`でiPhone 16 Proが見つからない | `OS:latest`が26.2になり対象端末が存在しない | `-destination`に`OS=18.2`を明示 |
 
 ### UI刷新・リファクタリング
 - **Apple HIG準拠**: 設定画面やプロフィール画面のリストスタイルを`insetGrouped`に統一し、アイコンデザインを`SettingsIcon`コンポーネントで標準化。

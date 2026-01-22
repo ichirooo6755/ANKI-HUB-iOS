@@ -9,6 +9,11 @@ struct FrontCameraView: View {
     @ObservedObject private var theme = ThemeManager.shared
     @Environment(\.dismiss) private var dismiss
 
+    @State private var zoomFactor: CGFloat = 1.0
+    @State private var previewBrightness: Double = 0.0
+    @State private var showGrid: Bool = false
+    @State private var isMirrored: Bool = true
+
     #if os(iOS)
     @StateObject private var cameraModel = FrontCameraSessionModel()
     #endif
@@ -46,6 +51,103 @@ struct FrontCameraView: View {
             .applyAppTheme()
         }
     }
+
+    #if os(iOS)
+    private var controlPanel: some View {
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+        let zoomText = Text("\(zoomFactor, specifier: "%.1f")×")
+            .font(.footnote.weight(.semibold))
+            .monospacedDigit()
+            .foregroundStyle(theme.primaryText)
+        let brightnessText = Text("\(previewBrightness, specifier: "%.2f")")
+            .font(.footnote.weight(.semibold))
+            .monospacedDigit()
+            .foregroundStyle(theme.primaryText)
+
+        return VStack(alignment: .leading, spacing: 14) {
+            Text("コントロール")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(theme.secondaryText)
+
+            VStack(alignment: .leading, spacing: 4) {
+                LabeledContent {
+                    zoomText
+                } label: {
+                    Label("ズーム", systemImage: "plus.magnifyingglass")
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(theme.primaryText)
+                }
+                Slider(value: $zoomFactor, in: 1.0...1.8, step: 0.1)
+                    .tint(accent)
+                    .accessibilityValue(Text("\(zoomFactor, specifier: "%.1f")倍"))
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                LabeledContent {
+                    brightnessText
+                } label: {
+                    Label("明るさ", systemImage: "sun.max.fill")
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(theme.primaryText)
+                }
+                Slider(value: $previewBrightness, in: -0.2...0.35, step: 0.05)
+                    .tint(accent)
+                    .accessibilityValue(Text("\(previewBrightness, specifier: "%.2f")"))
+            }
+
+            Toggle(isOn: $showGrid) {
+                Label("ガイドライン", systemImage: "square.grid.3x3")
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(theme.primaryText)
+            }
+            .tint(accent)
+
+            Toggle(isOn: $isMirrored) {
+                Label("左右反転", systemImage: "arrow.left.and.right")
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(theme.primaryText)
+            }
+            .tint(accent)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(surface.opacity(theme.effectiveIsDark ? 0.86 : 0.95))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(border.opacity(0.5), lineWidth: 1)
+        )
+    }
+
+    private var mirrorGridOverlay: some View {
+        GeometryReader { proxy in
+            let lineColor = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+                .opacity(0.45)
+            Path { path in
+                let width = proxy.size.width
+                let height = proxy.size.height
+                let v1 = width / 3
+                let v2 = width * 2 / 3
+                let h1 = height / 3
+                let h2 = height * 2 / 3
+                path.move(to: CGPoint(x: v1, y: 0))
+                path.addLine(to: CGPoint(x: v1, y: height))
+                path.move(to: CGPoint(x: v2, y: 0))
+                path.addLine(to: CGPoint(x: v2, y: height))
+                path.move(to: CGPoint(x: 0, y: h1))
+                path.addLine(to: CGPoint(x: width, y: h1))
+                path.move(to: CGPoint(x: 0, y: h2))
+                path.addLine(to: CGPoint(x: width, y: h2))
+            }
+            .stroke(lineColor, lineWidth: 1)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .allowsHitTesting(false)
+    }
+    #endif
 
     private var topBar: some View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
@@ -98,12 +200,19 @@ struct FrontCameraView: View {
         return VStack(spacing: 16) {
             if cameraModel.authorizationStatus == .authorized {
                 ZStack(alignment: .bottomLeading) {
-                    FrontCameraPreview(session: cameraModel.session)
+                    FrontCameraPreview(session: cameraModel.session, isMirrored: isMirrored)
+                        .scaleEffect(zoomFactor)
+                        .brightness(previewBrightness)
                         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 26, style: .continuous)
                                 .stroke(border.opacity(0.4), lineWidth: 1)
                         )
+                        .overlay {
+                            if showGrid {
+                                mirrorGridOverlay
+                            }
+                        }
                         .shadow(color: Color.black.opacity(0.18), radius: 18, x: 0, y: 10)
 
                     HStack(spacing: 6) {
@@ -134,6 +243,8 @@ struct FrontCameraView: View {
                         .foregroundStyle(theme.secondaryText)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
+
+                controlPanel
             } else {
                 VStack(spacing: 16) {
                     Image(systemName: "camera.viewfinder")
@@ -263,6 +374,7 @@ final class FrontCameraSessionModel: ObservableObject {
 
 struct FrontCameraPreview: UIViewRepresentable {
     let session: AVCaptureSession
+    let isMirrored: Bool
 
     func makeUIView(context: Context) -> PreviewView {
         let view = PreviewView()
@@ -282,7 +394,7 @@ struct FrontCameraPreview: UIViewRepresentable {
             return
         }
         connection.automaticallyAdjustsVideoMirroring = false
-        connection.isVideoMirrored = true
+        connection.isVideoMirrored = isMirrored
     }
 
     final class PreviewView: UIView {

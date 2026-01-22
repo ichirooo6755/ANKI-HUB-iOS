@@ -214,6 +214,8 @@ struct AddExamResultSheet: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var theme = ThemeManager.shared
 
+    let fixedDate: Date?
+
     @State private var year: Int = Calendar.current.component(.year, from: Date())
     @State private var type: ExamResult.ExamType = .common
     @State private var subject: String = ""
@@ -222,6 +224,11 @@ struct AddExamResultSheet: View {
     @State private var score: Int = 0
     @State private var total: Int = 100
     @State private var reflection: String = ""
+
+    init(manager: ExamResultManager, fixedDate: Date? = nil) {
+        self.manager = manager
+        self.fixedDate = fixedDate
+    }
 
     var body: some View {
         NavigationStack {
@@ -245,11 +252,34 @@ struct AddExamResultSheet: View {
                 }
 
                 Section("得点") {
-                    Stepper("得点: \(score)", value: $score, in: 0...total)
-                    Stepper("満点: \(total)", value: $total, in: 1...500)
+                    Stepper(value: $score, in: 0...total) {
+                        HStack {
+                            Text("得点")
+                            Spacer()
+                            Text("\(score)点")
+                                .font(.callout.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityValue(Text("\(score)点"))
+
+                    Stepper(value: $total, in: 1...500) {
+                        HStack {
+                            Text("満点")
+                            Spacer()
+                            Text("\(total)点")
+                                .font(.callout.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .accessibilityValue(Text("\(total)点"))
 
                     if total > 0 {
-                        Text("得点率: \(Int(Double(score) / Double(total) * 100))%")
+                        let percent = Int(Double(score) / Double(total) * 100)
+                        Text("得点率: \(percent)%")
+                            .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -277,7 +307,8 @@ struct AddExamResultSheet: View {
                             faculty: faculty,
                             score: score,
                             total: total,
-                            reflection: reflection
+                            reflection: reflection,
+                            date: fixedDate ?? Date()
                         )
                         dismiss()
                     }

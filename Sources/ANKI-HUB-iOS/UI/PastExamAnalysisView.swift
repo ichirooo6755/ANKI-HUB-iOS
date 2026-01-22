@@ -80,7 +80,7 @@ struct PastExamAnalysisView: View {
                 HStack(alignment: .bottom, spacing: 10) {
                     VStack(alignment: .leading) {
                         Text("年度")
-                            .font(.footnote.weight(.medium))
+                            .font(.callout.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                         TextField("2024", text: $inputYear)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -93,24 +93,21 @@ struct PastExamAnalysisView: View {
                     
                     VStack(alignment: .leading) {
                         Text("種類")
-                            .font(.footnote.weight(.medium))
+                            .font(.callout.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                         Picker("Type", selection: $inputType) {
                             ForEach(ExamResult.ExamType.allCases, id: \.self) { type in
                                 Text(type.label).tag(type)
                             }
                         }
-                        .labelsHidden()
-                        .frame(maxWidth: .infinity)
-                        .background(surfaceColor.opacity(theme.effectiveIsDark ? 0.6 : 1.0))
-                        .cornerRadius(8)
+                        .pickerStyle(.menu)
                     }
                 }
                 
                 HStack(alignment: .bottom, spacing: 10) {
                     VStack(alignment: .leading) {
                         Text("点数 / 満点")
-                            .font(.footnote.weight(.medium))
+                            .font(.callout.weight(.medium))
                             .foregroundStyle(theme.secondaryText)
                         HStack {
                             TextField("点数", text: $inputScore)
@@ -144,7 +141,7 @@ struct PastExamAnalysisView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("科目/大学/学部")
-                        .font(.footnote.weight(.medium))
+                        .font(.callout.weight(.medium))
                         .foregroundStyle(theme.secondaryText)
                     TextField("科目", text: $inputSubject)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -161,13 +158,18 @@ struct PastExamAnalysisView: View {
             
             // Chart
             if !manager.results.isEmpty {
+                let sortedResults = manager.results.sorted(by: { $0.date < $1.date })
+                let maxResult = sortedResults.max { $0.percent < $1.percent }
+                let summaryText = maxResult == nil
+                    ? "記録がありません"
+                    : "最高は\(maxResult?.year ?? 0)年度の\(Int(maxResult?.percent ?? 0))%"
                 VStack(alignment: .leading) {
                     Text("スコア推移")
                         .font(.headline)
                         .foregroundColor(ThemeManager.shared.primaryText)
                         .padding(.bottom)
                     
-                    Chart(manager.results.sorted(by: { $0.date < $1.date })) { res in
+                    Chart(sortedResults) { res in
                         LineMark(
                             x: .value("Date", res.date),
                             y: .value("Percent", res.percent)
@@ -180,6 +182,24 @@ struct PastExamAnalysisView: View {
                             y: .value("Percent", res.percent)
                         )
                         .foregroundStyle(primaryColor.opacity(0.1))
+
+                        if res.id == maxResult?.id {
+                            PointMark(
+                                x: .value("Date", res.date),
+                                y: .value("Percent", res.percent)
+                            )
+                            .foregroundStyle(primaryColor)
+                            .symbolSize(70)
+                            .annotation(position: .top, alignment: .center) {
+                                Text("\(Int(res.percent))%")
+                                    .font(.callout.weight(.semibold))
+                                    .monospacedDigit()
+                                    .foregroundStyle(theme.primaryText)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(.ultraThinMaterial, in: Capsule())
+                            }
+                        }
                     }
                     .chartYScale(domain: 0...100)
                     .chartYAxisLabel("得点率", position: .leading)
@@ -192,9 +212,10 @@ struct PastExamAnalysisView: View {
                             AxisValueLabel {
                                 if let percent = value.as(Double.self) {
                                     Text("\(Int(percent))%")
+                                        .monospacedDigit()
                                 }
                             }
-                            .font(.footnote)
+                            .font(.callout)
                             .foregroundStyle(theme.secondaryText)
                         }
                     }
@@ -204,10 +225,13 @@ struct PastExamAnalysisView: View {
                                 .foregroundStyle(borderColor.opacity(0.15))
                             AxisTick()
                             AxisValueLabel(format: .dateTime.year())
-                                .font(.footnote)
+                                .font(.callout)
                                 .foregroundStyle(theme.secondaryText)
                         }
                     }
+                    .accessibilityLabel(Text("スコア推移チャート"))
+                    .accessibilityValue(Text(summaryText))
+                    .accessibilityHint(Text("年度ごとの得点率の推移を示します"))
                     .frame(height: 200)
                 }
                 .padding()
@@ -238,11 +262,11 @@ struct PastExamAnalysisView: View {
                                         res.faculty.isEmpty ? nil : res.faculty,
                                     ].compactMap { $0 }.joined(separator: " ")
                                 )
-                                .font(.footnote)
+                                .font(.callout)
                                 .foregroundColor(ThemeManager.shared.secondaryText)
                             }
                             Text("\(res.score)/\(res.total)点")
-                                .font(.footnote)
+                                .font(.callout)
                                 .monospacedDigit()
                                 .foregroundColor(ThemeManager.shared.secondaryText)
                         }
@@ -295,8 +319,19 @@ struct PastExamAnalysisView: View {
             if let res = analysisResult {
                 VStack(spacing: 15) {
                     HStack {
-                        StatBox(val: "\(res.total)", label: "総単語数")
-                        StatBox(val: "\(res.learning)", label: "難単語(推測)", color: .orange)
+                        StatBox(
+                            val: "\(res.total)", 
+                            label: "総単語数",
+                            color: .blue,
+                            icon: "text.alignleft"
+                        )
+                        StatBox(
+                            val: "\(res.learning)", 
+                            label: "難単語(推測)", 
+                            color: .orange,
+                            icon: "exclamationmark.triangle",
+                            progress: Double(res.learning) / Double(res.total)
+                        )
                     }
                     
                     Text("分析結果 (簡易版)")
@@ -506,23 +541,75 @@ struct StatBox: View {
     let val: String
     let label: String
     var color: Color = .black
+    var icon: String? = nil
+    var progress: Double? = nil
     
     var body: some View {
         let theme = ThemeManager.shared
         let isDark = theme.effectiveIsDark
         let bg = theme.currentPalette.color(.surface, isDark: isDark).opacity(isDark ? 0.6 : 1.0)
-        VStack {
-            Text(val)
-                .font(.title2.weight(.bold))
-                .monospacedDigit()
-                .foregroundColor(color == .black ? theme.primaryText : color)
+        let cardShape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+        
+        VStack(spacing: 12) {
+            // Header with icon and label
+            HStack(spacing: 8) {
+                if let icon = icon {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [color.opacity(0.12), color.opacity(0.18)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 36, height: 36)
+                        
+                        Image(systemName: icon)
+                            .font(.callout.weight(.semibold))
+                            .foregroundStyle(color)
+                    }
+                }
+                
+                Spacer()
+            }
+            
+            // Value with prominent styling
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(val)
+                    .font(.title.weight(.bold))
+                    .monospacedDigit()
+                    .foregroundColor(color == .black ? theme.primaryText : color)
+                    .minimumScaleFactor(0.8)
+                    .lineLimit(1)
+            }
+            
+            // Label with proper hierarchy
             Text(label)
-                .font(.footnote)
+                .font(.caption.weight(.medium))
                 .foregroundColor(theme.secondaryText)
+                .textCase(.uppercase)
+                .tracking(0.5)
+                .multilineTextAlignment(.center)
+            
+            // Progress indicator if provided
+            if let progress = progress {
+                ProgressView(value: progress)
+                    .tint(color)
+                    .frame(height: 4)
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(bg)
-        .cornerRadius(12)
+        .frame(minHeight: 120)
+        .padding(16)
+        .background(
+            cardShape
+                .fill(bg)
+                .shadow(color: color.opacity(0.08), radius: 6, x: 0, y: 3)
+        )
+        .overlay(
+            cardShape
+                .stroke(color.opacity(0.15), lineWidth: 1)
+        )
     }
 }

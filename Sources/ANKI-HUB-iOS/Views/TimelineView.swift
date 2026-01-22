@@ -13,7 +13,7 @@ struct TimelineView: View {
                     VStack(spacing: 16) {
                         SectionHeader(
                             title: "タイムライン",
-                            subtitle: "最近の学習アクティビティ",
+                            subtitle: nil,
                             trailing: "\(timelineManager.entries.count)件"
                         )
 
@@ -22,8 +22,6 @@ struct TimelineView: View {
                         if timelineManager.entries.isEmpty {
                             ContentUnavailableView {
                                 Label("タイムラインがありません", systemImage: "clock.arrow.circlepath")
-                            } description: {
-                                Text("学習ログや覚えた単語がここに表示されます")
                             }
                             .padding(.top, 24)
                         } else {

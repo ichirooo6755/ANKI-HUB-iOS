@@ -9,14 +9,18 @@ struct SubjectMasteryChart: View {
     @ObservedObject private var theme = ThemeManager.shared
 
     var body: some View {
+        let data = getMasteryData()
+        let totalCount = data.reduce(0) { $0 + $1.count }
+        let masteredCount = data.first(where: { $0.level == .mastered })?.count ?? 0
+        let summaryText = "合計\(totalCount)語、習熟\(masteredCount)語"
         VStack(alignment: .leading, spacing: 8) {
             Text("習熟度")
-                .font(.footnote.weight(.medium))
+                .font(.callout.weight(.medium))
                 .foregroundStyle(theme.secondaryText)
 
             HStack(spacing: 16) {
                 // Donut Chart
-                Chart(getMasteryData()) { item in
+                Chart(data) { item in
                     SectorMark(
                         angle: .value("Count", item.count),
                         innerRadius: .ratio(0.55),
@@ -26,21 +30,23 @@ struct SubjectMasteryChart: View {
                     .foregroundStyle(item.level.color)
                 }
                 .frame(width: 80, height: 80)
+                .accessibilityLabel(Text("科目別習熟度"))
+                .accessibilityValue(Text(summaryText))
 
                 // Legend with counts
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(MasteryLevel.allCases, id: \.self) { level in
-                        let count = getMasteryData().first(where: { $0.level == level })?.count ?? 0
+                        let count = data.first(where: { $0.level == level })?.count ?? 0
                         HStack(spacing: 6) {
                             Circle()
                                 .fill(level.color)
                                 .frame(width: 8, height: 8)
                             Text(level.label)
-                                .font(.footnote)
+                                .font(.callout)
                                 .foregroundStyle(theme.primaryText)
                             Spacer()
                             Text("\(count)")
-                                .font(.footnote.weight(.semibold))
+                                .font(.callout.weight(.semibold))
                                 .monospacedDigit()
                                 .foregroundStyle(theme.primaryText)
                         }

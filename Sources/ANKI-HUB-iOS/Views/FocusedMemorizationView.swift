@@ -9,6 +9,7 @@ import SwiftUI
 /// - Swipe-enabled flashcards
 struct FocusedMemorizationView: View {
     @EnvironmentObject var masteryTracker: MasteryTracker
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @ObservedObject private var theme = ThemeManager.shared
 
@@ -49,7 +50,9 @@ struct FocusedMemorizationView: View {
     
     // Progress persistence
     @AppStorage("input_mode_block_completions") private var blockCompletionsData: Data = Data()
-    @AppStorage("anki_hub_kobun_inputmode_use_all_v1") private var kobunInputModeUseAll: Bool = false
+    @AppStorage("anki_hub_kobun_inputmode_use_all_v1") private var kobunInputModeUseAll: Bool = true
+    @AppStorage("anki_hub_kobun_inputmode_use_all_migrated_v1")
+    private var kobunInputModeUseAllMigrated: Bool = false
     
     enum ScreenState {
         case daySelect
@@ -59,20 +62,38 @@ struct FocusedMemorizationView: View {
         case result
     }
 
+    private func migrateKobunInputModeSettingIfNeeded() {
+        guard !kobunInputModeUseAllMigrated else { return }
+        let kobunCount = VocabularyData.shared.getVocabulary(for: .kobun).count
+        if kobunCount > 350 {
+            kobunInputModeUseAll = true
+        }
+        kobunInputModeUseAllMigrated = true
+    }
+
     private func handleSwipeAnswer(known: Bool) {
         isSwipeLocked = true
         let direction: CGFloat = known ? 1 : -1
 
-        withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
-            cardDragX = direction * 500
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-            recordAnswer(known: known)
-            withAnimation(.spring(response: 0.25)) {
+        if reduceMotion {
+            // Reduce Motion: Skip large movement animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                recordAnswer(known: known)
                 cardDragX = 0
+                isSwipeLocked = false
             }
-            isSwipeLocked = false
+        } else {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
+                cardDragX = direction * 500
+            }
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                recordAnswer(known: known)
+                withAnimation(.spring(response: 0.25)) {
+                    cardDragX = 0
+                }
+                isSwipeLocked = false
+            }
         }
     }
     
@@ -132,6 +153,9 @@ struct FocusedMemorizationView: View {
             }
         }
         .applyAppTheme()
+        .onAppear {
+            migrateKobunInputModeSettingIfNeeded()
+        }
         .task(id: timerActive) {
             guard timerActive, totalTime > 0 else { return }
             let tick: Double = 0.1
@@ -338,6 +362,9 @@ struct FocusedMemorizationView: View {
             // Progress Bar
             ProgressView(value: Double(currentWordIndex + 1), total: Double(words.count))
                 .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+                .accessibilityLabel(Text("学習進捗"))
+                .accessibilityValue(Text("\(currentWordIndex + 1) / \(words.count)"))
+                .accessibilityHint(Text("現在の学習位置"))
                 .padding(.horizontal)
             
             HStack {
@@ -597,34 +624,60 @@ struct FocusedMemorizationView: View {
                         .foregroundStyle(.secondary)
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("2日目（高速判定）")
-                        Spacer()
+                VStack(alignment: .leading, spacing: 4) {
+                    LabeledContent {
                         Text("\(String(format: "%.1f", day2Seconds))秒")
                             .font(.footnote.weight(.semibold))
                             .monospacedDigit()
                             .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+                    } label: {
+                        Text("2日目（高速判定）")
                     }
-                    Slider(value: $day2Seconds, in: 0.5...10.0, step: 0.5)
-                        .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+
+                    Slider(value: $day2Seconds, in: 0.5...10.0, step: 0.5) {
+                        Text("2日目")
+                    } minimumValueLabel: {
+                        Text("0.5")
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(theme.secondaryText)
+                    } maximumValueLabel: {
+                        Text("10.0")
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                    .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
                 }
 
                 Toggle(isOn: $day2UnknownOnly) {
                     Text("2日目は1日目で『わからない』のみ")
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("3日目（音読固定）")
-                        Spacer()
+                VStack(alignment: .leading, spacing: 4) {
+                    LabeledContent {
                         Text("\(String(format: "%.1f", day3Seconds))秒")
                             .font(.footnote.weight(.semibold))
                             .monospacedDigit()
                             .foregroundStyle(theme.currentPalette.color(.selection, isDark: theme.effectiveIsDark))
+                    } label: {
+                        Text("3日目（音読固定）")
                     }
-                    Slider(value: $day3Seconds, in: 0.5...10.0, step: 0.5)
-                        .tint(theme.currentPalette.color(.selection, isDark: theme.effectiveIsDark))
+
+                    Slider(value: $day3Seconds, in: 0.5...10.0, step: 0.5) {
+                        Text("3日目")
+                    } minimumValueLabel: {
+                        Text("0.5")
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(theme.secondaryText)
+                    } maximumValueLabel: {
+                        Text("10.0")
+                            .font(.caption2)
+                            .monospacedDigit()
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                    .tint(theme.currentPalette.color(.selection, isDark: theme.effectiveIsDark))
                 }
                 
                 // Quick Presets
@@ -864,6 +917,8 @@ struct CircularTimerView: View {
     var body: some View {
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
         let danger = theme.currentPalette.color(.weak, isDark: theme.effectiveIsDark)
+        @Environment(\.accessibilityReduceMotion) var reduceMotion
+        
         ZStack {
             Circle()
                 .stroke(Color.gray.opacity(0.2), lineWidth: 6)
@@ -875,7 +930,7 @@ struct CircularTimerView: View {
                     style: StrokeStyle(lineWidth: 6, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 0.1), value: remaining)
+                .animation(reduceMotion ? nil : .linear(duration: 0.1), value: remaining)
             
             Text(String(format: "%.1f", max(0, remaining)))
                 .font(.title3.weight(.bold))
@@ -893,6 +948,7 @@ struct FlashcardInputView: View {
     let meaning: String
     @Binding var isFlipped: Bool
     var showsHintWithAnswer: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @ObservedObject private var theme = ThemeManager.shared
     
@@ -945,10 +1001,16 @@ struct FlashcardInputView: View {
             .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
             .opacity(isFlipped ? 0 : 1)
         }
-        .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
-        .animation(.spring(duration: 0.4), value: isFlipped)
+        .rotation3DEffect(reduceMotion ? .zero : .degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
+        .animation(reduceMotion ? nil : .spring(duration: 0.4), value: isFlipped)
         .onTapGesture {
-            isFlipped.toggle()
+            if reduceMotion {
+                isFlipped.toggle()
+            } else {
+                withAnimation {
+                    isFlipped.toggle()
+                }
+            }
         }
     }
 }

@@ -15,9 +15,12 @@ struct InputModeView: View {
     @StateObject private var vocabData = VocabularyData.shared
 
     @ObservedObject private var theme = ThemeManager.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @AppStorage("anki_hub_kobun_inputmode_use_all_v1") private var kobunInputModeUseAll: Bool =
         true
+    @AppStorage("anki_hub_kobun_inputmode_use_all_migrated_v1")
+    private var kobunInputModeUseAllMigrated: Bool = false
     @AppStorage("anki_hub_inputmode_day2_limit_v1") private var day2TimeLimitSetting: Double = 3.0
     @AppStorage("anki_hub_inputmode_day2_unknown_only_v1") private var day2UnknownOnly: Bool = true
     @AppStorage("anki_hub_inputmode_mistakes_only_v1") private var inputModeMistakesOnly: Bool = false
@@ -113,6 +116,7 @@ struct InputModeView: View {
             }
         }
         .onAppear {
+            migrateKobunInputModeSettingIfNeeded()
             loadWords()
         }
         .onChange(of: selectedSubject) { _, _ in
@@ -197,63 +201,81 @@ struct InputModeView: View {
                     return filteredWords
                 }()
                 let totalBlocks = Int(ceil(Double(cappedWords.count) / 50.0))
-                if cappedWords.isEmpty {
-                    Text("チャプターを表示できません（単語が0件）")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.bottom, 8)
-                } else {
-                    Picker("チャプター", selection: $selectedBlockIndex) {
-                        ForEach(0..<totalBlocks, id: \.self) { i in
-                            let start = i * 50 + 1
-                            let end = min((i + 1) * 50, cappedWords.count)
-                            Text("チャプター \(i + 1)（\(start)-\(end)）").tag(i)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .padding(.bottom, 8)
-                    .onAppear {
-                        if selectedBlockIndex >= totalBlocks {
-                            selectedBlockIndex = max(0, totalBlocks - 1)
-                        }
-                    }
-                    .onChange(of: totalBlocks) { _, newValue in
-                        if selectedBlockIndex >= newValue {
-                            selectedBlockIndex = max(0, newValue - 1)
-                        }
-                    }
-                }
+                let labelColor = theme.secondaryText
+                let accent = accentColor
 
-                Picker("教科", selection: $selectedSubject) {
-                    ForEach(Subject.allCases) { s in
-                        Text(s.displayName).tag(s)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("学習設定")
+                        .font(.headline)
+                        .foregroundStyle(labelColor)
 
-                Toggle(isOn: $inputModeMistakesOnly) {
-                    Text("間違えた単語だけ")
-                }
-                .padding(.horizontal)
-                
-                Toggle(isOn: $isShuffleMode) {
-                    HStack {
-                        Image(systemName: "shuffle")
-                            .foregroundStyle(
-                                theme.currentPalette.color(
-                                    .accent, isDark: theme.effectiveIsDark))
-                        Text("出題順をシャッフル")
+                    if cappedWords.isEmpty {
+                        Text("チャプターを表示できません（単語が0件）")
+                            .font(.caption)
+                            .foregroundStyle(labelColor)
+                            .padding(.bottom, 4)
+                    } else {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("チャプター")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(labelColor)
+                            Picker("チャプター", selection: $selectedBlockIndex) {
+                                ForEach(0..<totalBlocks, id: \.self) { i in
+                                    let start = i * 50 + 1
+                                    let end = min((i + 1) * 50, cappedWords.count)
+                                    Text("チャプター \(i + 1)（\(start)-\(end)）").tag(i)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(accent)
+                            .onAppear {
+                                if selectedBlockIndex >= totalBlocks {
+                                    selectedBlockIndex = max(0, totalBlocks - 1)
+                                }
+                            }
+                            .onChange(of: totalBlocks) { _, newValue in
+                                if selectedBlockIndex >= newValue {
+                                    selectedBlockIndex = max(0, newValue - 1)
+                                }
+                            }
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("教科")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(labelColor)
+                        Picker("教科", selection: $selectedSubject) {
+                            ForEach(Subject.allCases) { s in
+                                Text(s.displayName).tag(s)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .tint(accent)
+                    }
+
+                    Toggle(isOn: $inputModeMistakesOnly) {
+                        Label("間違えた単語だけ", systemImage: "exclamationmark.circle")
+                            .foregroundStyle(theme.primaryText)
+                    }
+                    .tint(accent)
+
+                    Toggle(isOn: $isShuffleMode) {
+                        Label("出題順をシャッフル", systemImage: "shuffle")
+                            .foregroundStyle(theme.primaryText)
+                    }
+                    .tint(accent)
+
+                    if selectedSubject == .kobun {
+                        Toggle(isOn: $kobunInputModeUseAll) {
+                            Label("全単語を使用", systemImage: "text.book.closed")
+                                .foregroundStyle(theme.primaryText)
+                        }
+                        .tint(accent)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
-                
-                if selectedSubject == .kobun {
-                    Toggle(isOn: $kobunInputModeUseAll) {
-                        Text("全単語を使用")
-                    }
-                    .padding(.horizontal)
-                }
                 
                 Button(action: {
                     startNewSession()
@@ -318,6 +340,15 @@ struct InputModeView: View {
             startTimer()
         }
     }
+
+    private func migrateKobunInputModeSettingIfNeeded() {
+        guard !kobunInputModeUseAllMigrated else { return }
+        let kobunCount = vocabData.getVocabulary(for: .kobun).count
+        if kobunCount > 350 {
+            kobunInputModeUseAll = true
+        }
+        kobunInputModeUseAllMigrated = true
+    }
     
     private func startNewSession() {
         startTime = Date()
@@ -366,7 +397,7 @@ struct InputModeView: View {
     }
 
     private func nextWord() {
-        withAnimation {
+        if reduceMotion {
             isCardFlipped = false
             showDay3Answer = false
             if currentIndex < words.count - 1 {
@@ -380,6 +411,23 @@ struct InputModeView: View {
                     subject: selectedSubject.rawValue,
                     wordsStudied: words.count
                 )
+            }
+        } else {
+            withAnimation {
+                isCardFlipped = false
+                showDay3Answer = false
+                if currentIndex < words.count - 1 {
+                    currentIndex += 1
+                    if manager.currentDay == 2 {
+                        startTimer()
+                    }
+                } else {
+                    showResult = true
+                    LearningStats.shared.recordStudyWords(
+                        subject: selectedSubject.rawValue,
+                        wordsStudied: words.count
+                    )
+                }
             }
         }
     }
@@ -468,6 +516,7 @@ struct InputModeSessionView: View {
     let onSessionComplete: () -> Void
 
     @ObservedObject private var theme = ThemeManager.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 16) {
@@ -571,19 +620,17 @@ struct InputModeSessionView: View {
                 }
             }
 
-            Button(action: { onBookmark() }) {
-                HStack(spacing: 8) {
+            HStack {
+                Spacer()
+                Button(action: { onBookmark() }) {
                     Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-                    Text("単語帳に追加")
-                        .foregroundStyle(theme.primaryText)
+                        .padding(4)
+                        .contentShape(Rectangle())
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.gray.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
         .padding()
         .liquidGlass()
@@ -643,8 +690,12 @@ struct InputModeSessionView: View {
             .padding()
             .liquidGlass(cornerRadius: 16)
             .onTapGesture {
-                withAnimation(.spring(response: 0.3)) {
+                if reduceMotion {
                     showDay3Answer.toggle()
+                } else {
+                    withAnimation(.spring(response: 0.3)) {
+                        showDay3Answer.toggle()
+                    }
                 }
             }
 
@@ -719,19 +770,16 @@ struct InputModeSessionView: View {
                 }
             }
 
-            Button(action: { onBookmark() }) {
-                HStack(spacing: 8) {
+            HStack {
+                Spacer()
+                Button(action: { onBookmark() }) {
                     Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(accent)
-                    Text("単語帳に追加")
-                        .foregroundStyle(theme.primaryText)
+                        .padding(4)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color.gray.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
     }
 }
