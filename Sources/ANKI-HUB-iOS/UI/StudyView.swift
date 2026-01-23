@@ -12,7 +12,7 @@ struct StudyView: View {
                 theme.background
 
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 16) {
                         StudySectionCard(
                             accent: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
                         ) {
@@ -31,7 +31,7 @@ struct StudyView: View {
                             SectionHeader(title: "学習科目", subtitle: nil, trailing: nil)
 
                             LazyVGrid(
-                                columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 15
+                                columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16
                             ) {
                                 ForEach(Subject.allCases) { subject in
                                     SubjectGridItem(subject: subject)
@@ -40,10 +40,10 @@ struct StudyView: View {
                         }
 
                         ToolsGridView()
-                            .padding(.bottom, 20)
+                            .padding(.bottom, 16)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
                 }
             }
             .navigationTitle("学習")
@@ -144,7 +144,7 @@ struct KobunStudyMenuView: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(theme.secondaryText)
         }
-        .padding(18)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(surface.opacity(theme.effectiveIsDark ? 0.9 : 0.98))
@@ -162,7 +162,7 @@ struct ToolsGridView: View {
     @ObservedObject private var theme = ThemeManager.shared
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 16) {
             toolSection(
                 title: "計画・管理",
                 accent: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
@@ -223,11 +223,11 @@ struct ToolsGridView: View {
         @ViewBuilder content: () -> some View
     ) -> some View {
         StudySectionCard(accent: accent) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .font(.headline.weight(.semibold))
+                    .font(.callout.weight(.medium))
                     .foregroundStyle(theme.primaryText)
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                     content()
                 }
             }

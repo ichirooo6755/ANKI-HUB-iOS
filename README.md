@@ -248,6 +248,7 @@ open ANKI-HUB-iOS.xcodeproj
 | セクションヘッダーにtextCase(.uppercase)が適用されていた | 日本語テキストに大文字変換は不要で可読性を下げる | ThemeSettingsView/PastExamAnalysisViewからtextCase(.uppercase)を削除 |
 | 学習タブのメトリクスカードが3列で画面からはみ出す | HStackで3つのHealthMetricCardを横並びにしていた | 2列LazyVGridに変更し、総単語数カードを削除してシンプル化 |
 | 科目名が太字で目立ちすぎる | SubjectCardの科目名がtitle3.weight(.bold)だった | callout.weight(.medium)に変更して控えめに |
+| StudyViewの余白/グリッドが中途半端で崩れやすい | spacing/paddingが12/15/20等で混在し、端末幅によって被り/はみ出しが起きやすい | 8ptグリッド（16中心）に統一してレイアウトの安定性を上げた |
 
 ### 機能追加
 
