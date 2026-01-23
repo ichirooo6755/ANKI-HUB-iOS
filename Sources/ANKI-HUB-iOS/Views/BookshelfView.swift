@@ -240,7 +240,6 @@ struct BookshelfView: View {
                     )
                 )
                 .clipShape(Capsule())
-                .shadow(color: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.3), radius: 8, x: 0, y: 4)
             }
             .buttonStyle(.plain)
         }
@@ -347,7 +346,7 @@ private struct MaterialCardView: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(accent.opacity(0.3), lineWidth: 1.5)
         )
-        .shadow(color: accent.opacity(0.2), radius: 8, x: 0, y: 4)
+        .shadow(color: accent.opacity(0.12), radius: 6, x: 0, y: 3)
     }
 
     private func dateString(_ date: Date) -> String {
