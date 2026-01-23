@@ -128,8 +128,8 @@ struct QuizView: View {
             Image(systemName: isBookmarked ? "bookmark.fill" : "bookmark")
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-                .padding(4)
-                .frame(width: 32, height: 32)
+                .padding(8)
+                .frame(width: 48, height: 48)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

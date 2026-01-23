@@ -253,6 +253,7 @@ open ANKI-HUB-iOS.xcodeproj
 | ダッシュボードのクイックアクションが重い | カード群に強いshadow（radius 10 / y 6）が多発し、overdrawが増える | shadowを弱め（radius 6 / y 3）て描画負荷を軽くした |
 | 学習タブのspacing/paddingが8ptグリッドに合っていない | summaryMetricsのspacing=12、StudySectionCardのpadding=18で中途半端 | spacing=16、padding=16に統一して8ptグリッドに合わせた |
 | 大きいテキストのletter-spacingが広すぎる | largeTitleなどの大きいテキストにtrackingが適用されていない | QuizViewのスコア表示などにtracking(-1)を適用してletter-spacingを減少 |
+| ブックマークボタンのタップターゲットが小さい | 32x32でWCAG推奨の48x48を下回る | 48x48に拡大してタップしやすくした |
 
 ### 機能追加
 
