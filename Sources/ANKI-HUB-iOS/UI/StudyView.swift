@@ -58,7 +58,7 @@ struct StudyView: View {
         let masteredProgress = stats.totalWords == 0
             ? 0
             : min(1.0, Double(stats.masteredCount) / Double(stats.totalWords))
-        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
             HealthMetricCard(
                 title: "今日の学習",
                 value: "\(stats.todayMinutes)",
@@ -260,7 +260,7 @@ struct StudySectionCard<Content: View>: View {
         return VStack(alignment: .leading, spacing: 16) {
             content
         }
-        .padding(18)
+        .padding(16)
         .background(cardShape.fill(cardGradient))
         .overlay(
             cardShape

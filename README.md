@@ -251,6 +251,7 @@ open ANKI-HUB-iOS.xcodeproj
 | StudyViewの余白/グリッドが中途半端で崩れやすい | spacing/paddingが12/15/20等で混在し、端末幅によって被り/はみ出しが起きやすい | 8ptグリッド（16中心）に統一してレイアウトの安定性を上げた |
 | Bookshelfの空状態/カードが重い | 空状態ボタンの強いshadowやカードの強いshadowでoverdrawが増える | 空状態ボタンのshadowを削除し、カードshadowを弱めて描画負荷を軽くした |
 | ダッシュボードのクイックアクションが重い | カード群に強いshadow（radius 10 / y 6）が多発し、overdrawが増える | shadowを弱め（radius 6 / y 3）て描画負荷を軽くした |
+| 学習タブのspacing/paddingが8ptグリッドに合っていない | summaryMetricsのspacing=12、StudySectionCardのpadding=18で中途半端 | spacing=16、padding=16に統一して8ptグリッドに合わせた |
 
 ### 機能追加
 
