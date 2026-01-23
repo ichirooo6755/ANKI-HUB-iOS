@@ -256,6 +256,7 @@ open ANKI-HUB-iOS.xcodeproj
 | ブックマークボタンのタップターゲットが小さい | 32x32でWCAG推奨の48x48を下回る | 48x48に拡大してタップしやすくした |
 | 学習タブのBentoカードサイズ/タイトルが不揃い | ToolCardのpaddingが18で高さが合わず、タイトルが太字 | ToolCardをminHeight=150/ padding=16に統一し、タイトルをcallout.mediumへ変更 |
 | 学習ウィジェットの余白が白く、文字が埋もれる | containerBackgroundとテキストカラーがthemeと合っていない | ウィジェット内に背景を敷き、text/secondaryTextをthemeベースに統一 |
+| 学習タブのBentoのアイコン/カードサイズが揃わない | アイコンが固定フレームでなく、カード高さもminHeightで揺らいでいた | アイコンを96固定フレーム化し、カード高さを150固定、タイトルをregularへ統一 |
 
 ### 機能追加
 

@@ -362,21 +362,24 @@ struct SubjectCard: View {
 
         return ZStack(alignment: .topTrailing) {
             Image(systemName: subject.icon)
-                .font(.system(size: 96, weight: .bold, design: .default))
+                .font(.system(size: 92, weight: .bold, design: .default))
                 .foregroundStyle(accent.opacity(isDark ? (style == "neo" ? 0.22 : 0.18) : (style == "neo" ? 0.18 : 0.14)))
+                .frame(width: 96, height: 96, alignment: .topTrailing)
                 .padding(.top, 10)
                 .padding(.trailing, 10)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(subject.displayName)
-                    .font(.callout.weight(.medium))
+                    .font(.callout)
                     .foregroundStyle(textColor)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.9)
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(minHeight: 150)
+        .frame(height: 150)
         .background(cardShape.fill(fill))
         .overlay(cardShape.stroke(stroke, lineWidth: 1))
         .clipShape(cardShape)
@@ -445,8 +448,9 @@ struct ToolCard: View {
 
         return ZStack(alignment: .topTrailing) {
             Image(systemName: icon)
-                .font(.system(size: 96, weight: .bold, design: .default))
+                .font(.system(size: 92, weight: .bold, design: .default))
                 .foregroundStyle(color.opacity(isDark ? (style == "neo" ? 0.20 : 0.16) : (style == "neo" ? 0.16 : 0.12)))
+                .frame(width: 96, height: 96, alignment: .topTrailing)
                 .padding(.top, 10)
                 .padding(.trailing, 10)
                 .accessibilityHidden(true)
@@ -454,8 +458,10 @@ struct ToolCard: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text(title)
-                        .font(.callout.weight(.medium))
+                        .font(.callout)
                         .foregroundStyle(textColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.9)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.semibold))
@@ -466,7 +472,7 @@ struct ToolCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
         }
-        .frame(minHeight: 150)
+        .frame(height: 150)
         .background(cardShape.fill(fill))
         .overlay(cardShape.stroke(stroke, lineWidth: 1))
         .clipShape(cardShape)
