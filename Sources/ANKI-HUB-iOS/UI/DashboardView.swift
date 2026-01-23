@@ -260,7 +260,7 @@ struct DashboardView: View {
                                                 lineWidth: 1
                                             )
                                     )
-                                    .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
+                                    .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
                                     .padding(.horizontal)
                                 }
                                 .buttonStyle(.plain)
@@ -306,7 +306,7 @@ struct DashboardView: View {
                                             lineWidth: 1
                                         )
                                 )
-                                .shadow(color: themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
+                                .shadow(color: themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -351,7 +351,7 @@ struct DashboardView: View {
                                                 lineWidth: 1
                                             )
                                     )
-                                    .shadow(color: themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
+                                    .shadow(color: themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
                                     .padding(.horizontal)
                                 }
                                 .buttonStyle(.plain)
@@ -397,7 +397,7 @@ struct DashboardView: View {
                                         lineWidth: 1
                                     )
                             )
-                            .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
+                            .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
                             .padding(.horizontal)
 
                             // ToDo Card
@@ -441,7 +441,7 @@ struct DashboardView: View {
                                             lineWidth: 1
                                         )
                                 )
-                                .shadow(color: themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
+                                .shadow(color: themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -484,7 +484,7 @@ struct DashboardView: View {
                                             lineWidth: 1
                                         )
                                 )
-                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
+                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -527,7 +527,7 @@ struct DashboardView: View {
                                             lineWidth: 1
                                         )
                                 )
-                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.12), radius: 10, x: 0, y: 6)
+                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -573,7 +573,7 @@ struct DashboardView: View {
                                             lineWidth: 1
                                         )
                                 )
-                                .shadow(color: mirrorColor.opacity(0.12), radius: 10, x: 0, y: 6)
+                                .shadow(color: mirrorColor.opacity(0.10), radius: 6, x: 0, y: 3)
                             }
                             .buttonStyle(.plain)
                         }
