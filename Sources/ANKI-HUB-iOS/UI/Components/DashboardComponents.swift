@@ -483,54 +483,6 @@ struct GoalCountdownCard: View {
 
     var body: some View {
         let accent = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
-        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-        let style = theme.widgetCardStyle
-        let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
-
-        let fill: AnyShapeStyle = {
-            switch style {
-            case "neo":
-                return AnyShapeStyle(
-                    LinearGradient(
-                        colors: [surface.opacity(theme.effectiveIsDark ? 0.86 : 0.98), accent.opacity(0.18)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-            case "outline":
-                return AnyShapeStyle(surface.opacity(0.001))
-            default:
-                return AnyShapeStyle(surface.opacity(theme.effectiveIsDark ? 0.92 : 0.98))
-            }
-        }()
-
-        let stroke: Color = {
-            switch style {
-            case "neo":
-                return accent.opacity(0.22)
-            case "outline":
-                return accent.opacity(0.32)
-            default:
-                return accent.opacity(0.14)
-            }
-        }()
-
-        let shadowRadius: CGFloat = {
-            switch style {
-            case "outline":
-                return 0
-            default:
-                return 6
-            }
-        }()
-        let shadowColor: Color = {
-            switch style {
-            case "outline":
-                return .clear
-            default:
-                return Color.black.opacity(theme.effectiveIsDark ? 0.20 : 0.05)
-            }
-        }()
 
         return VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center) {
@@ -538,23 +490,17 @@ struct GoalCountdownCard: View {
                     Text("目標まで")
                         .font(.caption2.weight(.medium))
                         .foregroundStyle(theme.secondaryText.opacity(0.62))
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    HStack(alignment: .lastTextBaseline, spacing: 4) {
                         Text("\(max(0, daysRemaining))")
-                            .font(.system(size: 56, weight: .black, design: .default))
+                            .font(.system(size: 48, weight: .black, design: .default))
                             .monospacedDigit()
+                            .tracking(-1)
                             .minimumScaleFactor(0.6)
                             .lineLimit(1)
                             .foregroundStyle(theme.primaryText)
                         Text("日")
-                            .font(.caption2.weight(.medium))
+                            .font(.caption.weight(.medium))
                             .foregroundStyle(theme.secondaryText.opacity(0.62))
-
-                        Spacer()
-
-                        Text(daysRemaining == 0 ? "今日が締切" : "あと\(daysRemaining)日")
-                            .font(.caption2.weight(.medium))
-                            .foregroundStyle(theme.secondaryText.opacity(0.62))
-                            .lineLimit(1)
                     }
                     Text("目標日 \(dateString(targetDate))")
                         .font(.caption2.weight(.medium))
@@ -567,7 +513,7 @@ struct GoalCountdownCard: View {
                     lineWidth: 8,
                     accessibilityLabel: "目標達成率"
                 )
-                    .frame(width: 72, height: 72)
+                    .frame(width: 64, height: 64)
             }
 
             HStack {
@@ -576,16 +522,12 @@ struct GoalCountdownCard: View {
                     .foregroundStyle(theme.secondaryText.opacity(0.62))
                 Spacer()
                 Text(progressText)
-                    .font(.title3.weight(.bold))
+                    .font(.callout.weight(.bold))
                     .monospacedDigit()
                     .foregroundStyle(theme.primaryText)
             }
         }
-        .padding(18)
-        .background(cardShape.fill(fill))
-        .overlay(cardShape.stroke(stroke, lineWidth: 1))
-        .clipShape(cardShape)
-        .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: 4)
+        .padding(.vertical, 8)
     }
 
     private func dateString(_ date: Date) -> String {
