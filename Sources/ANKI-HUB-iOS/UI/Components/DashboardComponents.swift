@@ -483,6 +483,9 @@ struct GoalCountdownCard: View {
 
     var body: some View {
         let accent = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let shadow = Color.black.opacity(theme.effectiveIsDark ? 0.24 : 0.06)
+        let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
 
         return VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center) {
@@ -527,7 +530,11 @@ struct GoalCountdownCard: View {
                     .foregroundStyle(theme.primaryText)
             }
         }
-        .padding(.vertical, 8)
+        .padding(16)
+        .background(cardShape.fill(surface.opacity(theme.effectiveIsDark ? 0.9 : 0.98)))
+        .overlay(cardShape.stroke(accent.opacity(0.2), lineWidth: 1))
+        .clipShape(cardShape)
+        .shadow(color: shadow, radius: 6, x: 0, y: 3)
     }
 
     private func dateString(_ date: Date) -> String {
