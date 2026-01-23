@@ -53,14 +53,12 @@ struct StudyView: View {
 
     private var summaryMetrics: some View {
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
-        let primary = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
         let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
         let todayProgress = min(1.0, Double(stats.todayMinutes) / 30.0)
         let masteredProgress = stats.totalWords == 0
             ? 0
             : min(1.0, Double(stats.masteredCount) / Double(stats.totalWords))
-        let cardHeight: CGFloat = 148
-        return HStack(spacing: 12) {
+        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             HealthMetricCard(
                 title: "今日の学習",
                 value: "\(stats.todayMinutes)",
@@ -69,7 +67,6 @@ struct StudyView: View {
                 color: accent,
                 progress: todayProgress
             )
-            .frame(minHeight: cardHeight)
             HealthMetricCard(
                 title: "習得語彙",
                 value: "\(stats.masteredCount)",
@@ -78,15 +75,6 @@ struct StudyView: View {
                 color: mastered,
                 progress: masteredProgress
             )
-            .frame(minHeight: cardHeight)
-            HealthMetricCard(
-                title: "総単語数",
-                value: "\(stats.totalWords)",
-                unit: "語",
-                icon: "books.vertical.fill",
-                color: primary
-            )
-            .frame(minHeight: cardHeight)
         }
     }
 }

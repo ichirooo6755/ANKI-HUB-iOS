@@ -370,7 +370,7 @@ struct SubjectCard: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text(subject.displayName)
-                    .font(.title3.weight(.bold))
+                    .font(.callout.weight(.medium))
                     .foregroundStyle(textColor)
             }
             .padding(18)
