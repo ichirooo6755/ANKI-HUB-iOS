@@ -46,7 +46,6 @@ struct ThemeSettingsView: View {
                         Text("プレビュー")
                             .font(.caption)
                             .foregroundColor(themeManager.color(.secondary, scheme: colorScheme))
-                            .textCase(.uppercase)
                             .padding(.horizontal)
 
                         ThemePreviewCard()
@@ -58,7 +57,6 @@ struct ThemeSettingsView: View {
                         Text("テーマを選択")
                             .font(.caption)
                             .foregroundColor(themeManager.color(.secondary, scheme: colorScheme))
-                            .textCase(.uppercase)
                             .padding(.horizontal)
 
                         LazyVGrid(columns: columns, spacing: 16) {
@@ -82,7 +80,6 @@ struct ThemeSettingsView: View {
                         Text("カスタマイズ")
                             .font(.caption)
                             .foregroundColor(themeManager.color(.secondary, scheme: colorScheme))
-                            .textCase(.uppercase)
                             .padding(.horizontal)
 
                         Toggle(isOn: $themeManager.useLiquidGlass) {

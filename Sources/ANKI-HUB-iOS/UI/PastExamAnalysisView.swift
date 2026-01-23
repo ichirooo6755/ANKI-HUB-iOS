@@ -588,8 +588,6 @@ struct StatBox: View {
             Text(label)
                 .font(.caption.weight(.medium))
                 .foregroundColor(theme.secondaryText)
-                .textCase(.uppercase)
-                .tracking(0.5)
                 .multilineTextAlignment(.center)
             
             // Progress indicator if provided

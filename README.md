@@ -245,6 +245,7 @@ open ANKI-HUB-iOS.xcodeproj
 | 習熟度円グラフの背景が重い | chartCardラッパーで背景を付けていた | 習熟度チャートの背景を削除し、「習熟度」文言を太字からmediumに変更してシンプル化 |
 | Viewsフォルダに不要ファイルが混入 | ブラウザからのドキュメントがファイルとして保存されていた | `# Buttons`等の不要ファイルを削除 |
 | 横長1列コンテナに不要な背景/枠がある | GoalCountdownCardが1列を占めるのに背景/枠/影を持っていた | 背景/枠/影を削除してシンプル化、数値レイアウトも他カードと統一 |
+| セクションヘッダーにtextCase(.uppercase)が適用されていた | 日本語テキストに大文字変換は不要で可読性を下げる | ThemeSettingsView/PastExamAnalysisViewからtextCase(.uppercase)を削除 |
 
 ### 機能追加
 
