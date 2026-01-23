@@ -15,8 +15,8 @@ struct SubjectMasteryChart: View {
         let summaryText = "合計\(totalCount)語、習熟\(masteredCount)語"
         VStack(alignment: .leading, spacing: 8) {
             Text("習熟度")
-                .font(.callout.weight(.medium))
-                .foregroundStyle(theme.secondaryText)
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(theme.secondaryText.opacity(0.62))
 
             HStack(spacing: 16) {
                 // Donut Chart

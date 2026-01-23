@@ -32,9 +32,6 @@ struct ChapterSelectionView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(chapter.title)
                                     .font(.headline)
-                                Text(chapter.description)
-                                    .font(.caption)
-                                    .foregroundStyle(theme.secondaryText)
                             }
                             Spacer()
                             if chapter.isLocked {

@@ -226,8 +226,63 @@ class VocabularyData: ObservableObject {
             return Array(Set(baseParts))
         }
 
+        let finalizeKobunData: ([KobunItem], Set<String>) -> [Vocabulary] = { items, baseKeys in
+            func normalizeForDedupe(_ raw: String) -> String {
+                normalizeKobunKey(raw)
+            }
+
+            var keyToItem: [String: KobunItem] = [:]
+            keyToItem.reserveCapacity(items.count)
+            var orderKeys: [String] = []
+            orderKeys.reserveCapacity(items.count)
+
+            for item in items {
+                let key = normalizeForDedupe(item.word)
+                if key.isEmpty { continue }
+
+                if let existing = keyToItem[key] {
+                    let merged = KobunItem(
+                        id: existing.id,
+                        word: existing.word,
+                        meaning: existing.meaning.isEmpty ? item.meaning : existing.meaning,
+                        hint: (existing.hint?.isEmpty == false) ? existing.hint : item.hint,
+                        example: (existing.example?.isEmpty == false) ? existing.example : item.example
+                    )
+                    keyToItem[key] = merged
+                } else {
+                    keyToItem[key] = item
+                    orderKeys.append(key)
+                }
+            }
+
+            let sortedKeys = orderKeys.sorted { a, b in
+                let ia = keyToItem[a]?.id ?? 0
+                let ib = keyToItem[b]?.id ?? 0
+                if ia != ib { return ia < ib }
+                return a < b
+            }
+
+            return sortedKeys.enumerated().compactMap { idx, k in
+                guard let item = keyToItem[k] else { return nil }
+                let isPdfOnly = !baseKeys.contains(k)
+                return Vocabulary(
+                    id: isPdfOnly ? "pdf-\(item.id)" : String(item.id),
+                    term: item.word,
+                    meaning: item.meaning,
+                    reading: nil,
+                    hint: item.hint,
+                    example: item.example
+                )
+            }
+        }
+
         var mergedKobunItems: [KobunItem] = baseKobunItems
-        let baseCount = baseKobunItems.count
+
+        let baseWordKeys: Set<String> = Set(
+            baseKobunItems
+                .map { normalizeKobunKey($0.word) }
+                .filter { !$0.isEmpty }
+        )
 
         var keyToIndex: [String: Int] = [:]
         if !baseKobunItems.isEmpty {
@@ -296,29 +351,10 @@ class VocabularyData: ObservableObject {
                 }
             }
 
-            kobunData = mergedKobunItems.enumerated().map { idx, item in
-                let isPdfOnly = idx >= baseCount
-                return Vocabulary(
-                    id: isPdfOnly ? "pdf-\(item.id)" : String(item.id),
-                    term: item.word,
-                    meaning: item.meaning,
-                    reading: nil,
-                    hint: item.hint,
-                    example: item.example
-                )
-            }
+            kobunData = finalizeKobunData(mergedKobunItems, baseWordKeys)
             print("📚 Kobun: \(kobunData.count) words loaded")
         } else if !baseKobunItems.isEmpty {
-            kobunData = baseKobunItems.map { item in
-                Vocabulary(
-                    id: String(item.id),
-                    term: item.word,
-                    meaning: item.meaning,
-                    reading: nil,
-                    hint: item.hint,
-                    example: item.example
-                )
-            }
+            kobunData = finalizeKobunData(baseKobunItems, baseWordKeys)
             print("📚 Kobun: \(kobunData.count) words loaded")
         } else {
             kobunData = []

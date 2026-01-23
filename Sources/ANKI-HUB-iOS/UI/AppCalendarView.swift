@@ -69,8 +69,7 @@ struct AppCalendarView: View {
         @StateObject private var todoManager = TodoManager()
         @StateObject private var examManager = ExamResultManager()
 
-        @State private var showAddExamSheet = false
-        @State private var selectedExamResult: ExamResult? = nil
+        @State private var activeSheet: DetailSheet?
 
         @State private var newTaskTitle: String = ""
 
@@ -86,6 +85,24 @@ struct AppCalendarView: View {
 
         private var journal: LearningStats.JournalEntry? {
             stats.journals[key]
+        }
+
+        private struct DetailSheet: Identifiable {
+            enum Kind {
+                case addExam
+                case examDetail(ExamResult)
+            }
+
+            let kind: Kind
+
+            var id: String {
+                switch kind {
+                case .addExam:
+                    return "addExam"
+                case .examDetail(let result):
+                    return "examDetail_\(result.id)"
+                }
+            }
         }
 
         var body: some View {
@@ -129,11 +146,13 @@ struct AppCalendarView: View {
                 }
                 .background(theme.background)
             }
-            .sheet(isPresented: $showAddExamSheet) {
-                AddExamResultSheet(manager: examManager, fixedDate: date)
-            }
-            .sheet(item: $selectedExamResult) { result in
-                ExamResultDetailSheet(result: result, manager: examManager)
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet.kind {
+                case .addExam:
+                    AddExamResultSheet(manager: examManager, fixedDate: date)
+                case .examDetail(let result):
+                    ExamResultDetailSheet(result: result, manager: examManager)
+                }
             }
         }
 
@@ -146,12 +165,11 @@ struct AppCalendarView: View {
             return VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text("テスト")
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundStyle(theme.secondaryText)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(theme.secondaryText.opacity(0.62))
                     Spacer()
                     Button {
-                        showAddExamSheet = true
+                        activeSheet = DetailSheet(kind: .addExam)
                     } label: {
                         Image(systemName: "plus")
                             .font(.callout.weight(.bold))
@@ -165,7 +183,7 @@ struct AppCalendarView: View {
                 if !items.isEmpty {
                     ForEach(items) { result in
                         Button {
-                            selectedExamResult = result
+                            activeSheet = DetailSheet(kind: .examDetail(result))
                         } label: {
                             HStack(alignment: .firstTextBaseline) {
                                 VStack(alignment: .leading, spacing: 4) {
@@ -174,13 +192,13 @@ struct AppCalendarView: View {
                                         .foregroundStyle(theme.primaryText)
                                     if !result.subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                         Text(result.subject)
-                                            .font(.caption)
-                                            .foregroundStyle(theme.secondaryText)
+                                            .font(.caption2.weight(.medium))
+                                            .foregroundStyle(theme.secondaryText.opacity(0.62))
                                     }
                                 }
                                 Spacer()
                                 Text("\(result.percent)%")
-                                    .font(.title3.weight(.bold))
+                                    .font(.system(size: 48, weight: .black, design: .default))
                                     .monospacedDigit()
                                     .foregroundStyle(theme.primaryText)
                             }
@@ -300,21 +318,19 @@ struct AppCalendarView: View {
             let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
             return HStack(alignment: .firstTextBaseline) {
                 Text(title)
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .foregroundStyle(theme.secondaryText)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(theme.secondaryText.opacity(0.62))
                 Spacer()
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(value)
-                        .font(.system(size: 44, weight: .black, design: .default))
+                        .font(.system(size: 56, weight: .black, design: .default))
                         .monospacedDigit()
                         .foregroundStyle(theme.primaryText)
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                     Text(unit)
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundStyle(theme.secondaryText)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(theme.secondaryText.opacity(0.62))
                 }
             }
             .padding(16)
@@ -616,7 +632,7 @@ struct AppCalendarView: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [surface.opacity(0.98), highlight.opacity(0.92)],
@@ -626,9 +642,10 @@ struct AppCalendarView: View {
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .stroke(accent.opacity(0.25), lineWidth: 1)
         )
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .shadow(color: accent.opacity(0.12), radius: 8, x: 0, y: 4)
     }
 
@@ -739,7 +756,8 @@ struct AppCalendarView: View {
                 .padding(.vertical, 8)
             } else {
                 LazyVGrid(
-                    columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7),
+                    columns: Array(repeating: GridItem(.fixed(36), spacing: 6), count: 7),
+                    alignment: .leading,
                     spacing: 6
                 ) {
                     ForEach(days) { day in

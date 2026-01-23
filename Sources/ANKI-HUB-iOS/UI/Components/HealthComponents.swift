@@ -55,8 +55,6 @@ struct HealthMetricCard: View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
         let shadow = Color.black.opacity(theme.effectiveIsDark ? 0.28 : 0.06)
         let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
-        let labelColor = theme.secondaryText.opacity(theme.effectiveIsDark ? 0.78 : 0.68)
-        let unitColor = theme.secondaryText.opacity(theme.effectiveIsDark ? 0.72 : 0.62)
 
         let style = theme.widgetCardStyle
         let fill: AnyShapeStyle = {
@@ -108,30 +106,30 @@ struct HealthMetricCard: View {
 
         return ZStack(alignment: .topTrailing) {
             Image(systemName: icon)
-                .font(.system(size: 84, weight: .bold, design: .default))
+                .font(.system(size: 96, weight: .bold, design: .default))
                 .foregroundStyle(color.opacity(theme.effectiveIsDark ? (style == "neo" ? 0.22 : 0.18) : (style == "neo" ? 0.18 : 0.14)))
-                .offset(x: 18, y: -12)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                .offset(x: 24)
                 .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .font(.caption2)
-                    .fontWeight(.medium)
-                    .foregroundStyle(labelColor)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(theme.secondaryText.opacity(0.62))
 
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                HStack(alignment: .lastTextBaseline, spacing: 4) {
                     Text(value)
-                        .font(.system(size: 54, weight: .black, design: .default))
+                        .font(.system(size: 48, weight: .black, design: .default))
                         .monospacedDigit()
+                        .tracking(-1)
                         .foregroundStyle(theme.primaryText)
                         .minimumScaleFactor(0.58)
                         .lineLimit(1)
 
                     if !unit.isEmpty {
                         Text(unit)
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundStyle(unitColor)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(theme.secondaryText.opacity(0.62))
                     }
                 }
 
@@ -144,11 +142,12 @@ struct HealthMetricCard: View {
                         .accessibilityValue(Text("\(Int(clamped * 100))%"))
                 }
             }
-            .padding(18)
+            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(cardShape.fill(fill))
         .overlay(cardShape.stroke(stroke, lineWidth: 1))
+        .clipShape(cardShape)
         .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: 4)
     }
 }

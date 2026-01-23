@@ -3,9 +3,7 @@ import SwiftUI
 struct MainTabView: View {
     @State private var selectedTab: Tab = .home
 
-    @State private var timerStartRequest: TimerStartRequest?
-    @State private var showScanSheet = false
-    @State private var showFrontCameraSheet = false
+    @State private var activeSheet: ActiveSheet?
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -17,6 +15,27 @@ struct MainTabView: View {
     ) private var frontCameraStartRequest: Double = 0
 
     private let scanStartRequestKey = "anki_hub_scan_start_request_v1"
+
+    private struct ActiveSheet: Identifiable {
+        enum Kind {
+            case timer(TimerStartRequest)
+            case scan
+            case frontCamera
+        }
+
+        let kind: Kind
+
+        var id: String {
+            switch kind {
+            case .scan:
+                return "scan"
+            case .frontCamera:
+                return "frontCamera"
+            case .timer(let req):
+                return "timer_\(req.mode)_\(req.minutes)"
+            }
+        }
+    }
     
     enum Tab {
         case home
@@ -77,14 +96,15 @@ struct MainTabView: View {
         .onChange(of: frontCameraStartRequest) { _, _ in
             consumeFrontCameraRequest()
         }
-        .sheet(item: $timerStartRequest) { req in
-            TimerView(startRequest: req)
-        }
-        .sheet(isPresented: $showScanSheet) {
-            ScanView(startScanning: true)
-        }
-        .sheet(isPresented: $showFrontCameraSheet) {
-            FrontCameraView()
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet.kind {
+            case .timer(let req):
+                TimerView(startRequest: req)
+            case .scan:
+                ScanView(startScanning: true)
+            case .frontCamera:
+                FrontCameraView()
+            }
         }
     }
 
@@ -98,7 +118,7 @@ struct MainTabView: View {
             let safeMinutes = max(1, min(180, parsedMinutes ?? 25))
 
             if url.path == "/start" {
-                timerStartRequest = TimerStartRequest(mode: "custom", minutes: safeMinutes, open: true)
+                activeSheet = ActiveSheet(kind: .timer(TimerStartRequest(mode: "custom", minutes: safeMinutes, open: true)))
             }
         case "scan":
             if url.path == "/start" {
@@ -141,13 +161,11 @@ struct MainTabView: View {
 
     private func startScannerFlow() {
         selectedTab = .study
-        showFrontCameraSheet = false
-        showScanSheet = true
+        activeSheet = ActiveSheet(kind: .scan)
     }
 
     private func startFrontCameraFlow() {
         selectedTab = .study
-        showScanSheet = false
-        showFrontCameraSheet = true
+        activeSheet = ActiveSheet(kind: .frontCamera)
     }
 }

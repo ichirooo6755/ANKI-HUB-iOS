@@ -129,6 +129,7 @@ struct QuizView: View {
                 .font(.title3.weight(.semibold))
                 .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
                 .padding(4)
+                .frame(width: 32, height: 32)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -137,12 +138,6 @@ struct QuizView: View {
     private var retryButtons: some View {
         let q = questions[currentIndex]
         return VStack(spacing: 10) {
-            Text("この問題をセッション内でもう一度出しますか？")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-
             HStack(spacing: 12) {
                 Button {
                     scheduleRechallenge(for: q)
@@ -1083,26 +1078,6 @@ struct QuizView: View {
                         .foregroundStyle(.secondary)
                     Spacer()
 
-                    if timeLimit > 0 {
-                        let danger = theme.currentPalette.color(
-                            .weak, isDark: theme.effectiveIsDark)
-                        let accent = theme.currentPalette.color(
-                            .accent, isDark: theme.effectiveIsDark)
-                        HStack(spacing: 4) {
-                            Image(systemName: "timer")
-                            Text("残り\(timeRemaining)秒")
-                                .monospacedDigit()
-                        }
-                        .font(.subheadline.bold())
-                        .foregroundStyle(timeRemaining <= 5 ? danger : accent)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(
-                            timeRemaining <= 5 ? danger.opacity(0.22) : accent.opacity(0.22)
-                        )
-                        .clipShape(Capsule())
-                    }
-
                     Button {
                         speakWord(question.questionText)
                     } label: {
@@ -1192,11 +1167,11 @@ struct QuizView: View {
             .frame(maxWidth: .infinity)
             .padding(cardPadding)
             .liquidGlass(cornerRadius: 20)
-            .padding(.horizontal)
             .overlay(alignment: .topTrailing) {
                 bookmarkButton
                     .padding(12)
             }
+            .padding(.horizontal)
 
             // Choices
             VStack(spacing: choiceSpacing) {
@@ -1390,11 +1365,11 @@ struct QuizView: View {
             .frame(maxWidth: .infinity)
             .padding(24)
             .liquidGlass(cornerRadius: 20)
-            .padding(.horizontal)
             .overlay(alignment: .topTrailing) {
                 bookmarkButton
                     .padding(12)
             }
+            .padding(.horizontal)
 
             // Answer Input
             VStack(spacing: 16) {
@@ -1645,11 +1620,11 @@ struct QuizView: View {
             .frame(maxWidth: .infinity, minHeight: 200)
             .padding(32)
             .liquidGlass(cornerRadius: 24)
-            .padding(.horizontal)
             .overlay(alignment: .topTrailing) {
                 bookmarkButton
                     .padding(12)
             }
+            .padding(.horizontal)
             .overlay {
                 let okOpacity = min(1.0, max(0.0, Double(cardDragX / 90.0)))
                 let ngOpacity = min(1.0, max(0.0, Double(-cardDragX / 90.0)))

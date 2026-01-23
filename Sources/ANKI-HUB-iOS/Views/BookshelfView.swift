@@ -384,14 +384,14 @@ private struct MaterialRecordRow: View {
                     .foregroundStyle(theme.secondaryText)
             }
         }
-        .padding(12)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
                 .opacity(theme.effectiveIsDark ? 0.92 : 0.96)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .stroke(theme.currentPalette.color(.border, isDark: theme.effectiveIsDark).opacity(0.2), lineWidth: 1)
         )
     }
@@ -410,9 +410,26 @@ struct MaterialDetailView: View {
     @StateObject private var manager = StudyMaterialManager.shared
     @ObservedObject private var theme = ThemeManager.shared
 
-    @State private var showEditSheet = false
-    @State private var showRecordSheet = false
+    @State private var activeSheet: ActiveSheet?
     @State private var showDeleteConfirm = false
+
+    private struct ActiveSheet: Identifiable {
+        enum Kind {
+            case edit(StudyMaterial)
+            case record(UUID)
+        }
+
+        let kind: Kind
+
+        var id: String {
+            switch kind {
+            case .edit(let material):
+                return "edit_\(material.id.uuidString)"
+            case .record(let id):
+                return "record_\(id.uuidString)"
+            }
+        }
+    }
 
     private var material: StudyMaterial? {
         manager.materials.first(where: { $0.id == materialId })
@@ -440,9 +457,13 @@ struct MaterialDetailView: View {
                                 .padding(16)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    RoundedRectangle(cornerRadius: 28, style: .continuous)
                                         .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
                                         .opacity(theme.effectiveIsDark ? 0.95 : 0.98)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                        .stroke(theme.currentPalette.color(.border, isDark: theme.effectiveIsDark).opacity(0.2), lineWidth: 1)
                                 )
                             }
 
@@ -451,7 +472,7 @@ struct MaterialDetailView: View {
                                     SectionHeader(title: "学習記録", subtitle: nil, trailing: nil)
                                     Spacer()
                                     Button(action: {
-                                        showRecordSheet = true
+                                        activeSheet = ActiveSheet(kind: .record(material.id))
                                     }) {
                                         PillBadge(
                                             title: "追加",
@@ -495,8 +516,10 @@ struct MaterialDetailView: View {
 #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button("編集") { showEditSheet = true }
-                        Button("記録を追加") { showRecordSheet = true }
+                        if let material {
+                            Button("編集") { activeSheet = ActiveSheet(kind: .edit(material)) }
+                            Button("記録を追加") { activeSheet = ActiveSheet(kind: .record(material.id)) }
+                        }
                         Divider()
                         Button("削除", role: .destructive) { showDeleteConfirm = true }
                     } label: {
@@ -506,8 +529,10 @@ struct MaterialDetailView: View {
 #else
                 ToolbarItem(placement: .automatic) {
                     Menu {
-                        Button("編集") { showEditSheet = true }
-                        Button("記録を追加") { showRecordSheet = true }
+                        if let material {
+                            Button("編集") { activeSheet = ActiveSheet(kind: .edit(material)) }
+                            Button("記録を追加") { activeSheet = ActiveSheet(kind: .record(material.id)) }
+                        }
                         Divider()
                         Button("削除", role: .destructive) { showDeleteConfirm = true }
                     } label: {
@@ -523,13 +548,13 @@ struct MaterialDetailView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showEditSheet) {
-                if let material {
+            .sheet(item: $activeSheet) { sheet in
+                switch sheet.kind {
+                case .edit(let material):
                     AddMaterialSheet(manager: manager, material: material)
+                case .record(let id):
+                    ManualRecordSheet(materialId: id)
                 }
-            }
-            .sheet(isPresented: $showRecordSheet) {
-                ManualRecordSheet(materialId: materialId)
             }
         }
         .applyAppTheme()

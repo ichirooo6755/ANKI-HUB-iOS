@@ -73,7 +73,6 @@ struct TimerView: View {
 
     // Timer History
     @State private var timerHistory: [TimerHistoryEntry] = []
-    @State private var showHistory = false
     @State private var suppressHistoryOnNextStart = false
 
     // Edge manipulation
@@ -86,7 +85,6 @@ struct TimerView: View {
 
     @State private var lastPersistedAt: Date = .distantPast
 
-    @State private var showStudyLogSheet = false
     @State private var studyContent = ""
     @State private var shouldResetAfterStudyLog = false
     @State private var selectedMaterialId: UUID? = nil
@@ -115,7 +113,29 @@ struct TimerView: View {
     @State private var selectedTab: TimerTab = .timer
     @AppStorage("pomodoro_mode_selection") private var selectedMode: TimerMode = .focus
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var showSettings = false
+
+    @State private var activeSheet: ActiveSheet?
+
+    private struct ActiveSheet: Identifiable {
+        enum Kind {
+            case settings
+            case studyLog
+            case history
+        }
+
+        let kind: Kind
+
+        var id: String {
+            switch kind {
+            case .settings:
+                return "settings"
+            case .studyLog:
+                return "studyLog"
+            case .history:
+                return "history"
+            }
+        }
+    }
 
     init(startRequest: TimerStartRequest? = nil) {
         self.startRequest = startRequest
@@ -188,11 +208,22 @@ struct TimerView: View {
             }
         }
 
-        .sheet(isPresented: $showSettings) {
-            timerSettingsSheet
-        }
-        .sheet(isPresented: $showStudyLogSheet) {
-            timerStudyLogSheet
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet.kind {
+            case .settings:
+                timerSettingsSheet
+            case .studyLog:
+                timerStudyLogSheet
+            case .history:
+                TimerHistoryView(history: timerHistory) { entry in
+                    applyHistoryEntry(entry)
+                    activeSheet = nil
+                    if !isActive {
+                        suppressHistoryOnNextStart = true
+                        toggleTimer()
+                    }
+                }
+            }
         }
         .onAppear {
             setupNotifications()
@@ -477,7 +508,7 @@ struct TimerView: View {
 
                 HStack(spacing: 16) {
                     Button {
-                        showHistory = true
+                        activeSheet = ActiveSheet(kind: .history)
                     } label: {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.title3)
@@ -532,7 +563,7 @@ struct TimerView: View {
                     .buttonStyle(.plain)
 
                     Button {
-                        showSettings = true
+                        activeSheet = ActiveSheet(kind: .settings)
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "gearshape.fill")
@@ -558,16 +589,6 @@ struct TimerView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
-        .sheet(isPresented: $showHistory) {
-            TimerHistoryView(history: timerHistory) { entry in
-                applyHistoryEntry(entry)
-                showHistory = false
-                if !isActive {
-                    suppressHistoryOnNextStart = true
-                    toggleTimer()
-                }
-            }
-        }
     }
 
     // MARK: - Stopwatch View
@@ -755,7 +776,7 @@ struct TimerView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("完了") {
-                        showSettings = false
+                        activeSheet = nil
                         if !isActive {
                             updateTimerDuration()
                         }
@@ -994,14 +1015,14 @@ struct TimerView: View {
                 let shouldRecordMode = (selectedMode == .focus || selectedMode == .custom)
                 if shouldRecordMode, elapsedSeconds >= 60 {
                     shouldResetAfterStudyLog = true
-                    showStudyLogSheet = true
+                    activeSheet = ActiveSheet(kind: .studyLog)
                     return
                 }
             }
 
             if isOvertime || timeRemaining == 0 {
                 shouldResetAfterStudyLog = true
-                showStudyLogSheet = true
+                activeSheet = ActiveSheet(kind: .studyLog)
                 return
             }
         }
@@ -1076,7 +1097,7 @@ struct TimerView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") {
-                        showStudyLogSheet = false
+                        activeSheet = nil
                         if shouldResetAfterStudyLog {
                             resetTimer()
                             LearningStats.shared.refreshStudyMinutesFromSessions()
@@ -1087,7 +1108,7 @@ struct TimerView: View {
                     Button("保存") {
                         let endedAt = Date()
                         saveStudyLogIfPossible(endedAt: endedAt)
-                        showStudyLogSheet = false
+                        activeSheet = nil
                         resetTimer()
                     }
                 }

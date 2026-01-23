@@ -12,35 +12,40 @@ struct CalendarStatCard: View {
     var body: some View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
         let highlight = theme.currentPalette.color(.background, isDark: theme.effectiveIsDark)
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.2))
-                        .frame(width: 36, height: 36)
-                    Image(systemName: icon)
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(color)
-                }
-                Text(title)
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(theme.secondaryText)
-            }
+        return ZStack(alignment: .topTrailing) {
+            Image(systemName: icon)
+                .font(.system(size: 72, weight: .bold, design: .default))
+                .foregroundStyle(color.opacity(theme.effectiveIsDark ? 0.18 : 0.14))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                .offset(x: 20)
+                .accessibilityHidden(true)
 
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(value)
-                    .font(.title3.weight(.bold))
-                    .monospacedDigit()
-                    .foregroundStyle(theme.primaryText)
-                Text(unit)
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(theme.secondaryText)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(theme.secondaryText.opacity(0.62))
+
+                HStack(alignment: .lastTextBaseline, spacing: 4) {
+                    Text(value)
+                        .font(.system(size: 40, weight: .black, design: .default))
+                        .monospacedDigit()
+                        .tracking(-1)
+                        .foregroundStyle(theme.primaryText)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                    if !unit.isEmpty {
+                        Text(unit)
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(theme.secondaryText.opacity(0.62))
+                    }
+                }
             }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [surface.opacity(0.98), highlight.opacity(0.92)],
@@ -50,10 +55,11 @@ struct CalendarStatCard: View {
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .stroke(color.opacity(0.25), lineWidth: 1)
         )
-        .shadow(color: color.opacity(0.12), radius: 10, x: 0, y: 6)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .shadow(color: color.opacity(0.12), radius: 8, x: 0, y: 4)
     }
 }
 

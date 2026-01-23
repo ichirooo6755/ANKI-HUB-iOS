@@ -10,12 +10,17 @@ struct TimelineView: View {
                 theme.background
 
                 ScrollView {
-                    VStack(spacing: 16) {
-                        SectionHeader(
-                            title: "タイムライン",
-                            subtitle: nil,
-                            trailing: "\(timelineManager.entries.count)件"
-                        )
+                    LazyVStack(spacing: 16) {
+                        HStack(alignment: .firstTextBaseline) {
+                            Text("タイムライン")
+                                .font(.title3.weight(.bold))
+                                .foregroundStyle(theme.primaryText)
+                            Spacer()
+                            Text("\(timelineManager.entries.count)件")
+                                .font(.caption2.weight(.medium))
+                                .monospacedDigit()
+                                .foregroundStyle(theme.secondaryText.opacity(0.62))
+                        }
 
                         summaryCards
 
@@ -89,55 +94,107 @@ private struct TimelineEntryCard: View {
 
     var body: some View {
         let accent = entryColor
-        return VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(accent.opacity(0.18))
-                        .frame(width: 44, height: 44)
-                    Image(systemName: entryIcon)
-                        .foregroundStyle(accent)
+        let isDark = theme.effectiveIsDark
+        let surface = theme.currentPalette.color(.surface, isDark: isDark)
+        let style = theme.widgetCardStyle
+        let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
+
+        let fill: AnyShapeStyle = {
+            switch style {
+            case "neo":
+                return AnyShapeStyle(
+                    LinearGradient(
+                        colors: [surface.opacity(isDark ? 0.86 : 0.98), accent.opacity(0.18)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            case "outline":
+                return AnyShapeStyle(surface.opacity(0.001))
+            default:
+                return AnyShapeStyle(surface.opacity(isDark ? 0.92 : 0.98))
+            }
+        }()
+
+        let stroke: Color = {
+            switch style {
+            case "neo":
+                return accent.opacity(0.22)
+            case "outline":
+                return accent.opacity(0.32)
+            default:
+                return accent.opacity(0.14)
+            }
+        }()
+
+        let shadowRadius: CGFloat = {
+            switch style {
+            case "outline":
+                return 0
+            default:
+                return 6
+            }
+        }()
+        let shadowColor: Color = {
+            switch style {
+            case "outline":
+                return .clear
+            default:
+                return Color.black.opacity(isDark ? 0.20 : 0.05)
+            }
+        }()
+
+        return ZStack(alignment: .topTrailing) {
+            Image(systemName: entryIcon)
+                .font(.system(size: 96, weight: .bold, design: .default))
+                .foregroundStyle(accent.opacity(isDark ? (style == "neo" ? 0.20 : 0.16) : (style == "neo" ? 0.16 : 0.12)))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(.top, 10)
+                .padding(.trailing, 10)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(entry.title)
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(theme.primaryText)
+
+                        if !entry.summary.isEmpty {
+                            Text(entry.summary)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(theme.secondaryText.opacity(0.62))
+                        }
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 6) {
+                        Text(dateLabel)
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(theme.secondaryText.opacity(0.62))
+                        PillBadge(title: typeLabel, color: accent)
+                    }
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(entry.title)
-                        .font(.headline)
+
+                if !entry.detail.isEmpty {
+                    Text(entry.detail)
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(theme.primaryText)
-                    Text(entry.summary)
-                        .font(.caption)
-                        .foregroundStyle(theme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(dateLabel)
-                        .font(.caption2)
-                        .foregroundStyle(theme.secondaryText)
-                    PillBadge(title: typeLabel, color: accent)
+
+                if let subjectLabel {
+                    Text(subjectLabel)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(theme.secondaryText.opacity(0.62))
                 }
             }
-
-            if !entry.detail.isEmpty {
-                Text(entry.detail)
-                    .font(.subheadline)
-                    .foregroundStyle(theme.primaryText)
-            }
-
-            if let subjectLabel {
-                Text(subjectLabel)
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
-            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
-                .opacity(theme.effectiveIsDark ? 0.95 : 0.98)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(accent.opacity(0.2), lineWidth: 1)
-        )
+        .background(cardShape.fill(fill))
+        .overlay(cardShape.stroke(stroke, lineWidth: 1))
+        .clipShape(cardShape)
+        .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: 4)
     }
 
     private var entryIcon: String {

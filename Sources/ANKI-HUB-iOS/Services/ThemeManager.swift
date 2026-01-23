@@ -317,6 +317,11 @@ class ThemeManager: ObservableObject {
         case nordic = "nordic"
         case dracula = "dracula"
 
+        // Preset-inspired
+        case neonLime = "neonLime"
+        case monoPop = "monoPop"
+        case oliveSage = "oliveSage"
+
         // Art
         case monaLisa = "monaLisa"
         case starryNight = "starryNight"
@@ -348,6 +353,9 @@ class ThemeManager: ObservableObject {
             case .cyberpunk: return "サイバーパンク"
             case .nordic: return "北欧"
             case .dracula: return "ドラキュラ"
+            case .neonLime: return "ネオンライム"
+            case .monoPop: return "モノポップ"
+            case .oliveSage: return "セージ"
             case .monaLisa: return "モナ・リザ"
             case .starryNight: return "星月夜"
             case .sunflowers: return "ひまわり"
@@ -371,7 +379,7 @@ class ThemeManager: ObservableObject {
         /// Whether this theme uses a dark color scheme
         var isDark: Bool {
             switch self {
-            case .night, .dracula, .cyberpunk, .neonStreet, .nightView, .starryNight:
+            case .night, .dracula, .cyberpunk, .neonStreet, .nightView, .starryNight, .neonLime, .monoPop, .oliveSage:
                 return true
             default:
                 return false
@@ -682,6 +690,50 @@ class ThemeManager: ObservableObject {
             primaryDark: "#34C759", backgroundDark: "#0B0B0C", surfaceDark: "#1C1C1E",
             textDark: "#F2F2F7", borderDark: "#2C2C2E", selectionDark: "#34C759",
             actionDark: "#39FF14"
+        ),
+
+        // --- Preset-inspired (Black base + high contrast) ---
+        "neonLime": ThemeManager.makePreset(
+            selection: "#B7FF1A",
+            background: "#070708",
+            surface: "#121214",
+            text: "#F5F7FA",
+            border: "#2A2A2E",
+            mastered: "#B7FF1A",
+            almost: "#FFD60A",
+            learning: "#0A84FF",
+            weak: "#FF453A",
+            new: "#8E8E93",
+            action: "#B7FF1A",
+            isDarkBase: true
+        ),
+        "monoPop": ThemeManager.makePreset(
+            selection: "#FFFFFF",
+            background: "#09090B",
+            surface: "#141418",
+            text: "#F5F7FA",
+            border: "#2C2C30",
+            mastered: "#22C55E",
+            almost: "#FACC15",
+            learning: "#38BDF8",
+            weak: "#FB7185",
+            new: "#A1A1AA",
+            action: "#FFFFFF",
+            isDarkBase: true
+        ),
+        "oliveSage": ThemeManager.makePreset(
+            selection: "#B7FF1A",
+            background: "#0B0D0A",
+            surface: "#151814",
+            text: "#F4F6F2",
+            border: "#2A2F28",
+            mastered: "#B7FF1A",
+            almost: "#A3E635",
+            learning: "#60A5FA",
+            weak: "#F97316",
+            new: "#94A3B8",
+            action: "#B7FF1A",
+            isDarkBase: true
         ),
         "ocean": ThemePalette(
             primary: "#007AFF", secondary: "#8E8E93", accent: "#5AC8FA", background: "#F2F2F7",  // System Blue, System Grouped

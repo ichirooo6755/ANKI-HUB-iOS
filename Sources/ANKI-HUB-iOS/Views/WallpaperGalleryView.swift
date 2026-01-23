@@ -152,6 +152,30 @@ struct WallpaperGalleryView: View {
                 previewColors: [Color(hexOrName: "#0B0B0D") ?? .black, Color(hexOrName: "#00FF7A") ?? .green]
             ),
             VisualPreset(
+                id: "neon_lime",
+                name: "ネオンライム",
+                wallpaperKind: "gradient",
+                wallpaperValue: "#070708,#B7FF1A",
+                themeId: "neonLime",
+                previewColors: [Color(hexOrName: "#070708") ?? .black, Color(hexOrName: "#B7FF1A") ?? .green]
+            ),
+            VisualPreset(
+                id: "mono_pop",
+                name: "モノポップ",
+                wallpaperKind: "gradient",
+                wallpaperValue: "#09090B,#FFFFFF",
+                themeId: "monoPop",
+                previewColors: [Color(hexOrName: "#09090B") ?? .black, Color(hexOrName: "#FFFFFF") ?? .white]
+            ),
+            VisualPreset(
+                id: "olive_sage",
+                name: "セージ",
+                wallpaperKind: "gradient",
+                wallpaperValue: "#0B0D0A,#7C8F6A",
+                themeId: "oliveSage",
+                previewColors: [Color(hexOrName: "#0B0D0A") ?? .black, Color(hexOrName: "#7C8F6A") ?? .green]
+            ),
+            VisualPreset(
                 id: "signal_red",
                 name: "シグナルレッド",
                 wallpaperKind: "gradient",
@@ -201,7 +225,7 @@ struct WallpaperGalleryView: View {
                             && theme.wallpaperValue == preset.wallpaperValue
                     )
                     VStack(spacing: 8) {
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: 28)
                             .fill(
                                 LinearGradient(
                                     colors: preset.previewColors,
@@ -210,9 +234,9 @@ struct WallpaperGalleryView: View {
                                 )
                             )
                             .frame(height: 100)
-                            .overlay(selectionOverlay(isSelected: selected, cornerRadius: 16))
+                            .overlay(selectionOverlay(isSelected: selected, cornerRadius: 28))
                         Text(preset.name)
-                            .font(.caption)
+                            .font(.caption2.weight(.medium))
                             .foregroundStyle(.primary)
                     }
                 }

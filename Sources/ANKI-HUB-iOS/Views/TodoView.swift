@@ -475,11 +475,32 @@ struct TodoView: View {
     @StateObject private var manager = TodoManager()
     @ObservedObject private var theme = ThemeManager.shared
 
-    @State private var showAddSheet = false
-    @State private var editingItem: TodoItem? = nil
+    @State private var activeSheet: ActiveSheet?
     @State private var viewMode: ViewMode = .list
-    @State private var showTemplates = false
-    @State private var showCategories = false
+
+    private struct ActiveSheet: Identifiable {
+        enum Kind {
+            case add
+            case edit(TodoItem)
+            case templates
+            case categories
+        }
+
+        let kind: Kind
+
+        var id: String {
+            switch kind {
+            case .add:
+                return "add"
+            case .templates:
+                return "templates"
+            case .categories:
+                return "categories"
+            case .edit(let item):
+                return "edit_\(item.id.uuidString)"
+            }
+        }
+    }
 
     enum ViewMode: String, CaseIterable {
         case list = "リスト"
@@ -531,19 +552,19 @@ struct TodoView: View {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
-                        showAddSheet = true
+                        activeSheet = ActiveSheet(kind: .add)
                     } label: {
                         Label("タスクを追加", systemImage: "plus")
                     }
 
                     Button {
-                        showTemplates = true
+                        activeSheet = ActiveSheet(kind: .templates)
                     } label: {
                         Label("テンプレート", systemImage: "doc.on.doc")
                     }
 
                     Button {
-                        showCategories = true
+                        activeSheet = ActiveSheet(kind: .categories)
                     } label: {
                         Label("カテゴリ管理", systemImage: "folder")
                     }
@@ -552,17 +573,17 @@ struct TodoView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddSheet) {
-            AddTodoSheet(manager: manager)
-        }
-        .sheet(item: $editingItem) { item in
-            TodoDetailSheet(manager: manager, item: item)
-        }
-        .sheet(isPresented: $showTemplates) {
-            TemplateListSheet(manager: manager)
-        }
-        .sheet(isPresented: $showCategories) {
-            CategoryManagementSheet(manager: manager)
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet.kind {
+            case .add:
+                AddTodoSheet(manager: manager)
+            case .edit(let item):
+                TodoDetailSheet(manager: manager, item: item)
+            case .templates:
+                TemplateListSheet(manager: manager)
+            case .categories:
+                CategoryManagementSheet(manager: manager)
+            }
         }
         .applyAppTheme()
     }
@@ -574,7 +595,7 @@ struct TodoView: View {
                 .foregroundStyle(theme.secondaryText)
 
             Button {
-                showAddSheet = true
+                activeSheet = ActiveSheet(kind: .add)
             } label: {
                 Image(systemName: "plus")
                     .font(.callout.weight(.bold))
@@ -647,7 +668,7 @@ struct TodoView: View {
                                 }
                             },
                             onTap: {
-                                editingItem = item
+                                activeSheet = ActiveSheet(kind: .edit(item))
                            })
                     }
                     .onDelete { indexSet in
@@ -672,7 +693,7 @@ struct TodoView: View {
                                 }
                             },
                             onTap: {
-                                editingItem = item
+                                activeSheet = ActiveSheet(kind: .edit(item))
                             })
                     }
                     .onDelete { indexSet in
@@ -697,7 +718,7 @@ struct TodoView: View {
                         items: manager.itemsByColumn(column),
                         manager: manager,
                         onItemTap: { item in
-                            editingItem = item
+                            activeSheet = ActiveSheet(kind: .edit(item))
                         }
                     )
                 }

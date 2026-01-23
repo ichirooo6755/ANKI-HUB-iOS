@@ -112,6 +112,468 @@ struct TimerStartControlWidget: ControlWidget {
     }
 }
 
+ #endif
+
+struct BlackClockWidget: Widget {
+    let kind: String = "BlackClockWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+            BlackClockWidgetEntryView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("ブラッククロック")
+        .description("黒基調の時計タイル")
+        #if os(iOS)
+            .supportedFamilies([.systemSmall, .systemMedium])
+        #else
+            .supportedFamilies([.systemSmall, .systemMedium])
+        #endif
+    }
+}
+
+private struct BlackClockWidgetEntryView: View {
+    var entry: Provider.Entry
+
+    @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var themeSnapshot: WidgetThemeSnapshot? {
+        WidgetThemeSnapshot.load(defaults: UserDefaults(suiteName: appGroupId))
+    }
+
+    private var accentColor: Color {
+        themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+    }
+
+    private var surfaceColor: Color {
+        themeSnapshot?.resolvedSurface(for: colorScheme) ?? Color.black
+    }
+
+    private var textColor: Color {
+        themeSnapshot?.resolvedText(for: colorScheme) ?? .white
+    }
+
+    private var dayLabel: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: entry.date)
+    }
+
+    private var monthDayLabel: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "dd"
+        return formatter.string(from: entry.date)
+    }
+
+    private var monthLabel: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "MMM"
+        return formatter.string(from: entry.date)
+    }
+
+    var body: some View {
+        let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
+        let bg = Color.black.opacity(colorScheme == .dark ? 0.85 : 0.92)
+        let border = accentColor.opacity(0.20)
+
+        return ZStack(alignment: .topLeading) {
+            cardShape
+                .fill(bg)
+                .overlay(cardShape.stroke(border, lineWidth: 1))
+
+            if family == .systemSmall {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(dayLabel)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(textColor.opacity(0.62))
+                        Text(monthLabel)
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(textColor.opacity(0.62))
+                        Text(monthDayLabel)
+                            .font(.caption2.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(textColor.opacity(0.62))
+                        Spacer()
+                    }
+
+                    Text(entry.date, style: .time)
+                        .font(.system(size: 44, weight: .black, design: .default))
+                        .monospacedDigit()
+                        .foregroundStyle(textColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("今日")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(textColor.opacity(0.58))
+                            Text("\(entry.todayMinutes)")
+                                .font(.system(size: 30, weight: .black, design: .default))
+                                .monospacedDigit()
+                                .foregroundStyle(textColor)
+                        }
+                        Text("分")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(textColor.opacity(0.58))
+
+                        Spacer()
+
+                        Text("\(entry.streak)日")
+                            .font(.caption2.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(accentColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(accentColor.opacity(0.16)))
+                    }
+                }
+                .padding(16)
+            } else {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text(dayLabel)
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(textColor.opacity(0.62))
+                            Text(monthLabel)
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(textColor.opacity(0.62))
+                            Text(monthDayLabel)
+                                .font(.caption2.weight(.semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(textColor.opacity(0.62))
+                            Spacer()
+                        }
+
+                        Text(entry.date, style: .time)
+                            .font(.system(size: 54, weight: .black, design: .default))
+                            .monospacedDigit()
+                            .foregroundStyle(textColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+
+                        HStack(alignment: .firstTextBaseline, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("今日")
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(textColor.opacity(0.58))
+                                Text("\(entry.todayMinutes)")
+                                    .font(.system(size: 34, weight: .black, design: .default))
+                                    .monospacedDigit()
+                                    .foregroundStyle(textColor)
+                            }
+                            Text("分")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(textColor.opacity(0.58))
+
+                            Spacer()
+
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("連続")
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(textColor.opacity(0.58))
+                                Text("\(entry.streak)日")
+                                    .font(.system(size: 34, weight: .black, design: .default))
+                                    .monospacedDigit()
+                                    .foregroundStyle(accentColor)
+                            }
+                        }
+                    }
+
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .fill(surfaceColor.opacity(colorScheme == .dark ? 0.14 : 0.12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                .stroke(accentColor.opacity(0.20), lineWidth: 1)
+                        )
+                        .overlay(
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("TODO")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(textColor.opacity(0.58))
+                                if entry.todos.isEmpty {
+                                    Text("0")
+                                        .font(.system(size: 42, weight: .black, design: .default))
+                                        .monospacedDigit()
+                                        .foregroundStyle(textColor)
+                                } else {
+                                    Text("\(entry.todos.count)")
+                                        .font(.system(size: 42, weight: .black, design: .default))
+                                        .monospacedDigit()
+                                        .foregroundStyle(textColor)
+                                }
+                                Spacer()
+                                Text("件")
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(textColor.opacity(0.58))
+                            }
+                            .padding(14)
+                        )
+                        .frame(width: 120)
+                }
+                .padding(16)
+            }
+        }
+    }
+}
+
+struct BlackStatsWidget: Widget {
+    let kind: String = "BlackStatsWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+            BlackStatsWidgetEntryView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("ブラックスタッツ")
+        .description("学習の数値を黒いタイルで表示します")
+        #if os(iOS)
+            .supportedFamilies([.systemSmall, .systemMedium])
+        #else
+            .supportedFamilies([.systemSmall, .systemMedium])
+        #endif
+    }
+}
+
+private struct BlackStatsWidgetEntryView: View {
+    var entry: Provider.Entry
+
+    @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var themeSnapshot: WidgetThemeSnapshot? {
+        WidgetThemeSnapshot.load(defaults: UserDefaults(suiteName: appGroupId))
+    }
+
+    private var accentColor: Color {
+        themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+    }
+
+    private var textColor: Color {
+        themeSnapshot?.resolvedText(for: colorScheme) ?? .white
+    }
+
+    var body: some View {
+        let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
+        let bg = Color.black.opacity(colorScheme == .dark ? 0.85 : 0.92)
+        let border = accentColor.opacity(0.20)
+
+        func statPill(title: String, value: String, unit: String) -> some View {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.caption2.weight(.medium))
+                    .foregroundStyle(textColor.opacity(0.58))
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(value)
+                        .font(.system(size: 36, weight: .black, design: .default))
+                        .monospacedDigit()
+                        .foregroundStyle(textColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                    Text(unit)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(textColor.opacity(0.58))
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(accentColor.opacity(0.10))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(accentColor.opacity(0.18), lineWidth: 1)
+            )
+        }
+
+        return ZStack {
+            cardShape
+                .fill(bg)
+                .overlay(cardShape.stroke(border, lineWidth: 1))
+
+            if family == .systemSmall {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("今日")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(textColor.opacity(0.62))
+                    Text("\(entry.todayMinutes)")
+                        .font(.system(size: 60, weight: .black, design: .default))
+                        .monospacedDigit()
+                        .foregroundStyle(textColor)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                    Text("分")
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(textColor.opacity(0.58))
+                    Spacer()
+                    HStack {
+                        Text("連続")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(textColor.opacity(0.58))
+                        Spacer()
+                        Text("\(entry.streak)日")
+                            .font(.caption2.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(accentColor)
+                    }
+                }
+                .padding(16)
+            } else {
+                HStack(spacing: 12) {
+                    statPill(title: "今日", value: "\(entry.todayMinutes)", unit: "分")
+                    statPill(title: "連続", value: "\(entry.streak)", unit: "日")
+                }
+                .padding(16)
+            }
+        }
+    }
+}
+
+struct BlackFocusRingWidget: Widget {
+    let kind: String = "BlackFocusRingWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+            BlackFocusRingWidgetEntryView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("ブラックリング")
+        .description("進捗リングと学習時間を黒いタイルで表示します")
+        #if os(iOS)
+            .supportedFamilies([.systemSmall, .systemMedium])
+        #else
+            .supportedFamilies([.systemSmall, .systemMedium])
+        #endif
+    }
+}
+
+private struct BlackFocusRingWidgetEntryView: View {
+    var entry: Provider.Entry
+
+    @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var themeSnapshot: WidgetThemeSnapshot? {
+        WidgetThemeSnapshot.load(defaults: UserDefaults(suiteName: appGroupId))
+    }
+
+    private var accentColor: Color {
+        themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+    }
+
+    private var textColor: Color {
+        themeSnapshot?.resolvedText(for: colorScheme) ?? .white
+    }
+
+    private var surfaceColor: Color {
+        themeSnapshot?.resolvedSurface(for: colorScheme) ?? Color.black
+    }
+
+    private var ringProgress: Double {
+        let clamped = min(max(Double(entry.todayMinutes) / 60.0, 0), 1)
+        return clamped
+    }
+
+    var body: some View {
+        let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
+        let bg = Color.black.opacity(colorScheme == .dark ? 0.85 : 0.92)
+        let border = accentColor.opacity(0.20)
+
+        func ring(size: CGFloat, lineWidth: CGFloat) -> some View {
+            ZStack {
+                Circle()
+                    .stroke(surfaceColor.opacity(0.25), lineWidth: lineWidth)
+                Circle()
+                    .trim(from: 0, to: ringProgress)
+                    .stroke(accentColor, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+            }
+        }
+
+        return ZStack {
+            cardShape
+                .fill(bg)
+                .overlay(cardShape.stroke(border, lineWidth: 1))
+
+            if family == .systemSmall {
+                VStack(spacing: 10) {
+                    ZStack {
+                        ring(size: 118, lineWidth: 10)
+                            .frame(width: 118, height: 118)
+                        VStack(spacing: 2) {
+                            Text("\(entry.todayMinutes)")
+                                .font(.system(size: 42, weight: .black, design: .default))
+                                .monospacedDigit()
+                                .foregroundStyle(textColor)
+                            Text("分")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(textColor.opacity(0.58))
+                        }
+                    }
+
+                    HStack {
+                        Text("連続")
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(textColor.opacity(0.58))
+                        Spacer()
+                        Text("\(entry.streak)日")
+                            .font(.caption2.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(accentColor)
+                    }
+                }
+                .padding(16)
+            } else {
+                HStack(spacing: 14) {
+                    ZStack {
+                        ring(size: 120, lineWidth: 10)
+                            .frame(width: 120, height: 120)
+                        VStack(spacing: 2) {
+                            Text("\(entry.todayMinutes)")
+                                .font(.system(size: 44, weight: .black, design: .default))
+                                .monospacedDigit()
+                                .foregroundStyle(textColor)
+                            Text("分")
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(textColor.opacity(0.58))
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("今日の学習")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(textColor.opacity(0.62))
+                        Text(entry.date, style: .time)
+                            .font(.system(size: 34, weight: .black, design: .default))
+                            .monospacedDigit()
+                            .foregroundStyle(textColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+
+                        Text("連続 \(entry.streak)日")
+                            .font(.caption2.weight(.semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(accentColor)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(accentColor.opacity(0.16)))
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(16)
+            }
+        }
+    }
+}
+
+ #if canImport(AppIntents) && swift(>=6.0) && os(iOS)
 @available(iOS 18.0, *)
 struct FrontCameraControlWidget: ControlWidget {
     var body: some ControlConfiguration {
@@ -807,6 +1269,9 @@ struct StudyWidget: Widget {
 struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
     var body: some Widget {
         StudyWidget()
+        BlackClockWidget()
+        BlackStatsWidget()
+        BlackFocusRingWidget()
         #if canImport(ActivityKit) && os(iOS)
             if #available(iOS 16.1, *) {
                 StudyLiveActivity()

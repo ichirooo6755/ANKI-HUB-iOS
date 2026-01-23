@@ -143,7 +143,7 @@ struct KobunStudyMenuView: View {
 
     private func menuCard(title: String) -> some View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-        let shadow = Color.black.opacity(theme.effectiveIsDark ? 0.35 : 0.08)
+        let shadow = Color.black.opacity(theme.effectiveIsDark ? 0.24 : 0.06)
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
         return HStack {
             VStack(alignment: .leading, spacing: 6) {
@@ -156,16 +156,17 @@ struct KobunStudyMenuView: View {
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(theme.secondaryText)
         }
-        .padding(16)
+        .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(surface.opacity(theme.effectiveIsDark ? 0.9 : 0.98))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .stroke(accent.opacity(0.2), lineWidth: 1)
         )
-        .shadow(color: shadow, radius: 10, x: 0, y: 6)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .shadow(color: shadow, radius: 6, x: 0, y: 4)
     }
 }
 
@@ -261,8 +262,8 @@ struct StudySectionCard<Content: View>: View {
         let isDark = theme.effectiveIsDark
         let surface = theme.currentPalette.color(.surface, isDark: isDark)
         let highlight = theme.currentPalette.color(.background, isDark: isDark)
-        let shadow = Color.black.opacity(isDark ? 0.35 : 0.08)
-        let cardShape = RoundedRectangle(cornerRadius: 20, style: .continuous)
+        let shadow = Color.black.opacity(isDark ? 0.24 : 0.06)
+        let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
         let cardGradient = LinearGradient(
             colors: [surface.opacity(isDark ? 0.95 : 0.98), highlight.opacity(isDark ? 0.8 : 0.94)],
             startPoint: .topLeading,
@@ -271,7 +272,7 @@ struct StudySectionCard<Content: View>: View {
         return VStack(alignment: .leading, spacing: 16) {
             content
         }
-        .padding(20)
+        .padding(18)
         .background(cardShape.fill(cardGradient))
         .overlay(
             cardShape
@@ -291,7 +292,8 @@ struct StudySectionCard<Content: View>: View {
                 .padding(.top, 12)
                 .padding(.leading, 16)
         }
-        .shadow(color: shadow, radius: 10, x: 0, y: 6)
+        .clipShape(cardShape)
+        .shadow(color: shadow, radius: 6, x: 0, y: 4)
     }
 }
 

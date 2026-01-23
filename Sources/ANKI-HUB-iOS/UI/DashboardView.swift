@@ -29,6 +29,8 @@ struct DashboardView: View {
 
     @State private var navigationPath: [Destination] = []
 
+    @State private var heroPullNavigating: Bool = false
+
     private var totalWeakCount: Int {
         let subjects = [Subject.english, .kobun, .kanbun, .seikei]
         return subjects.reduce(0) { partial, subject in
@@ -160,6 +162,18 @@ struct DashboardView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint(Text("苦手一括復習へ"))
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 24)
+                                .onEnded { value in
+                                    guard value.translation.height > 80 else { return }
+                                    guard !heroPullNavigating else { return }
+                                    heroPullNavigating = true
+                                    navigate(to: .weak)
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                        heroPullNavigating = false
+                                    }
+                                }
+                        )
                         .padding(.horizontal)
 
                         HeroCarouselView(items: heroItems)
@@ -170,10 +184,10 @@ struct DashboardView: View {
                         // Header Stats
                         HStack(spacing: 16) {
                             StatCard(
-                                title: "連続学習", value: "\(learningStats.streak)",
+                                title: "連続学習", value: "\(learningStats.streak)", unit: "日",
                                 icon: "flame.fill", color: .orange)
                             StatCard(
-                                title: "今日", value: "\(learningStats.todayMinutes)",
+                                title: "今日", value: "\(learningStats.todayMinutes)", unit: "分",
                                 icon: "clock.fill", color: .blue)
                         }
                         .padding(.horizontal)
@@ -592,6 +606,7 @@ struct DashboardView: View {
                     }
                 }
             }
+            .coordinateSpace(name: "scroll")
             .navigationDestination(for: Destination.self) { dest in
                 switch dest {
                 case .weak:

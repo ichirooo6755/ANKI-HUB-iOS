@@ -21,11 +21,11 @@ struct DashboardCharts: View {
         let currentData = masteryData(for: pages[safeIndex])
 
         VStack(spacing: 20) {
-            chartCard(accent: accent, icon: "chart.pie.fill") {
+            VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     Text("習熟度")
-                        .font(.title3.weight(.bold))
-                        .foregroundStyle(theme.primaryText)
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(theme.secondaryText)
                     Spacer()
                 }
 
@@ -64,11 +64,10 @@ struct DashboardCharts: View {
                                 .chartOverlay { _ in
                                     VStack(spacing: 4) {
                                         Text("覚えた")
-                                            .font(.caption2)
-                                            .fontWeight(.medium)
-                                            .foregroundStyle(theme.secondaryText)
+                                            .font(.caption2.weight(.medium))
+                                            .foregroundStyle(theme.secondaryText.opacity(0.62))
                                         Text("\(totalMastered)")
-                                            .font(.system(size: 48, weight: .black, design: .default))
+                                            .font(.system(size: 58, weight: .black, design: .default))
                                             .monospacedDigit()
                                             .minimumScaleFactor(0.5)
                                             .lineLimit(1)
@@ -80,7 +79,7 @@ struct DashboardCharts: View {
 
                             Text(page.subject?.displayName ?? "総合")
                                 .font(.caption2.weight(.medium))
-                                .foregroundStyle(theme.secondaryText)
+                                .foregroundStyle(theme.secondaryText.opacity(0.62))
                         }
                         .padding(.horizontal, 4)
                         .tag(index)
@@ -113,13 +112,13 @@ struct DashboardCharts: View {
                                 .fill(level.color)
                                 .frame(width: 12, height: 12)
                             Text(level.label)
-                                .font(.caption.weight(.medium))
-                                .foregroundStyle(theme.primaryText)
+                                .font(.caption2.weight(.medium))
+                                .foregroundStyle(theme.secondaryText.opacity(0.62))
                             Spacer()
                             Text("\(count)")
-                                .font(.caption.weight(.semibold))
+                                .font(.caption2.weight(.semibold))
                                 .monospacedDigit()
-                                .foregroundStyle(theme.secondaryText)
+                                .foregroundStyle(theme.primaryText)
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 6)
@@ -147,7 +146,8 @@ struct DashboardCharts: View {
                         .padding(.vertical, 20)
                 } else {
                     LazyVGrid(
-                        columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7),
+                        columns: Array(repeating: GridItem(.fixed(18), spacing: 6), count: 7),
+                        alignment: .leading,
                         spacing: 6
                     ) {
                         ForEach(heatmapDays) { day in
@@ -160,7 +160,11 @@ struct DashboardCharts: View {
                         }
                     }
 
-                    HStack(spacing: 8) {
+                    LazyVGrid(
+                        columns: [GridItem(.flexible()), GridItem(.flexible())],
+                        alignment: .leading,
+                        spacing: 6
+                    ) {
                         ForEach(0..<4) { level in
                             HStack(spacing: 6) {
                                 HeatmapCell(
@@ -170,11 +174,12 @@ struct DashboardCharts: View {
                                     isToday: false
                                 )
                                 Text(legendText(for: level))
-                                    .font(.caption2.weight(.semibold))
-                                    .foregroundStyle(theme.secondaryText)
+                                    .font(.caption2.weight(.medium))
+                                    .foregroundStyle(theme.secondaryText.opacity(0.62))
+                                    .lineLimit(1)
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        Spacer()
                     }
                 }
             }
@@ -236,11 +241,14 @@ struct DashboardCharts: View {
             }
         }()
 
+        let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
         return ZStack(alignment: .topTrailing) {
             Image(systemName: icon)
                 .font(.system(size: 110, weight: .bold, design: .default))
                 .foregroundStyle(accent.opacity(theme.effectiveIsDark ? (style == "neo" ? 0.20 : 0.16) : (style == "neo" ? 0.16 : 0.12)))
-                .offset(x: 18, y: -18)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                .padding(.top, 10)
+                .padding(.trailing, 10)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 16) {
@@ -248,8 +256,9 @@ struct DashboardCharts: View {
             }
             .padding(18)
         }
-        .background(RoundedRectangle(cornerRadius: 28, style: .continuous).fill(fill))
-        .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(stroke, lineWidth: 1))
+        .background(cardShape.fill(fill))
+        .overlay(cardShape.stroke(stroke, lineWidth: 1))
+        .clipShape(cardShape)
         .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: 4)
     }
 
