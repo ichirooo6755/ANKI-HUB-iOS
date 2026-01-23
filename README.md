@@ -252,6 +252,7 @@ open ANKI-HUB-iOS.xcodeproj
 | Bookshelfの空状態/カードが重い | 空状態ボタンの強いshadowやカードの強いshadowでoverdrawが増える | 空状態ボタンのshadowを削除し、カードshadowを弱めて描画負荷を軽くした |
 | ダッシュボードのクイックアクションが重い | カード群に強いshadow（radius 10 / y 6）が多発し、overdrawが増える | shadowを弱め（radius 6 / y 3）て描画負荷を軽くした |
 | 学習タブのspacing/paddingが8ptグリッドに合っていない | summaryMetricsのspacing=12、StudySectionCardのpadding=18で中途半端 | spacing=16、padding=16に統一して8ptグリッドに合わせた |
+| 大きいテキストのletter-spacingが広すぎる | largeTitleなどの大きいテキストにtrackingが適用されていない | QuizViewのスコア表示などにtracking(-1)を適用してletter-spacingを減少 |
 
 ### 機能追加
 

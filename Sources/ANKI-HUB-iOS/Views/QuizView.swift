@@ -1806,6 +1806,7 @@ struct QuizView: View {
                 Text("\(accuracy)%")
                     .font(.largeTitle.weight(.bold))
                     .monospacedDigit()
+                    .tracking(-1)
                     .foregroundStyle(accuracy >= 80 ? .green : accuracy >= 60 ? .blue : .orange)
 
                 Text(accuracy >= 80 ? "素晴らしい！" : accuracy >= 60 ? "よくできました！" : "もう少し頑張ろう！")
