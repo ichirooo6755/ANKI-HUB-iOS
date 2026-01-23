@@ -373,7 +373,7 @@ struct SubjectCard: View {
                     .font(.callout.weight(.medium))
                     .foregroundStyle(textColor)
             }
-            .padding(18)
+            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minHeight: 150)
@@ -454,7 +454,7 @@ struct ToolCard: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text(title)
-                        .font(.title3.weight(.bold))
+                        .font(.callout.weight(.medium))
                         .foregroundStyle(textColor)
                     Spacer()
                     Image(systemName: "chevron.right")
@@ -464,8 +464,9 @@ struct ToolCard: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(18)
+            .padding(16)
         }
+        .frame(minHeight: 150)
         .background(cardShape.fill(fill))
         .overlay(cardShape.stroke(stroke, lineWidth: 1))
         .clipShape(cardShape)

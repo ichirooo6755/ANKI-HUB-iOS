@@ -254,6 +254,8 @@ open ANKI-HUB-iOS.xcodeproj
 | 学習タブのspacing/paddingが8ptグリッドに合っていない | summaryMetricsのspacing=12、StudySectionCardのpadding=18で中途半端 | spacing=16、padding=16に統一して8ptグリッドに合わせた |
 | 大きいテキストのletter-spacingが広すぎる | largeTitleなどの大きいテキストにtrackingが適用されていない | QuizViewのスコア表示などにtracking(-1)を適用してletter-spacingを減少 |
 | ブックマークボタンのタップターゲットが小さい | 32x32でWCAG推奨の48x48を下回る | 48x48に拡大してタップしやすくした |
+| 学習タブのBentoカードサイズ/タイトルが不揃い | ToolCardのpaddingが18で高さが合わず、タイトルが太字 | ToolCardをminHeight=150/ padding=16に統一し、タイトルをcallout.mediumへ変更 |
+| 学習ウィジェットの余白が白く、文字が埋もれる | containerBackgroundとテキストカラーがthemeと合っていない | ウィジェット内に背景を敷き、text/secondaryTextをthemeベースに統一 |
 
 ### 機能追加
 

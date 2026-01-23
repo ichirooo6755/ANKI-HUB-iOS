@@ -966,6 +966,27 @@ struct StudyWidgetEntryView: View {
         themeSnapshot?.resolvedSurface(for: colorScheme) ?? Color.secondary.opacity(0.2)
     }
 
+    private var textColor: Color {
+        themeSnapshot?.resolvedText(for: colorScheme)
+            ?? (colorScheme == .dark ? .white : .black)
+    }
+
+    private var secondaryText: Color {
+        textColor.opacity(0.62)
+    }
+
+    private var widgetBackground: Color {
+        switch entry.settings.style {
+        case "dark":
+            return (themeSnapshot?.backgroundDark ?? Color.black).opacity(0.85)
+        case "accent":
+            return (themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent).opacity(0.22)
+        default:
+            return themeSnapshot?.resolvedBackground(for: colorScheme)
+                ?? (colorScheme == .dark ? Color.black : Color.white)
+        }
+    }
+
     var body: some View {
         switch family {
         case .systemMedium:
@@ -988,7 +1009,7 @@ struct StudyWidgetEntryView: View {
             FocusBadge(size: 22, fontSize: 11, accent: accentColor)
             Text("集中")
                 .font(.caption2.weight(.semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(secondaryText)
             Spacer()
         }
     }
@@ -1004,6 +1025,7 @@ struct StudyWidgetEntryView: View {
             if entry.settings.showStreak {
                 Text("連続 \(entry.streak)日")
                     .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(textColor)
             }
 
             if entry.settings.showCalendar {
@@ -1012,14 +1034,14 @@ struct StudyWidgetEntryView: View {
                 if let m = entry.mistakes.first {
                     Text(m)
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(secondaryText)
                         .lineLimit(1)
                 }
 
                 if entry.settings.showTodo, let t = entry.todos.first {
                     Text(t)
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(secondaryText)
                         .lineLimit(1)
                 }
             }
@@ -1029,7 +1051,9 @@ struct StudyWidgetEntryView: View {
             Spacer(minLength: 0)
         }
         .padding(12)
-        .background(kanjiWatermark(size: 110, opacity: 0.08), alignment: .bottomTrailing)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(widgetBackground)
+        .overlay(kanjiWatermark(size: 110, opacity: 0.08), alignment: .bottomTrailing)
     }
 
     private var mediumWidget: some View {
@@ -1046,9 +1070,10 @@ struct StudyWidgetEntryView: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("連続")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(secondaryText)
                         Text("\(entry.streak)日")
                             .font(.title3.weight(.semibold))
+                            .foregroundStyle(textColor)
                     }
                 }
             }
@@ -1060,14 +1085,14 @@ struct StudyWidgetEntryView: View {
                     ForEach(entry.mistakes.prefix(2), id: \.self) { m in
                         Text(m)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(secondaryText)
                             .lineLimit(1)
                     }
 
                     ForEach(entry.todos.prefix(entry.settings.todoCount), id: \.self) { t in
                         Text("• \(t)")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(secondaryText)
                             .lineLimit(1)
                     }
                 }
@@ -1076,7 +1101,9 @@ struct StudyWidgetEntryView: View {
             timerLink
         }
         .padding(12)
-        .background(kanjiWatermark(size: 150, opacity: 0.06), alignment: .bottomTrailing)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(widgetBackground)
+        .overlay(kanjiWatermark(size: 150, opacity: 0.06), alignment: .bottomTrailing)
     }
 
     #if os(iOS)
@@ -1091,12 +1118,12 @@ struct StudyWidgetEntryView: View {
                 if let m = entry.mistakes.first {
                     Text(m)
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(secondaryText)
                         .lineLimit(1)
                 } else if entry.settings.showTodayMinutes {
                     Text("今日 \(entry.todayMinutes)分")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(secondaryText)
                 }
             }
             Spacer(minLength: 0)
@@ -1116,6 +1143,7 @@ struct StudyWidgetEntryView: View {
             }
         }
         .font(.caption2)
+        .foregroundStyle(textColor)
         .lineLimit(1)
     }
     #endif
@@ -1124,7 +1152,7 @@ struct StudyWidgetEntryView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(secondaryText)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text("\(value)")
                     .font(.system(size: 30, weight: .semibold, design: .default))
@@ -1132,7 +1160,7 @@ struct StudyWidgetEntryView: View {
                     .foregroundStyle(accentColor)
                 Text(unit)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(secondaryText)
             }
         }
     }
@@ -1146,10 +1174,10 @@ struct StudyWidgetEntryView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "calendar")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(secondaryText)
                     Text("カレンダー")
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(secondaryText)
                 }
             }
             LazyVGrid(
@@ -1233,13 +1261,8 @@ struct StudyWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            if entry.settings.style == "system" {
-                StudyWidgetEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                StudyWidgetEntryView(entry: entry)
-                    .containerBackground(backgroundColor(for: entry.settings.style), for: .widget)
-            }
+            StudyWidgetEntryView(entry: entry)
+                .containerBackground(Color.clear, for: .widget)
         }
         .configurationDisplayName("学習状況")
         .description("連続学習日数と今日の学習時間を表示します")
