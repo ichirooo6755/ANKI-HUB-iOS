@@ -289,12 +289,12 @@ struct FocusedMemorizationView: View {
             .padding(.horizontal, 16)
             .overlay(alignment: .top) {
                 Rectangle()
-                    .fill(border.opacity(0.45))
+                    .fill(border.opacity(0.7))
                     .frame(height: 1)
             }
             .overlay(alignment: .bottom) {
                 Rectangle()
-                    .fill(border.opacity(0.45))
+                    .fill(border.opacity(0.7))
                     .frame(height: 1)
             }
         }
