@@ -196,6 +196,7 @@ open ANKI-HUB-iOS.xcodeproj
 | ロック画面右下コントロールが追加できない | ControlWidget未登録 / iOS18未満 | ControlWidgetを追加し、iOS18以上で追加 |
 | Live Activity背景がロック画面で白く浮く | テーマ色がライト固定 | 常にダーク半透明背景+白テキストに固定 |
 | ControlWidgetのビルドエラー | iOS18/Swift6未満でControlWidget型が解決不能 | ControlWidget定義/使用箇所を`swift(>=6.0)`+`@available(iOS 18.0)`でガード |
+| ロック画面のウィジェットが崩れる | accessory系で背景が適用されず視認性が低下 | accessory系のみcontainerBackgroundを適用して表示を復元 |
 
 ### UI関連
 

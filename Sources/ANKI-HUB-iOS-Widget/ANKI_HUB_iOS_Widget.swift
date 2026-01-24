@@ -1010,7 +1010,17 @@ struct StudyWidgetEntryView: View {
         }
     }
 
+    @ViewBuilder
     var body: some View {
+        if isAccessoryFamily {
+            content
+                .containerBackground(.fill.tertiary, for: .widget)
+        } else {
+            content
+        }
+    }
+
+    private var content: some View {
         Group {
             switch family {
             case .systemMedium:
@@ -1027,6 +1037,14 @@ struct StudyWidgetEntryView: View {
                 smallWidget
             }
         }
+    }
+
+    private var isAccessoryFamily: Bool {
+        #if os(iOS)
+        return family == .accessoryRectangular || family == .accessoryInline
+        #else
+        return false
+        #endif
     }
 
     private var header: some View {
