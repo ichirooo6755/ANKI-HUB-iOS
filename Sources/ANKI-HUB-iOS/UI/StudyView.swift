@@ -133,28 +133,37 @@ struct KobunStudyMenuView: View {
         let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
         let shadow = Color.black.opacity(theme.effectiveIsDark ? 0.24 : 0.06)
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
-        return HStack {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(theme.primaryText)
+        return ZStack(alignment: .topTrailing) {
+            Image(systemName: "rectangle.stack.fill")
+                .font(.system(size: 96, weight: .bold, design: .default))
+                .foregroundStyle(accent.opacity(theme.effectiveIsDark ? 0.18 : 0.14))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                .offset(x: 24)
+                .accessibilityHidden(true)
+
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(title)
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(theme.primaryText)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(theme.secondaryText)
             }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(theme.secondaryText)
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(surface.opacity(theme.effectiveIsDark ? 0.9 : 0.98))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .stroke(accent.opacity(0.2), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .shadow(color: shadow, radius: 6, x: 0, y: 4)
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(surface.opacity(theme.effectiveIsDark ? 0.9 : 0.98))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(accent.opacity(0.2), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .shadow(color: shadow, radius: 6, x: 0, y: 4)
     }
 }
 
@@ -257,10 +266,19 @@ struct StudySectionCard<Content: View>: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        return VStack(alignment: .leading, spacing: 16) {
-            content
+        return ZStack(alignment: .topTrailing) {
+            Image(systemName: "square.grid.2x2.fill")
+                .font(.system(size: 140, weight: .bold, design: .default))
+                .foregroundStyle(accent.opacity(isDark ? 0.16 : 0.12))
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                .offset(x: 32, y: -10)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 16) {
+                content
+            }
+            .padding(16)
         }
-        .padding(16)
         .background(cardShape.fill(cardGradient))
         .overlay(
             cardShape
