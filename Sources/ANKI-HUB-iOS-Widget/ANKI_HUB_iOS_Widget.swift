@@ -143,6 +143,7 @@ struct BlackClockWidget: Widget {
         }
         .configurationDisplayName("ブラッククロック")
         .description("黒基調の時計タイル")
+        .contentMarginsDisabled()
         #if os(iOS)
             .supportedFamilies([.systemSmall, .systemMedium])
         #else
@@ -360,6 +361,7 @@ struct BlackStatsWidget: Widget {
         }
         .configurationDisplayName("ブラックスタッツ")
         .description("学習の数値を黒いタイルで表示します")
+        .contentMarginsDisabled()
         #if os(iOS)
             .supportedFamilies([.systemSmall, .systemMedium])
         #else
@@ -480,6 +482,7 @@ struct BlackFocusRingWidget: Widget {
         }
         .configurationDisplayName("ブラックリング")
         .description("進捗リングと学習時間を黒いタイルで表示します")
+        .contentMarginsDisabled()
         #if os(iOS)
             .supportedFamilies([.systemSmall, .systemMedium])
         #else
