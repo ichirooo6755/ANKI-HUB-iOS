@@ -1081,15 +1081,6 @@ struct QuizView: View {
                         .font(isKanbunQuestion ? .subheadline : .headline)
                         .foregroundStyle(.secondary)
                     Spacer()
-
-                    Button {
-                        speakWord(question.questionText)
-                    } label: {
-                        Image(systemName: "speaker.wave.2.fill")
-                            .font(.title3)
-                            .foregroundStyle(
-                                theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
-                    }
                 }
 
                 // For Seikei: Display fullText with blanks using SeikeiWebView
