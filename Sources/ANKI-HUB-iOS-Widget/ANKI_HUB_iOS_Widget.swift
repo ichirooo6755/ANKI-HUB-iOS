@@ -51,6 +51,25 @@ private let widgetAccent = Color(red: 0.96, green: 0.36, blue: 0.20)
 
 private let todoItemsKey = "anki_hub_todo_items_v1"
 
+private extension View {
+    @ViewBuilder
+    func widgetContainerBackground(_ style: AnyShapeStyle, fallback: Color? = nil) -> some View {
+        #if os(iOS)
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.containerBackground(style, for: .widget)
+        } else {
+            if let fallback {
+                self.background(fallback)
+            } else {
+                self
+            }
+        }
+        #else
+        self
+        #endif
+    }
+}
+
 fileprivate struct WidgetSettings {
     let showStreak: Bool
     let showTodayMinutes: Bool
@@ -120,7 +139,7 @@ struct BlackClockWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             BlackClockWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .widgetContainerBackground(AnyShapeStyle(.fill.tertiary))
         }
         .configurationDisplayName("ブラッククロック")
         .description("黒基調の時計タイル")
@@ -337,7 +356,7 @@ struct BlackStatsWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             BlackStatsWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .widgetContainerBackground(AnyShapeStyle(.fill.tertiary))
         }
         .configurationDisplayName("ブラックスタッツ")
         .description("学習の数値を黒いタイルで表示します")
@@ -457,7 +476,7 @@ struct BlackFocusRingWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             BlackFocusRingWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .widgetContainerBackground(AnyShapeStyle(.fill.tertiary))
         }
         .configurationDisplayName("ブラックリング")
         .description("進捗リングと学習時間を黒いタイルで表示します")
@@ -1017,7 +1036,7 @@ struct StudyWidgetEntryView: View {
             : AnyShapeStyle(widgetBackground)
 
         content
-            .containerBackground(bg, for: .widget)
+            .widgetContainerBackground(bg, fallback: widgetBackground)
     }
 
     private var content: some View {
