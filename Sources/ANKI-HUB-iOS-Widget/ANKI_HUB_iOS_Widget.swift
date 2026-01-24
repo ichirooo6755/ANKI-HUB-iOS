@@ -143,15 +143,21 @@ private struct BlackClockWidgetEntryView: View {
     }
 
     private var accentColor: Color {
-        themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+        themeSnapshot?.resolvedAccent(for: resolvedScheme) ?? widgetAccent
     }
 
     private var surfaceColor: Color {
-        themeSnapshot?.resolvedSurface(for: colorScheme) ?? Color.black
+        themeSnapshot?.resolvedSurface(for: resolvedScheme)
+            ?? (resolvedScheme == .dark ? Color.black : Color.white)
     }
 
     private var textColor: Color {
-        themeSnapshot?.resolvedText(for: colorScheme) ?? .white
+        themeSnapshot?.resolvedText(for: resolvedScheme)
+            ?? (resolvedScheme == .dark ? .white : .black)
+    }
+
+    private var resolvedScheme: ColorScheme {
+        themeSnapshot?.resolvedScheme(for: colorScheme) ?? colorScheme
     }
 
     private var dayLabel: String {
@@ -177,7 +183,9 @@ private struct BlackClockWidgetEntryView: View {
 
     var body: some View {
         let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
-        let bg = Color.black.opacity(colorScheme == .dark ? 0.85 : 0.92)
+        let bg = resolvedScheme == .dark
+            ? Color.black.opacity(0.9)
+            : (themeSnapshot?.resolvedBackground(for: resolvedScheme) ?? Color.white)
         let border = accentColor.opacity(0.20)
 
         return ZStack(alignment: .topLeading) {
@@ -190,14 +198,14 @@ private struct BlackClockWidgetEntryView: View {
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(dayLabel)
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(textColor.opacity(0.62))
+                            .foregroundStyle(textColor.opacity(0.7))
                         Text(monthLabel)
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(textColor.opacity(0.62))
+                            .foregroundStyle(textColor.opacity(0.7))
                         Text(monthDayLabel)
                             .font(.caption2.weight(.semibold))
                             .monospacedDigit()
-                            .foregroundStyle(textColor.opacity(0.62))
+                            .foregroundStyle(textColor.opacity(0.7))
                         Spacer()
                     }
 
@@ -212,7 +220,7 @@ private struct BlackClockWidgetEntryView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("今日")
                                 .font(.caption2.weight(.medium))
-                                .foregroundStyle(textColor.opacity(0.58))
+                                .foregroundStyle(textColor.opacity(0.7))
                             Text("\(entry.todayMinutes)")
                                 .font(.system(size: 30, weight: .black, design: .default))
                                 .monospacedDigit()
@@ -220,7 +228,7 @@ private struct BlackClockWidgetEntryView: View {
                         }
                         Text("分")
                             .font(.caption2.weight(.medium))
-                            .foregroundStyle(textColor.opacity(0.58))
+                            .foregroundStyle(textColor.opacity(0.7))
 
                         Spacer()
 
@@ -233,21 +241,21 @@ private struct BlackClockWidgetEntryView: View {
                             .background(Capsule().fill(accentColor.opacity(0.16)))
                     }
                 }
-                .padding(16)
+                .padding(14)
             } else {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(dayLabel)
                                 .font(.caption2.weight(.semibold))
-                                .foregroundStyle(textColor.opacity(0.62))
+                                .foregroundStyle(textColor.opacity(0.7))
                             Text(monthLabel)
                                 .font(.caption2.weight(.semibold))
-                                .foregroundStyle(textColor.opacity(0.62))
+                                .foregroundStyle(textColor.opacity(0.7))
                             Text(monthDayLabel)
                                 .font(.caption2.weight(.semibold))
                                 .monospacedDigit()
-                                .foregroundStyle(textColor.opacity(0.62))
+                                .foregroundStyle(textColor.opacity(0.7))
                             Spacer()
                         }
 
@@ -262,7 +270,7 @@ private struct BlackClockWidgetEntryView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("今日")
                                     .font(.caption2.weight(.medium))
-                                    .foregroundStyle(textColor.opacity(0.58))
+                                    .foregroundStyle(textColor.opacity(0.7))
                                 Text("\(entry.todayMinutes)")
                                     .font(.system(size: 34, weight: .black, design: .default))
                                     .monospacedDigit()
@@ -270,14 +278,14 @@ private struct BlackClockWidgetEntryView: View {
                             }
                             Text("分")
                                 .font(.caption2.weight(.medium))
-                                .foregroundStyle(textColor.opacity(0.58))
+                                .foregroundStyle(textColor.opacity(0.7))
 
                             Spacer()
 
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text("連続")
                                     .font(.caption2.weight(.medium))
-                                    .foregroundStyle(textColor.opacity(0.58))
+                                    .foregroundStyle(textColor.opacity(0.7))
                                 Text("\(entry.streak)日")
                                     .font(.system(size: 34, weight: .black, design: .default))
                                     .monospacedDigit()
@@ -287,7 +295,7 @@ private struct BlackClockWidgetEntryView: View {
                     }
 
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .fill(surfaceColor.opacity(colorScheme == .dark ? 0.14 : 0.12))
+                        .fill(surfaceColor.opacity(resolvedScheme == .dark ? 0.14 : 0.12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 22, style: .continuous)
                                 .stroke(accentColor.opacity(0.20), lineWidth: 1)
@@ -296,7 +304,7 @@ private struct BlackClockWidgetEntryView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("TODO")
                                     .font(.caption2.weight(.semibold))
-                                    .foregroundStyle(textColor.opacity(0.58))
+                                    .foregroundStyle(textColor.opacity(0.7))
                                 if entry.todos.isEmpty {
                                     Text("0")
                                         .font(.system(size: 42, weight: .black, design: .default))
@@ -311,13 +319,13 @@ private struct BlackClockWidgetEntryView: View {
                                 Spacer()
                                 Text("件")
                                     .font(.caption2.weight(.medium))
-                                    .foregroundStyle(textColor.opacity(0.58))
+                                    .foregroundStyle(textColor.opacity(0.7))
                             }
                             .padding(14)
                         )
                         .frame(width: 120)
                 }
-                .padding(16)
+                .padding(14)
             }
         }
     }
@@ -352,23 +360,30 @@ private struct BlackStatsWidgetEntryView: View {
     }
 
     private var accentColor: Color {
-        themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+        themeSnapshot?.resolvedAccent(for: resolvedScheme) ?? widgetAccent
     }
 
     private var textColor: Color {
-        themeSnapshot?.resolvedText(for: colorScheme) ?? .white
+        themeSnapshot?.resolvedText(for: resolvedScheme)
+            ?? (resolvedScheme == .dark ? .white : .black)
+    }
+
+    private var resolvedScheme: ColorScheme {
+        themeSnapshot?.resolvedScheme(for: colorScheme) ?? colorScheme
     }
 
     var body: some View {
         let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
-        let bg = Color.black.opacity(colorScheme == .dark ? 0.85 : 0.92)
+        let bg = resolvedScheme == .dark
+            ? Color.black.opacity(0.9)
+            : (themeSnapshot?.resolvedBackground(for: resolvedScheme) ?? Color.white)
         let border = accentColor.opacity(0.20)
 
         func statPill(title: String, value: String, unit: String) -> some View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(textColor.opacity(0.58))
+                    .foregroundStyle(textColor.opacity(0.7))
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(value)
                         .font(.system(size: 36, weight: .black, design: .default))
@@ -378,7 +393,7 @@ private struct BlackStatsWidgetEntryView: View {
                         .minimumScaleFactor(0.6)
                     Text(unit)
                         .font(.caption2.weight(.medium))
-                        .foregroundStyle(textColor.opacity(0.58))
+                        .foregroundStyle(textColor.opacity(0.7))
                 }
                 Spacer(minLength: 0)
             }
@@ -402,7 +417,7 @@ private struct BlackStatsWidgetEntryView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("今日")
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(textColor.opacity(0.62))
+                        .foregroundStyle(textColor.opacity(0.7))
                     Text("\(entry.todayMinutes)")
                         .font(.system(size: 60, weight: .black, design: .default))
                         .monospacedDigit()
@@ -411,12 +426,12 @@ private struct BlackStatsWidgetEntryView: View {
                         .minimumScaleFactor(0.6)
                     Text("分")
                         .font(.caption2.weight(.medium))
-                        .foregroundStyle(textColor.opacity(0.58))
+                        .foregroundStyle(textColor.opacity(0.7))
                     Spacer()
                     HStack {
                         Text("連続")
                             .font(.caption2.weight(.medium))
-                            .foregroundStyle(textColor.opacity(0.58))
+                            .foregroundStyle(textColor.opacity(0.7))
                         Spacer()
                         Text("\(entry.streak)日")
                             .font(.caption2.weight(.semibold))
@@ -424,13 +439,13 @@ private struct BlackStatsWidgetEntryView: View {
                             .foregroundStyle(accentColor)
                     }
                 }
-                .padding(16)
+                .padding(14)
             } else {
                 HStack(spacing: 12) {
                     statPill(title: "今日", value: "\(entry.todayMinutes)", unit: "分")
                     statPill(title: "連続", value: "\(entry.streak)", unit: "日")
                 }
-                .padding(16)
+                .padding(14)
             }
         }
     }
@@ -465,15 +480,21 @@ private struct BlackFocusRingWidgetEntryView: View {
     }
 
     private var accentColor: Color {
-        themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+        themeSnapshot?.resolvedAccent(for: resolvedScheme) ?? widgetAccent
     }
 
     private var textColor: Color {
-        themeSnapshot?.resolvedText(for: colorScheme) ?? .white
+        themeSnapshot?.resolvedText(for: resolvedScheme)
+            ?? (resolvedScheme == .dark ? .white : .black)
     }
 
     private var surfaceColor: Color {
-        themeSnapshot?.resolvedSurface(for: colorScheme) ?? Color.black
+        themeSnapshot?.resolvedSurface(for: resolvedScheme)
+            ?? (resolvedScheme == .dark ? Color.black : Color.white)
+    }
+
+    private var resolvedScheme: ColorScheme {
+        themeSnapshot?.resolvedScheme(for: colorScheme) ?? colorScheme
     }
 
     private var ringProgress: Double {
@@ -483,7 +504,9 @@ private struct BlackFocusRingWidgetEntryView: View {
 
     var body: some View {
         let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
-        let bg = Color.black.opacity(colorScheme == .dark ? 0.85 : 0.92)
+        let bg = resolvedScheme == .dark
+            ? Color.black.opacity(0.9)
+            : (themeSnapshot?.resolvedBackground(for: resolvedScheme) ?? Color.white)
         let border = accentColor.opacity(0.20)
 
         func ring(size: CGFloat, lineWidth: CGFloat) -> some View {
@@ -514,14 +537,14 @@ private struct BlackFocusRingWidgetEntryView: View {
                                 .foregroundStyle(textColor)
                             Text("分")
                                 .font(.caption2.weight(.medium))
-                                .foregroundStyle(textColor.opacity(0.58))
+                                .foregroundStyle(textColor.opacity(0.7))
                         }
                     }
 
                     HStack {
                         Text("連続")
                             .font(.caption2.weight(.medium))
-                            .foregroundStyle(textColor.opacity(0.58))
+                            .foregroundStyle(textColor.opacity(0.7))
                         Spacer()
                         Text("\(entry.streak)日")
                             .font(.caption2.weight(.semibold))
@@ -529,7 +552,7 @@ private struct BlackFocusRingWidgetEntryView: View {
                             .foregroundStyle(accentColor)
                     }
                 }
-                .padding(16)
+                .padding(14)
             } else {
                 HStack(spacing: 14) {
                     ZStack {
@@ -542,14 +565,14 @@ private struct BlackFocusRingWidgetEntryView: View {
                                 .foregroundStyle(textColor)
                             Text("分")
                                 .font(.caption2.weight(.medium))
-                                .foregroundStyle(textColor.opacity(0.58))
+                                .foregroundStyle(textColor.opacity(0.7))
                         }
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("今日の学習")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(textColor.opacity(0.62))
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(textColor.opacity(0.7))
                         Text(entry.date, style: .time)
                             .font(.system(size: 34, weight: .black, design: .default))
                             .monospacedDigit()
@@ -567,7 +590,7 @@ private struct BlackFocusRingWidgetEntryView: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .padding(16)
+                .padding(14)
             }
         }
     }
@@ -1004,7 +1027,6 @@ struct StudyWidgetEntryView: View {
                 smallWidget
             }
         }
-        .containerBackground(widgetBackground, for: .widget)
     }
 
     private var header: some View {
@@ -1055,6 +1077,7 @@ struct StudyWidgetEntryView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(widgetBackground)
         .overlay(kanjiWatermark(size: 110, opacity: 0.08), alignment: .bottomTrailing)
     }
 
@@ -1104,6 +1127,7 @@ struct StudyWidgetEntryView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(widgetBackground)
         .overlay(kanjiWatermark(size: 150, opacity: 0.06), alignment: .bottomTrailing)
     }
 
