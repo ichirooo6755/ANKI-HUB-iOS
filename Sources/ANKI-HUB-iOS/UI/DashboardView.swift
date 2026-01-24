@@ -208,6 +208,7 @@ struct DashboardView: View {
 
                         // Quick Action / Insight
                         VStack(alignment: .leading) {
+                            let border = themeManager.currentPalette.color(.border, isDark: themeManager.effectiveIsDark)
                             HStack {
                                 Text("Recommended")
                                     .font(.title3.weight(.bold))
@@ -241,26 +242,18 @@ struct DashboardView: View {
                                                 .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                         }
                                     }
-                                    .padding(18)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                            .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                            .stroke(
-                                                LinearGradient(
-                                                    colors: [
-                                                        themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.35),
-                                                        themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.08),
-                                                    ],
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
-                                                ),
-                                                lineWidth: 1
-                                            )
-                                    )
-                                    .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
+                                    .padding(.vertical, 14)
+                                    .padding(.horizontal, 16)
+                                    .overlay(alignment: .top) {
+                                        Rectangle()
+                                            .fill(border.opacity(0.45))
+                                            .frame(height: 1)
+                                    }
+                                    .overlay(alignment: .bottom) {
+                                        Rectangle()
+                                            .fill(border.opacity(0.45))
+                                            .frame(height: 1)
+                                    }
                                     .padding(.horizontal)
                                 }
                                 .buttonStyle(.plain)
@@ -287,26 +280,18 @@ struct DashboardView: View {
                                             .foregroundStyle(themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
-                                .padding(18)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [
-                                                    themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.35),
-                                                    themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.08),
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            ),
-                                            lineWidth: 1
-                                        )
-                                )
-                                .shadow(color: themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 16)
+                                .overlay(alignment: .top) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
+                                .overlay(alignment: .bottom) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -332,26 +317,18 @@ struct DashboardView: View {
                                                 .foregroundStyle(themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark))
                                         }
                                     }
-                                    .padding(18)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                            .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
-                                    )
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                            .stroke(
-                                                LinearGradient(
-                                                    colors: [
-                                                        themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.35),
-                                                        themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.08),
-                                                    ],
-                                                    startPoint: .topLeading,
-                                                    endPoint: .bottomTrailing
-                                                ),
-                                                lineWidth: 1
-                                            )
-                                    )
-                                    .shadow(color: themeManager.currentPalette.color(.selection, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
+                                    .padding(.vertical, 14)
+                                    .padding(.horizontal, 16)
+                                    .overlay(alignment: .top) {
+                                        Rectangle()
+                                            .fill(border.opacity(0.45))
+                                            .frame(height: 1)
+                                    }
+                                    .overlay(alignment: .bottom) {
+                                        Rectangle()
+                                            .fill(border.opacity(0.45))
+                                            .frame(height: 1)
+                                    }
                                     .padding(.horizontal)
                                 }
                                 .buttonStyle(.plain)
@@ -378,26 +355,18 @@ struct DashboardView: View {
                                 )
                                 .frame(width: 50, height: 50)
                             }
-                            .padding(18)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [
-                                                themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.35),
-                                                themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.08),
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 1
-                                    )
-                            )
-                            .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
+                            .padding(.vertical, 14)
+                            .padding(.horizontal, 16)
+                            .overlay(alignment: .top) {
+                                Rectangle()
+                                    .fill(border.opacity(0.45))
+                                    .frame(height: 1)
+                            }
+                            .overlay(alignment: .bottom) {
+                                Rectangle()
+                                    .fill(border.opacity(0.45))
+                                    .frame(height: 1)
+                            }
                             .padding(.horizontal)
 
                             // ToDo Card
@@ -422,26 +391,18 @@ struct DashboardView: View {
                                             .foregroundStyle(themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
-                                .padding(18)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [
-                                                    themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.35),
-                                                    themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.08),
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            ),
-                                            lineWidth: 1
-                                        )
-                                )
-                                .shadow(color: themeManager.currentPalette.color(.new, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 16)
+                                .overlay(alignment: .top) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
+                                .overlay(alignment: .bottom) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -465,26 +426,18 @@ struct DashboardView: View {
                                             .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
-                                .padding(18)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [
-                                                    themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.35),
-                                                    themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.08),
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            ),
-                                            lineWidth: 1
-                                        )
-                                )
-                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 16)
+                                .overlay(alignment: .top) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
+                                .overlay(alignment: .bottom) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -508,26 +461,18 @@ struct DashboardView: View {
                                             .foregroundStyle(themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark))
                                     }
                                 }
-                                .padding(18)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [
-                                                    themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.35),
-                                                    themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.08),
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            ),
-                                            lineWidth: 1
-                                        )
-                                )
-                                .shadow(color: themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.10), radius: 6, x: 0, y: 3)
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 16)
+                                .overlay(alignment: .top) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
+                                .overlay(alignment: .bottom) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
@@ -554,26 +499,19 @@ struct DashboardView: View {
                                             .foregroundStyle(mirrorColor)
                                     }
                                 }
-                                .padding(18)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .fill(themeManager.currentPalette.color(.surface, isDark: themeManager.effectiveIsDark))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                        .stroke(
-                                            LinearGradient(
-                                                colors: [
-                                                    mirrorColor.opacity(0.35),
-                                                    mirrorColor.opacity(0.08),
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            ),
-                                            lineWidth: 1
-                                        )
-                                )
-                                .shadow(color: mirrorColor.opacity(0.10), radius: 6, x: 0, y: 3)
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 16)
+                                .overlay(alignment: .top) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
+                                .overlay(alignment: .bottom) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
+                                .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
                         }

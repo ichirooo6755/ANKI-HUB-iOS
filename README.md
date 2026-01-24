@@ -259,6 +259,7 @@ open ANKI-HUB-iOS.xcodeproj
 | 学習タブのBentoのアイコン/カードサイズが揃わない | アイコンが固定フレームでなく、カード高さもminHeightで揺らいでいた | アイコンを96固定フレーム化し、カード高さを150固定、タイトルをregularへ統一 |
 | 学習ウィジェットの白い余白とレイアウト崩れ | EntryViewで背景を塗っていたがcontainerBackgroundがclearで効いていなかった | EntryViewにcontainerBackgroundを適用し、重複背景を削除して余白を解消 |
 | Bentoアイコンが右寄せされない | アイコンが固定フレーム内に留まり、カード幅への寄せが不足 | maxWidth/maxHeightのフレームを追加して右上に固定 |
+| 学習タブRecommended/チャプター/日数選択がカードで重い | 各行が丸角カード+影で情報量が多く見えた | 背景/影を外して上下境界線のみのリスト行に統一 |
 
 ### 機能追加
 

@@ -218,27 +218,31 @@ struct FocusedMemorizationView: View {
                     .padding(.horizontal)
 
                 // Day Buttons
-                VStack(spacing: 12) {
+                let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+                VStack(spacing: 0) {
                     dayButton(
                         day: 1,
                         icon: "sun.max.fill",
                         title: "1日目",
                         subtitle: "時間制限なし",
-                        gradient: [.orange, .yellow]
+                        gradient: [.orange, .yellow],
+                        border: border
                     )
                     dayButton(
                         day: 2,
                         icon: "bolt.fill",
                         title: "2日目",
                         subtitle: "\(String(format: "%.1f", day2Seconds))秒/語",
-                        gradient: [.yellow, .orange]
+                        gradient: [.yellow, .orange],
+                        border: border
                     )
                     dayButton(
                         day: 3,
                         icon: "mic.fill",
                         title: "3日目",
                         subtitle: "\(String(format: "%.1f", day3Seconds))秒/語",
-                        gradient: [.purple, .indigo]
+                        gradient: [.purple, .indigo],
+                        border: border
                     )
                 }
                 .padding(.horizontal)
@@ -254,29 +258,45 @@ struct FocusedMemorizationView: View {
     }
     
     @ViewBuilder
-    private func dayButton(day: Int, icon: String, title: String, subtitle: String, gradient: [Color]) -> some View {
+    private func dayButton(
+        day: Int,
+        icon: String,
+        title: String,
+        subtitle: String,
+        gradient: [Color],
+        border: Color
+    ) -> some View {
         Button {
             currentDay = day
             currentScreen = .blockSelect
         } label: {
-            let fg = theme.onColor(for: gradient.first ?? theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
             HStack {
                 HStack(spacing: 12) {
                     Image(systemName: icon)
-                        .font(.title2)
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing))
                     Text(title)
                         .font(.headline.weight(.semibold))
+                        .foregroundStyle(theme.primaryText)
                 }
                 Spacer()
                 Text(subtitle)
                     .font(.footnote)
                     .monospacedDigit()
-                    .opacity(0.8)
+                    .foregroundStyle(theme.secondaryText)
             }
-            .foregroundStyle(fg)
-            .padding()
-            .background(LinearGradient(colors: gradient, startPoint: .leading, endPoint: .trailing))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.vertical, 14)
+            .padding(.horizontal, 16)
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(border.opacity(0.45))
+                    .frame(height: 1)
+            }
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(border.opacity(0.45))
+                    .frame(height: 1)
+            }
         }
     }
     

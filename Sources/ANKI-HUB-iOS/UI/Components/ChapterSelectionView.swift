@@ -25,7 +25,8 @@ struct ChapterSelectionView: View {
     
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
+            let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+            LazyVStack(spacing: 0) {
                 ForEach(chapters) { chapter in
                     NavigationLink(destination: QuizView(subject: subject, chapter: chapter.title)) {
                         HStack {
@@ -42,14 +43,25 @@ struct ChapterSelectionView: View {
                                     .frame(width: 30, height: 30)
                             }
                         }
-                        .padding()
-                        .liquidGlass()
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 16)
+                        .overlay(alignment: .top) {
+                            Rectangle()
+                                .fill(border.opacity(0.45))
+                                .frame(height: 1)
+                        }
+                        .overlay(alignment: .bottom) {
+                            Rectangle()
+                                .fill(border.opacity(0.45))
+                                .frame(height: 1)
+                        }
                     }
                     .disabled(chapter.isLocked)
                     .buttonStyle(.plain)
                 }
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.top, 8)
         }
         .background(theme.background)
         .navigationTitle("\(subject.displayName) - チャプター")
