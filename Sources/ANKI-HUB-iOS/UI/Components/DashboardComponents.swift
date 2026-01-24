@@ -368,6 +368,7 @@ struct SubjectCard: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                 .padding(.top, 10)
                 .padding(.trailing, 10)
+                .offset(x: 22, y: -6)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 10) {
@@ -455,6 +456,7 @@ struct ToolCard: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
                 .padding(.top, 10)
                 .padding(.trailing, 10)
+                .offset(x: 22, y: -6)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 10) {
