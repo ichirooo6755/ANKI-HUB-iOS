@@ -193,6 +193,7 @@ open ANKI-HUB-iOS.xcodeproj
 | ウィジェット反映が遅い | Timeline更新間隔長い | 短縮、`reloadTimelines`呼び出し |
 | タイマー開始できない | ディープリンクなし | `sugwranki://timer/start`追加 |
 | 教科フィルタ効かない | App Group設定未参照 | `SettingsView`で設定、Widget参照 |
+| Widget背景の適用が不安定 | `.background` と `containerBackground` が混在 | `StudyWidgetEntryView`の背景を`containerBackground`へ統一し重複背景を削除 |
 | ロック画面右下コントロールが追加できない | ControlWidget未登録 / iOS18未満 | ControlWidgetを追加し、iOS18以上で追加 |
 | Live Activity背景がロック画面で白く浮く | テーマ色がライト固定 | 常にダーク半透明背景+白テキストに固定 |
 | ControlWidgetのビルドエラー | iOS18/Swift6未満でControlWidget型が解決不能 | ControlWidget定義/使用箇所を`swift(>=6.0)`+`@available(iOS 18.0)`でガード |

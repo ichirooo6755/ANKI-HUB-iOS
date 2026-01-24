@@ -1012,12 +1012,12 @@ struct StudyWidgetEntryView: View {
 
     @ViewBuilder
     var body: some View {
-        if isAccessoryFamily {
-            content
-                .containerBackground(.fill.tertiary, for: .widget)
-        } else {
-            content
-        }
+        let bg: AnyShapeStyle = isAccessoryFamily
+            ? AnyShapeStyle(.fill.tertiary)
+            : AnyShapeStyle(widgetBackground)
+
+        content
+            .containerBackground(bg, for: .widget)
     }
 
     private var content: some View {
@@ -1095,7 +1095,6 @@ struct StudyWidgetEntryView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(widgetBackground)
         .overlay(kanjiWatermark(size: 110, opacity: 0.08), alignment: .bottomTrailing)
     }
 
@@ -1145,7 +1144,6 @@ struct StudyWidgetEntryView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(widgetBackground)
         .overlay(kanjiWatermark(size: 150, opacity: 0.06), alignment: .bottomTrailing)
     }
 
