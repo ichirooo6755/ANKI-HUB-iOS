@@ -69,10 +69,11 @@ struct ReportView: View {
     private var summaryMetrics: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
+                let totalTime = totalTimeComponents(totalMinutes)
                 HealthMetricCard(
                     title: "総学習時間",
-                    value: formatMinutes(totalMinutes),
-                    unit: "",
+                    value: totalTime.value,
+                    unit: totalTime.unit,
                     icon: "hourglass",
                     color: theme.currentPalette.color(.secondary, isDark: theme.effectiveIsDark)
                 )
@@ -190,6 +191,18 @@ struct ReportView: View {
         let remainder = minutes % 60
         if hours == 0 { return "\(remainder)分" }
         return "\(hours)時間\(remainder)分"
+    }
+
+    private func totalTimeComponents(_ minutes: Int) -> (value: String, unit: String) {
+        let hours = minutes / 60
+        let remainder = minutes % 60
+        if hours == 0 {
+            return ("\(remainder)", "m")
+        }
+        if remainder == 0 {
+            return ("\(hours)", "h")
+        }
+        return ("\(hours)", "h \(remainder)m")
     }
 }
 

@@ -128,7 +128,7 @@ struct HealthMetricCard: View {
 
                     if !unit.isEmpty {
                         Text(unit)
-                            .font(.caption.weight(.medium))
+                            .font(.caption2.weight(.light))
                             .foregroundStyle(theme.secondaryText.opacity(0.62))
                     }
                 }
