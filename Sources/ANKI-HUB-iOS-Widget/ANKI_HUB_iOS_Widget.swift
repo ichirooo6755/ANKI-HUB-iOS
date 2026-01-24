@@ -988,20 +988,23 @@ struct StudyWidgetEntryView: View {
     }
 
     var body: some View {
-        switch family {
-        case .systemMedium:
-            mediumWidget
-        case .systemSmall:
-            smallWidget
-        #if os(iOS)
-        case .accessoryRectangular:
-            accessoryRectangular
-        case .accessoryInline:
-            accessoryInline
-        #endif
-        default:
-            smallWidget
+        Group {
+            switch family {
+            case .systemMedium:
+                mediumWidget
+            case .systemSmall:
+                smallWidget
+            #if os(iOS)
+            case .accessoryRectangular:
+                accessoryRectangular
+            case .accessoryInline:
+                accessoryInline
+            #endif
+            default:
+                smallWidget
+            }
         }
+        .containerBackground(widgetBackground, for: .widget)
     }
 
     private var header: some View {
@@ -1052,7 +1055,6 @@ struct StudyWidgetEntryView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(widgetBackground)
         .overlay(kanjiWatermark(size: 110, opacity: 0.08), alignment: .bottomTrailing)
     }
 
@@ -1102,7 +1104,6 @@ struct StudyWidgetEntryView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(widgetBackground)
         .overlay(kanjiWatermark(size: 150, opacity: 0.06), alignment: .bottomTrailing)
     }
 
@@ -1262,7 +1263,6 @@ struct StudyWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             StudyWidgetEntryView(entry: entry)
-                .containerBackground(Color.clear, for: .widget)
         }
         .configurationDisplayName("学習状況")
         .description("連続学習日数と今日の学習時間を表示します")
