@@ -267,7 +267,7 @@ struct StudySectionCard<Content: View>: View {
             endPoint: .bottomTrailing
         )
         return ZStack(alignment: .topTrailing) {
-            Image(systemName: "square.grid.2x2.fill")
+            Image(systemName: "graduationcap.fill")
                 .font(.system(size: 140, weight: .bold, design: .default))
                 .foregroundStyle(accent.opacity(isDark ? 0.16 : 0.12))
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
