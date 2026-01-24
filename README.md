@@ -258,6 +258,7 @@ open ANKI-HUB-iOS.xcodeproj
 | 学習ウィジェットの余白が白く、文字が埋もれる | containerBackgroundとテキストカラーがthemeと合っていない | ウィジェット内に背景を敷き、text/secondaryTextをthemeベースに統一 |
 | 学習タブのBentoのアイコン/カードサイズが揃わない | アイコンが固定フレームでなく、カード高さもminHeightで揺らいでいた | アイコンを96固定フレーム化し、カード高さを150固定、タイトルをregularへ統一 |
 | 学習ウィジェットの白い余白とレイアウト崩れ | EntryViewで背景を塗っていたがcontainerBackgroundがclearで効いていなかった | EntryViewにcontainerBackgroundを適用し、重複背景を削除して余白を解消 |
+| Bentoアイコンが右寄せされない | アイコンが固定フレーム内に留まり、カード幅への寄せが不足 | maxWidth/maxHeightのフレームを追加して右上に固定 |
 
 ### 機能追加
 
