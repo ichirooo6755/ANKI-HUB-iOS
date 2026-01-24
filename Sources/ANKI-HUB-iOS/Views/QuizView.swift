@@ -682,6 +682,8 @@ struct QuizView: View {
                                 "ランクアップテスト (\(rankUpManager.getUnlockedChunkCount(for: subject))/\(VocabularyData.shared.getChunkCount(for: subject)))"
                             )
                             .font(.headline)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
                         }
                         .foregroundStyle(theme.onColor(for: bg))
                         .frame(maxWidth: .infinity)
@@ -762,6 +764,8 @@ struct QuizView: View {
                     Text(subject.displayName)
                         .font(.title2.weight(.bold))
                         .foregroundStyle(theme.primaryText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                     Text("全\(totalWords)語")
                         .font(.footnote.weight(.medium))
                         .monospacedDigit()
