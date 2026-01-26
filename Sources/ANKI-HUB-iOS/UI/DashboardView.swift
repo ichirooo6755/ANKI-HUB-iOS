@@ -30,6 +30,9 @@ struct DashboardView: View {
     @State private var navigationPath: [Destination] = []
 
     @State private var heroPullNavigating: Bool = false
+    @GestureState private var heroPullOffset: CGFloat = 0
+
+    private let heroPullThreshold: CGFloat = 110
 
     private var totalWeakCount: Int {
         let subjects = [Subject.english, .kobun, .kanbun, .seikei]
@@ -95,6 +98,22 @@ struct DashboardView: View {
     var body: some View {
         let heroAccent = themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark)
         let heroSecondary = themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark)
+        let heroDragProgress = min(1, max(0, heroPullOffset / heroPullThreshold))
+        let heroPullHintOpacity = heroPullNavigating ? 1 : max(heroDragProgress, 0)
+
+        let heroDragGesture = DragGesture(minimumDistance: 24)
+            .updating($heroPullOffset) { value, state, _ in
+                state = max(0, value.translation.height)
+            }
+            .onEnded { value in
+                guard value.translation.height > heroPullThreshold else { return }
+                guard !heroPullNavigating else { return }
+                heroPullNavigating = true
+                navigate(to: .weak)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    heroPullNavigating = false
+                }
+            }
         let heroItems: [HeroCarouselItem] = [
             HeroCarouselItem(
                 id: "timer",
@@ -147,39 +166,61 @@ struct DashboardView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        Button {
-                            navigate(to: .weak)
-                        } label: {
-                            DashboardHeroHeader(
-                                title: "今日の学習 \(learningStats.todayMinutes)分",
-                                subtitle: "",
-                                caption: "学習時間",
-                                detail: goalProgressText,
-                                icon: "sparkles",
-                                accent: heroAccent,
-                                secondary: heroSecondary
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityHint(Text("苦手一括復習へ"))
-                        .highPriorityGesture(
-                            DragGesture(minimumDistance: 24)
-                                .onEnded { value in
-                                    guard value.translation.height > 80 else { return }
-                                    guard !heroPullNavigating else { return }
-                                    heroPullNavigating = true
+                        ZStack(alignment: .bottom) {
+                            VStack(spacing: 12) {
+                                Button {
                                     navigate(to: .weak)
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                                        heroPullNavigating = false
-                                    }
+                                } label: {
+                                    DashboardHeroHeader(
+                                        title: "今日の学習 \(learningStats.todayMinutes)分",
+                                        subtitle: "",
+                                        caption: "学習時間",
+                                        detail: goalProgressText,
+                                        icon: "sparkles",
+                                        accent: heroAccent,
+                                        secondary: heroSecondary
+                                    )
                                 }
-                        )
-                        .padding(.horizontal)
+                                .buttonStyle(.plain)
+                                .accessibilityHint(Text("苦手一括復習へ"))
+                                .padding(.horizontal)
 
-                        HeroCarouselView(items: heroItems)
-                            .frame(height: 190)
-                            .frame(maxWidth: .infinity)
-                            .padding(.bottom, 4)
+                                HeroCarouselView(items: heroItems)
+                                    .frame(height: 190)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.bottom, 4)
+                            }
+
+                            if heroPullHintOpacity > 0.05 {
+                                VStack(spacing: 8) {
+                                    Image(systemName: heroPullNavigating ? "checkmark.circle.fill" : "arrow.down.circle.fill")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundStyle(heroAccent)
+
+                                    ZStack(alignment: .leading) {
+                                        Capsule()
+                                            .fill(heroAccent.opacity(0.25))
+                                            .frame(height: 4)
+                                        Capsule()
+                                            .fill(heroAccent)
+                                            .frame(width: 120 * min(heroDragProgress, 1), height: 4)
+                                    }
+                                    .frame(width: 120)
+
+                                    Text(heroPullNavigating ? "苦手克服に遷移中..." : (heroDragProgress >= 1 ? "離して苦手克服へ" : "下に引っ張って苦手克服"))
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(heroAccent)
+                                }
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 14)
+                                .background(.ultraThinMaterial, in: Capsule())
+                                .shadow(color: Color.black.opacity(0.12), radius: 8, y: 6)
+                                .offset(y: 16 + heroPullOffset * 0.1)
+                                .opacity(heroPullHintOpacity)
+                                .accessibilityHidden(true)
+                            }
+                        }
+                        .highPriorityGesture(heroDragGesture)
 
                         // Header Stats
                         HStack(spacing: 16) {
@@ -219,6 +260,11 @@ struct DashboardView: View {
                             }
                             .padding(.horizontal)
 
+                            Rectangle()
+                                .fill(border.opacity(0.9))
+                                .frame(height: 1)
+                                .padding(.horizontal)
+
                             if totalDueCount > 0 {
                                 Button {
                                     navigate(to: .due)
@@ -244,14 +290,9 @@ struct DashboardView: View {
                                     }
                                     .padding(.vertical, 14)
                                     .padding(.horizontal, 16)
-                                    .overlay(alignment: .top) {
-                                        Rectangle()
-                                            .fill(border.opacity(0.7))
-                                            .frame(height: 1)
-                                    }
                                     .overlay(alignment: .bottom) {
                                         Rectangle()
-                                            .fill(border.opacity(0.7))
+                                            .fill(border.opacity(0.9))
                                             .frame(height: 1)
                                     }
                                     .padding(.horizontal)
@@ -282,14 +323,9 @@ struct DashboardView: View {
                                 }
                                 .padding(.vertical, 14)
                                 .padding(.horizontal, 16)
-                                .overlay(alignment: .top) {
-                                    Rectangle()
-                                        .fill(border.opacity(0.7))
-                                        .frame(height: 1)
-                                }
                                 .overlay(alignment: .bottom) {
                                     Rectangle()
-                                        .fill(border.opacity(0.7))
+                                        .fill(border.opacity(0.9))
                                         .frame(height: 1)
                                 }
                                 .padding(.horizontal)
@@ -319,14 +355,9 @@ struct DashboardView: View {
                                     }
                                     .padding(.vertical, 14)
                                     .padding(.horizontal, 16)
-                                    .overlay(alignment: .top) {
-                                        Rectangle()
-                                            .fill(border.opacity(0.7))
-                                            .frame(height: 1)
-                                    }
                                     .overlay(alignment: .bottom) {
                                         Rectangle()
-                                            .fill(border.opacity(0.7))
+                                            .fill(border.opacity(0.9))
                                             .frame(height: 1)
                                     }
                                     .padding(.horizontal)
@@ -357,14 +388,9 @@ struct DashboardView: View {
                             }
                             .padding(.vertical, 14)
                             .padding(.horizontal, 16)
-                            .overlay(alignment: .top) {
-                                Rectangle()
-                                    .fill(border.opacity(0.7))
-                                    .frame(height: 1)
-                            }
                             .overlay(alignment: .bottom) {
                                 Rectangle()
-                                    .fill(border.opacity(0.7))
+                                    .fill(border.opacity(0.9))
                                     .frame(height: 1)
                             }
                             .padding(.horizontal)
@@ -393,14 +419,9 @@ struct DashboardView: View {
                                 }
                                 .padding(.vertical, 14)
                                 .padding(.horizontal, 16)
-                                .overlay(alignment: .top) {
-                                    Rectangle()
-                                        .fill(border.opacity(0.7))
-                                        .frame(height: 1)
-                                }
                                 .overlay(alignment: .bottom) {
                                     Rectangle()
-                                        .fill(border.opacity(0.7))
+                                        .fill(border.opacity(0.9))
                                         .frame(height: 1)
                                 }
                                 .padding(.horizontal)
@@ -415,6 +436,9 @@ struct DashboardView: View {
                                     VStack(alignment: .leading) {
                                         Text("テスト履歴")
                                             .font(.headline.weight(.semibold))
+                                        Text("最近の結果を確認")
+                                            .font(.footnote.weight(.medium))
+                                            .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
                                     ZStack {
@@ -428,21 +452,16 @@ struct DashboardView: View {
                                 }
                                 .padding(.vertical, 14)
                                 .padding(.horizontal, 16)
-                                .overlay(alignment: .top) {
-                                    Rectangle()
-                                        .fill(border.opacity(0.7))
-                                        .frame(height: 1)
-                                }
                                 .overlay(alignment: .bottom) {
                                     Rectangle()
-                                        .fill(border.opacity(0.7))
+                                        .fill(border.opacity(0.9))
                                         .frame(height: 1)
                                 }
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
 
-                            // Timer / Stopwatch Card
+                            // Timer Card
                             Button {
                                 navigate(to: .timer)
                             } label: {
@@ -450,6 +469,9 @@ struct DashboardView: View {
                                     VStack(alignment: .leading) {
                                         Text("タイマー")
                                             .font(.headline.weight(.semibold))
+                                        Text("集中モードを開始")
+                                            .font(.footnote.weight(.medium))
+                                            .foregroundStyle(themeManager.secondaryText)
                                     }
                                     Spacer()
                                     ZStack {
@@ -463,14 +485,9 @@ struct DashboardView: View {
                                 }
                                 .padding(.vertical, 14)
                                 .padding(.horizontal, 16)
-                                .overlay(alignment: .top) {
-                                    Rectangle()
-                                        .fill(border.opacity(0.7))
-                                        .frame(height: 1)
-                                }
                                 .overlay(alignment: .bottom) {
                                     Rectangle()
-                                        .fill(border.opacity(0.7))
+                                        .fill(border.opacity(0.9))
                                         .frame(height: 1)
                                 }
                                 .padding(.horizontal)
@@ -501,14 +518,9 @@ struct DashboardView: View {
                                 }
                                 .padding(.vertical, 14)
                                 .padding(.horizontal, 16)
-                                .overlay(alignment: .top) {
-                                    Rectangle()
-                                        .fill(border.opacity(0.7))
-                                        .frame(height: 1)
-                                }
                                 .overlay(alignment: .bottom) {
                                     Rectangle()
-                                        .fill(border.opacity(0.7))
+                                        .fill(border.opacity(0.9))
                                         .frame(height: 1)
                                 }
                                 .padding(.horizontal)
@@ -579,7 +591,7 @@ struct DashboardView: View {
             }
         }
     }
-    
+
     private func todayKey() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"

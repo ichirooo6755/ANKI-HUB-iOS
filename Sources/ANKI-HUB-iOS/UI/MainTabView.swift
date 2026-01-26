@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 struct MainTabView: View {
     @State private var selectedTab: Tab = .home
@@ -8,6 +9,8 @@ struct MainTabView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     @ObservedObject private var theme = ThemeManager.shared
+
+    private let logger = Logger(subsystem: "com.ankihub.ios", category: "MainTabView")
 
     @AppStorage(
         "anki_hub_front_camera_start_request_v1",
@@ -92,6 +95,7 @@ struct MainTabView: View {
                 consumeFrontCameraRequest()
                 checkScanRequest()
             }
+            logger.log("scenePhase changed to \(String(describing: newValue), privacy: .public) selectedThemeId=\(theme.selectedThemeId, privacy: .public)")
         }
         .onChange(of: frontCameraStartRequest) { _, _ in
             consumeFrontCameraRequest()

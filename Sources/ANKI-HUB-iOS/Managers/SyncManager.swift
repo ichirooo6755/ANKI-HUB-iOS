@@ -1,8 +1,10 @@
 import Foundation
+import OSLog
 import SwiftUI
 
 @MainActor
-class SyncManager: ObservableObject {
+final class SyncManager: ObservableObject {
+    private let logger = Logger(subsystem: "com.ankihub.ios", category: "SyncManager")
     static let shared = SyncManager()
 
     // private let supabaseUrl = URL(string: "https://uahrjcauawtftpecpxsq.supabase.co")!
@@ -449,13 +451,16 @@ class SyncManager: ObservableObject {
                 userId: userId, appId: AppID.theme.rawValue, accessToken: accessToken)
                 as? [String: Any]
             {
+                logger.log("performLoadAll: applying remote theme data")
                 if let selected = any["selectedThemeId"] as? String {
+                    logger.log("performLoadAll: selectedThemeId=\(selected, privacy: .public)")
                     ThemeManager.shared.applyTheme(id: selected)
                 }
                 if let kind = any["wallpaperKind"] as? String,
                     let value = any["wallpaperValue"] as? String,
                     !kind.isEmpty
                 {
+                    logger.log("performLoadAll: applyWallpaper kind=\(kind, privacy: .public) value=\(value, privacy: .public)")
                     ThemeManager.shared.applyWallpaper(kind: kind, value: value)
                 }
                 if let masteryColors = any["masteryColors"],

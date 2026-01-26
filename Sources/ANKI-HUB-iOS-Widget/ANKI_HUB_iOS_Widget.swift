@@ -131,6 +131,45 @@ struct TimerStartControlWidget: ControlWidget {
     }
 }
 
+@available(iOS 18.0, *)
+struct FrontCameraControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "FrontCameraControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlFrontCameraURL)) {
+                Label("カメラ", systemImage: "camera.fill")
+            }
+        }
+        .displayName("フロントカメラ")
+        .description("フロントカメラ撮影を起動します")
+    }
+}
+
+@available(iOS 18.0, *)
+struct ScanControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "ScanControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlScanURL)) {
+                Label("スキャン", systemImage: "doc.text.viewfinder")
+            }
+        }
+        .displayName("スキャン")
+        .description("スキャンを開始します")
+    }
+}
+
+@available(iOS 18.0, *)
+struct StudyTabControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "StudyTabControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlStudyTabURL)) {
+                Label("学習タブ", systemImage: "book.fill")
+            }
+        }
+        .displayName("学習タブ")
+        .description("学習タブをすぐ開きます")
+    }
+}
+
  #endif
 
 struct BlackClockWidget: Widget {

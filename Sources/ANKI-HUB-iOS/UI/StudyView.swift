@@ -212,9 +212,6 @@ struct ToolsGridView: View {
                 title: "記録・分析",
                 accent: theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
             ) {
-                NavigationLink(destination: AppCalendarView()) {
-                    ToolCard(title: "カレンダー", icon: "calendar", color: .green)
-                }
                 NavigationLink(destination: ReportView()) {
                     ToolCard(title: "レポート", icon: "chart.pie.fill", color: .purple)
                 }
@@ -267,13 +264,6 @@ struct StudySectionCard<Content: View>: View {
             endPoint: .bottomTrailing
         )
         return ZStack(alignment: .topTrailing) {
-            Image(systemName: "graduationcap.fill")
-                .font(.system(size: 140, weight: .bold, design: .default))
-                .foregroundStyle(accent.opacity(isDark ? 0.16 : 0.12))
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-                .offset(x: 32, y: -10)
-                .accessibilityHidden(true)
-
             VStack(alignment: .leading, spacing: 16) {
                 content
             }

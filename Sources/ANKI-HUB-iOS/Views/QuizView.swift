@@ -80,7 +80,6 @@ struct QuizView: View {
     @State private var isReviewRound: Bool = false
 
     @State private var rechallengeQuestions: [Question] = []
-    @State private var didDecideRechallengeForCurrent: Bool = false
 
     // Sequential Chapter Mode
     @State private var isSequentialMode: Bool = false
@@ -133,40 +132,6 @@ struct QuizView: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-    }
-
-    private var retryButtons: some View {
-        let q = questions[currentIndex]
-        return VStack(spacing: 10) {
-            HStack(spacing: 12) {
-                Button {
-                    scheduleRechallenge(for: q)
-                    didDecideRechallengeForCurrent = true
-                } label: {
-                    let bg = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
-                    Text("もう一度出す")
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(theme.onColor(for: bg))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(bg)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-
-                Button {
-                    didDecideRechallengeForCurrent = true
-                } label: {
-                    Text("今回はいい")
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Color.gray.opacity(0.12))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                }
-            }
-            .padding(.horizontal)
-        }
     }
 
     private func scheduleRechallenge(for q: Question) {
@@ -1095,7 +1060,7 @@ struct QuizView: View {
                         guard showResult || redSheetMode else { return }
                         revealedSeikeiBlankId = id
                     }
-                    .frame(maxWidth: .infinity, minHeight: 180)
+                    .frame(maxWidth: .infinity, minHeight: 240)
                 }
 
                 // Hide hints for Kanbun/Kobun until answer is shown (per user request)
@@ -1226,9 +1191,6 @@ struct QuizView: View {
             }
 
             if showResult {
-                if !isCorrect, !didDecideRechallengeForCurrent {
-                    retryButtons
-                }
                 Button {
                     nextQuestion()
                 } label: {
@@ -1270,31 +1232,33 @@ struct QuizView: View {
                     }
                     KanbunWebView(kanbunText: kanbunDisplayText(for: question), isCompact: true)
                         .frame(maxWidth: .infinity, minHeight: 160)
+                } else if subject == .seikei {
+                    if let fullText = question.fullText, !fullText.isEmpty {
+                        let (seikeiContent, seikeiBlankMap) = cachedParseSeikeiQuizContent(fullText)
+                        SeikeiWebView(
+                            content: seikeiContent,
+                            blankMap: seikeiBlankMap,
+                            revealedId: $revealedSeikeiBlankId,
+                            isAllRevealed: redSheetMode || showResult
+                        ) { id, _ in
+                            guard showResult || redSheetMode else { return }
+                            revealedSeikeiBlankId = id
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 240)
+                    }
+                    if let bid = question.seikeiBlankId {
+                        Text("空欄 \(bid)")
+                            .font(.footnote)
+                            .monospacedDigit()
+                            .foregroundStyle(.tertiary)
+                    }
+                    Text(question.questionText)
+                        .font(.title2.weight(.bold))
+                        .multilineTextAlignment(.center)
                 } else {
                     Text(question.questionText)
                         .font(.title2.weight(.bold))
                         .multilineTextAlignment(.center)
-                }
-
-                if subject == .seikei, let bid = question.seikeiBlankId {
-                    Text("空欄 \(bid)")
-                        .font(.footnote)
-                        .monospacedDigit()
-                        .foregroundStyle(.tertiary)
-                }
-
-                if subject == .seikei, let fullText = question.fullText, !fullText.isEmpty {
-                    let (seikeiContent, seikeiBlankMap) = cachedParseSeikeiQuizContent(fullText)
-                    SeikeiWebView(
-                        content: seikeiContent,
-                        blankMap: seikeiBlankMap,
-                        revealedId: $revealedSeikeiBlankId,
-                        isAllRevealed: redSheetMode || showResult
-                    ) { id, _ in
-                        guard showResult || redSheetMode else { return }
-                        revealedSeikeiBlankId = id
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 180)
                 }
 
                 if let hint = question.hint {
@@ -1391,10 +1355,6 @@ struct QuizView: View {
                     }
                     .padding()
                     .liquidGlass(cornerRadius: 12)
-                }
-
-                if showResult && !isCorrect && !didDecideRechallengeForCurrent {
-                    retryButtons
                 }
 
                 Button {
@@ -1740,10 +1700,6 @@ struct QuizView: View {
                 .padding(.horizontal)
 
                 if showResult {
-                    if !isCorrect {
-                        retryButtons
-                            .padding(.horizontal)
-                    }
                     Button {
                         nextQuestion()
                     } label: {
@@ -2277,6 +2233,11 @@ struct QuizView: View {
         let allVocabPool = VocabularyData.shared.getVocabulary(for: subject)  // For wrong choices
 
         var results: [Question] = []
+        // Preserve incoming order to keep blanks before number questions per article
+        var vocabOrder: [String: Int] = [:]
+        for (idx, v) in vocab.enumerated() {
+            vocabOrder[v.id] = idx
+        }
 
         for word in vocab {
             if subject == .seikei, word.questionType == "blank", let answers = word.allAnswers,
@@ -2455,6 +2416,35 @@ struct QuizView: View {
             if results.count >= count {
                 break
             }
+        }
+
+        if subject == .seikei {
+            let ordered = results.sorted { lhs, rhs in
+                func baseId(_ id: String) -> String {
+                    if id.hasSuffix("-num") { return String(id.dropLast(4)) }
+                    if id.hasSuffix("-era") { return String(id.dropLast(4)) }
+                    return id
+                }
+
+                let lhsBase = baseId(lhs.id)
+                let rhsBase = baseId(rhs.id)
+                let lhsOrder = vocabOrder[lhsBase] ?? vocabOrder[lhs.id] ?? Int.max
+                let rhsOrder = vocabOrder[rhsBase] ?? vocabOrder[rhs.id] ?? Int.max
+
+                if lhsOrder != rhsOrder { return lhsOrder < rhsOrder }
+
+                let lhsPriority = lhs.seikeiBlankId != nil ? 0 : 1
+                let rhsPriority = rhs.seikeiBlankId != nil ? 0 : 1
+                if lhsPriority != rhsPriority { return lhsPriority < rhsPriority }
+
+                if let lBlank = lhs.seikeiBlankId, let rBlank = rhs.seikeiBlankId {
+                    return lBlank < rBlank
+                }
+
+                return lhs.questionText < rhs.questionText
+            }
+            let trimmed = ordered.count > count ? Array(ordered.prefix(count)) : ordered
+            return trimmed
         }
 
         if results.count > count {
@@ -2757,7 +2747,6 @@ struct QuizView: View {
         cardDragX = 0
         lastChosenAnswerText = ""
         isProcessingAnswer = false
-        didDecideRechallengeForCurrent = false
         if currentIndex < questions.count - 1 {
             currentIndex += 1
             questionStartTime = CACurrentMediaTime()

@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 #if os(iOS)
     import UIKit
@@ -22,6 +23,8 @@ private let widgetThemeBackgroundDarkKey = "anki_hub_widget_theme_background_dar
 private let widgetThemeTextLightKey = "anki_hub_widget_theme_text_light_v1"
 private let widgetThemeTextDarkKey = "anki_hub_widget_theme_text_dark_v1"
 private let widgetThemeSchemeOverrideKey = "anki_hub_widget_theme_color_scheme_override_v1"
+
+private let themeLogger = Logger(subsystem: "com.ankihub.ios", category: "ThemeManager")
 
 // MARK: - Liquid Glass UI Extensions (Moved to top for visibility)
 public struct LiquidGlassModifier: ViewModifier {
@@ -1844,6 +1847,7 @@ class ThemeManager: ObservableObject {
         )
 
         let id = UserDefaults.standard.string(forKey: "selectedThemeId") ?? "default"
+        themeLogger.log("init selectedThemeId=\(id, privacy: .public)")
         self.applyTheme(id: id)
         loadMasteryColorOverrides()
     }
@@ -1861,25 +1865,39 @@ class ThemeManager: ObservableObject {
     }
 
     func applyTheme(id: String) {
-        if let palette = presets[id] {
-            currentPalette = palette
-            selectedThemeId = id
-            UserDefaults.standard.set(id, forKey: "selectedThemeId")
-            requestAutoSyncOnMainActor()
-            syncWidgetThemeSnapshot()
+        guard let palette = presets[id] else {
+            themeLogger.warning("applyTheme: palette not found for id=\(id, privacy: .public)")
+            return
         }
+        currentPalette = palette
+        selectedThemeId = id
+        UserDefaults.standard.set(id, forKey: "selectedThemeId")
+        themeLogger.log("applyTheme: applied id=\(id, privacy: .public)")
+        requestAutoSyncOnMainActor()
+        syncWidgetThemeSnapshot()
     }
 
     func applyWallpaper(kind: String, value: String) {
         wallpaperKind = kind
         wallpaperValue = value
         wallpaperEnabled = true
+        themeLogger.log("applyWallpaper kind=\(kind, privacy: .public) value=\(value, privacy: .public)")
         requestAutoSyncOnMainActor()
+    }
+
+    func resetWallpaperToDefault() {
+        wallpaperKind = ""
+        wallpaperValue = ""
+        wallpaperEnabled = false
+        themeLogger.log("resetWallpaperToDefault: disabled custom wallpaper")
+        requestAutoSyncOnMainActor()
+        syncWidgetThemeSnapshot()
     }
 
     private func syncWidgetThemeSnapshot() {
         guard let defaults = UserDefaults(suiteName: widgetAppGroupId) else { return }
         let palette = currentPalette
+        themeLogger.log("syncWidgetThemeSnapshot id=\(self.selectedThemeId, privacy: .public) schemeOverride=\(self.colorSchemeOverride)")
         defaults.set(palette.primary, forKey: widgetThemePrimaryLightKey)
         defaults.set(palette.primaryDark, forKey: widgetThemePrimaryDarkKey)
         defaults.set(palette.accent, forKey: widgetThemeAccentLightKey)

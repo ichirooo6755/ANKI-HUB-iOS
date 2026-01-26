@@ -130,7 +130,7 @@ struct DashboardCharts: View {
                 }
             }
 
-            chartCard(accent: primary, icon: "square.grid.3x3.fill") {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text("ヒートマップ")
                         .font(.title3.weight(.bold))

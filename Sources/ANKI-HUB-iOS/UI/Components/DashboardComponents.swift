@@ -360,15 +360,14 @@ struct SubjectCard: View {
             }
         }()
 
-        return ZStack(alignment: .topTrailing) {
+        return ZStack(alignment: .center) {
             Image(systemName: subject.icon)
                 .font(.system(size: 92, weight: .bold, design: .default))
                 .foregroundStyle(accent.opacity(isDark ? (style == "neo" ? 0.22 : 0.18) : (style == "neo" ? 0.18 : 0.14)))
-                .frame(width: 96, height: 96, alignment: .topTrailing)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .padding(.top, 10)
-                .padding(.trailing, 10)
-                .offset(x: 22, y: -6)
+                .frame(width: 96, height: 96, alignment: .center)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .padding(.trailing, 4)
+                .offset(x: 46)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 10) {
@@ -448,15 +447,14 @@ struct ToolCard: View {
             }
         }()
 
-        return ZStack(alignment: .topTrailing) {
+        return ZStack(alignment: .center) {
             Image(systemName: icon)
                 .font(.system(size: 92, weight: .bold, design: .default))
                 .foregroundStyle(color.opacity(isDark ? (style == "neo" ? 0.20 : 0.16) : (style == "neo" ? 0.16 : 0.12)))
-                .frame(width: 96, height: 96, alignment: .topTrailing)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                .padding(.top, 10)
-                .padding(.trailing, 10)
-                .offset(x: 22, y: -6)
+                .frame(width: 96, height: 96, alignment: .center)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .padding(.trailing, 4)
+                .offset(x: 46)
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 10) {

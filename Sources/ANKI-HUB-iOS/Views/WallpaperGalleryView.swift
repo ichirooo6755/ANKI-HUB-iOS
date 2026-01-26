@@ -92,7 +92,32 @@ struct WallpaperGalleryView: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-                
+
+                Button {
+                    theme.resetWallpaperToDefault()
+                    selectedWallpaper = .presets
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.headline.weight(.semibold))
+                        Text("デフォルトに戻す")
+                            .font(.headline.weight(.semibold))
+                    }
+                    .foregroundStyle(theme.primaryText)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(theme.currentPalette.color(.border, isDark: theme.effectiveIsDark), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal)
+
                 switch selectedWallpaper {
                 case .presets:
                     presetsGrid
@@ -281,14 +306,13 @@ struct WallpaperGalleryView: View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
             ForEach(solidColors, id: \.self) { color in
                 Button {
-                    if let hex = color.toHexString() {
-                        theme.applyWallpaper(kind: "solid", value: hex)
-                    }
+                    let hex = color.toHexString()
+                    theme.applyWallpaper(kind: "solid", value: hex)
                 } label: {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(color)
                         .frame(height: 60)
-                        .overlay(selectionOverlay(isSelected: isSelected(kind: "solid", value: color.toHexString() ?? ""), cornerRadius: 12))
+                        .overlay(selectionOverlay(isSelected: isSelected(kind: "solid", value: hex), cornerRadius: 12))
                 }
             }
         }
