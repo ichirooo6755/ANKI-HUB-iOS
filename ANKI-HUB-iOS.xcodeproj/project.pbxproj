@@ -10,18 +10,24 @@
 		0472D2351194268B2FE2D110 /* QuizCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B958BA872D4132B5853A26 /* QuizCaptureView.swift */; };
 		0526B9C7AB081531A56B84D8 /* ChapterSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D96FECE438DA97CD55CF884 /* ChapterSelectionView.swift */; };
 		06EBC52649F0C2262A24CDFA /* kobun_pdf.json in Resources */ = {isa = PBXBuildFile; fileRef = D7648808FC06CE5AA0EA52A6 /* kobun_pdf.json */; };
+		0A1B2C3D4E5F60718293A4B5 /* CardStackEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B4 /* CardStackEffects.swift */; };
 		08440EF7156AF4CAE53F8C78 /* InputModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AA8580402E097FFA50EF559 /* InputModeView.swift */; };
 		08EB46CD21B1C06172C48F25 /* KanbunVerticalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3222FD2A99E8F8D6054ECD8 /* KanbunVerticalView.swift */; };
 		0913EC3DB9F4278FCCEC7C07 /* SupabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138EF5A87CD96F36979ED3F1 /* SupabaseError.swift */; };
+		0B1C2D3E4F5061728394A5B6 /* CyberpunkEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B1C2D3E4F5061728394A5B5 /* CyberpunkEffects.swift */; };
 		0E912FC2F8298A55F25BFD90 /* SeikeiWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE956E3F2E960F2EA83BA43 /* SeikeiWebView.swift */; };
 		0F0300F5D95D00B83A8D1E0D /* ParticleConjugationTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B624E4FEAA37CD94A67DF58 /* ParticleConjugationTableView.swift */; };
 		0F08F3145878FC5949DA1E43 /* ExamHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F42290185DB1686BC4377B5 /* ExamHistoryView.swift */; };
+		0C1D2E3F405162738495A6B7 /* HealthAppEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D2E3F405162738495A6B6 /* HealthAppEffects.swift */; };
 		1A24854AE1EE58A95495C385 /* WordbookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD13242DA43D8AC9C0ED81F0 /* WordbookView.swift */; };
 		1DB463B83147026FEE1D7BD7 /* kanbun.json in Resources */ = {isa = PBXBuildFile; fileRef = BA98B3F09DCD84AA7292B33E /* kanbun.json */; };
 		1EF8391F42BBC7F05100967C /* ReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C66D02FAC24A6FA7FA24E01E /* ReportView.swift */; };
+		0F2031425364758697A8B9C1 /* VisualEffectsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2031425364758697A8B9C0 /* VisualEffectsSettingsView.swift */; };
+		0D1E2F30415263748596A7B8 /* VisualEffectModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D1E2F30415263748596A7B7 /* VisualEffectModifiers.swift */; };
 		1FC5D8B3DEEB458B33056201 /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE32F1808DF4458315A2714E /* SupabaseAuthService.swift */; };
 		200431E047FDFACCFF413C21 /* DueReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F79BCB55DEDFE78F084EAA /* DueReviewView.swift */; };
 		23D6245B68DE4BB723F84A60 /* CustomVocabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4398A49B466FC3993E8172 /* CustomVocabView.swift */; };
+		0E1F2031425364758697A8B9 /* VisualEffectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1F2031425364758697A8B8 /* VisualEffectsManager.swift */; };
 		E6A9F2F4C3D4B5A697887779 /* LockScreenMirrorGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */; };
 		263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */; };
 		2A0EF5C09EDB43D7B8FE26DC /* PaperWordbookSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741D8F69D11144E5DD9DB9BC /* PaperWordbookSyncView.swift */; };
@@ -131,6 +137,12 @@
 		0515385F61476455D8FFFD3B /* kobun.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = kobun.json; sourceTree = "<group>"; };
 		06122B34B24999861C8946E4 /* FrontCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontCameraView.swift; sourceTree = "<group>"; };
 		08A4C6065EE246C8B4C348C4 /* TextRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognitionService.swift; sourceTree = "<group>"; };
+		0A1B2C3D4E5F60718293A4B4 /* CardStackEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardStackEffects.swift; sourceTree = "<group>"; };
+		0B1C2D3E4F5061728394A5B5 /* CyberpunkEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkEffects.swift; sourceTree = "<group>"; };
+		0C1D2E3F405162738495A6B6 /* HealthAppEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthAppEffects.swift; sourceTree = "<group>"; };
+		0D1E2F30415263748596A7B7 /* VisualEffectModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectModifiers.swift; sourceTree = "<group>"; };
+		0E1F2031425364758697A8B8 /* VisualEffectsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectsManager.swift; sourceTree = "<group>"; };
+		0F2031425364758697A8B9C0 /* VisualEffectsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectsSettingsView.swift; sourceTree = "<group>"; };
 		0AA8580402E097FFA50EF559 /* InputModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputModeView.swift; sourceTree = "<group>"; };
 		0ADA96F2A157000729DE70FE /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		0D10CE7B75BBB8FDB0998DFB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -247,6 +259,7 @@
 				8D687CD0B8AC7FC7F62849EB /* SupabaseStudyService.swift */,
 				FC1C5FE8DB7BFD3B11BD999F /* SupabaseUserService.swift */,
 				E6A9F2F0C3D4B5A697887775 /* CustomSpeechTranscriber.swift */,
+				0E1F2031425364758697A8B8 /* VisualEffectsManager.swift */,
 				08A4C6065EE246C8B4C348C4 /* TextRecognitionService.swift */,
 				0ADA96F2A157000729DE70FE /* ThemeManager.swift */,
 			);
@@ -333,6 +346,10 @@
 				490FB40BEE416D935DF6646D /* CircularProgressView.swift */,
 				339AB4910D5268AA3D376674 /* DashboardCharts.swift */,
 				54AEB8D38B6CE12F06BE3358 /* DashboardComponents.swift */,
+				0B1C2D3E4F5061728394A5B5 /* CyberpunkEffects.swift */,
+				0A1B2C3D4E5F60718293A4B4 /* CardStackEffects.swift */,
+				0C1D2E3F405162738495A6B6 /* HealthAppEffects.swift */,
+				0D1E2F30415263748596A7B7 /* VisualEffectModifiers.swift */,
 				E6A9F2E4C3D4B5A697887766 /* HealthComponents.swift */,
 				E4140A4BEBEE9BEF65F7CABF /* FlashcardView.swift */,
 				B3222FD2A99E8F8D6054ECD8 /* KanbunVerticalView.swift */,
@@ -394,6 +411,7 @@
 				5C04D8BA12528F411BFB83CB /* ThemeSettingsView.swift */,
 				492F8BE2D7FB4AACD581EC01 /* TimelineView.swift */,
 				DBBA12BF8879806EA5BEE6F6 /* TodoView.swift */,
+				0F2031425364758697A8B9C0 /* VisualEffectsSettingsView.swift */,
 				FEF13ED832F228C117797D2F /* WallpaperGalleryView.swift */,
 				3565F5636D859200FC648AF8 /* WeakWordsView.swift */,
 				78B7752570DC6C4E5D928C3D /* WidgetSettingsView.swift */,
@@ -582,6 +600,9 @@
 				3313FBF795251E8BA0E3145E /* BookshelfView.swift in Sources */,
 				4500E76D5666EACABDC47001 /* CSVTextDocument.swift in Sources */,
 				FBA0CB665E38ADFE48A7BE85 /* CalendarComponents.swift in Sources */,
+				0B1C2D3E4F5061728394A5B6 /* CyberpunkEffects.swift in Sources */,
+				0A1B2C3D4E5F60718293A4B5 /* CardStackEffects.swift in Sources */,
+				0C1D2E3F405162738495A6B7 /* HealthAppEffects.swift in Sources */,
 				E6A9F2E5C3D4B5A697887767 /* HealthComponents.swift in Sources */,
 				E6A9F2EDC3D4B5A697887771 /* AppCalendarView.swift in Sources */,
 				0526B9C7AB081531A56B84D8 /* ChapterSelectionView.swift in Sources */,
@@ -647,6 +668,9 @@
 				69E1F82B074E84DD2FB75E84 /* TimelineView.swift in Sources */,
 				4E5581682C222CEE7FDFF0BE /* TimerHistoryView.swift in Sources */,
 				D42BA3E7BA9B68ECB9D0FA7B /* TodoView.swift in Sources */,
+				0D1E2F30415263748596A7B8 /* VisualEffectModifiers.swift in Sources */,
+				0F2031425364758697A8B9C1 /* VisualEffectsSettingsView.swift in Sources */,
+				0E1F2031425364758697A8B9 /* VisualEffectsManager.swift in Sources */,
 				9A6A436936119DE838E6CD4D /* VocabularyData.swift in Sources */,
 				7272ADD622274EA366DE82D6 /* WallpaperGalleryView.swift in Sources */,
 				520FD74D811979BC9EA66443 /* WeakWordsView.swift in Sources */,

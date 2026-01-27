@@ -8,6 +8,15 @@
 
 ## 機能
 
+### 🎨 ビジュアルエフェクト（NEW!）
+- **3つのエフェクトスタイル**:
+  - **サイバーパンク**: グリッドオーバーレイ + データポイント + 波形エフェクト
+  - **カードスタック**: カラフルなカード重ねエフェクト（交通系ICカード風）
+  - **ヘルスアプリ**: グラフアニメーション + メトリクス表示
+- **自動選択モード**: テーマに応じて最適なエフェクトを自動適用
+- **詳細設定**: アニメーション強度、パーティクル、グリッド、波形の個別制御
+- **パフォーマンス最適化**: バッテリー消費を考慮した設計
+
 ### 学習機能
 - **4択クイズモード**: 英単語・古文・漢文・政経の4択問題
 - **カードモード**: フラッシュカード形式の学習
@@ -244,6 +253,7 @@ open ANKI-HUB-iOS.xcodeproj
 | ヒーローセクションを引っ張っても苦手克服へ行かない | ヒーロー側にドラッグ検知が無く、タップ以外で遷移できなかった | ヒーローに下方向ドラッグの閾値トリガーを追加し、一定距離引っ張ると`苦手克服`へ遷移するようにした |
 | ヒートマップの並び/サイズが崩れる | セルを`flexible`で組み、カード幅に引っ張られて歪む | ヒートマップを固定セル幅＋左寄せで安定させ、カード形状でクリップして崩れを抑えた |
 | 学習タブのカードが崩れて見える | セクション/メニューカードの角丸・余白・影が不統一 | StudySectionCard/古文メニューをcornerRadius=28/padding=18に統一し、clipで外側はみ出しを抑止 |
+| 古文の「単語クイズ/インプットモード/助詞クイズ」選択Bentoの間隔が広すぎる | 古文メニューの`VStack(spacing:)`が大きく、余白が過剰だった | `spacing`と余白を調整し、選択カード同士の間隔を詰めて視線移動を短くした |
 | カード内の背景アイコンが全体的にはみ出す | `offset`配置が多く、カードでクリップしていなかった | 背景アイコンをpadding配置に変更し、主要カードを`clipShape`で内側に収めた |
 | 連続/今日の学習時間カードのレイアウトが崩れる | 単位が数値と同サイズ、アイコンが小さく目立たない | 単位を数値の右下に小さく配置、アイコンを大きくして右寄せ見切れ、8ptグリッドのpaddingに統一 |
 | 習熟度円グラフの背景が重い | chartCardラッパーで背景を付けていた | 習熟度チャートの背景を削除し、「習熟度」文言を太字からmediumに変更してシンプル化 |
@@ -252,7 +262,6 @@ open ANKI-HUB-iOS.xcodeproj
 | セクションヘッダーにtextCase(.uppercase)が適用されていた | 日本語テキストに大文字変換は不要で可読性を下げる | ThemeSettingsView/PastExamAnalysisViewからtextCase(.uppercase)を削除 |
 | 学習タブのメトリクスカードが3列で画面からはみ出す | HStackで3つのHealthMetricCardを横並びにしていた | 2列LazyVGridに変更し、総単語数カードを削除してシンプル化 |
 | 科目名が太字で目立ちすぎる | SubjectCardの科目名がtitle3.weight(.bold)だった | callout.weight(.medium)に変更して控えめに |
-| StudyViewの余白/グリッドが中途半端で崩れやすい | spacing/paddingが12/15/20等で混在し、端末幅によって被り/はみ出しが起きやすい | 8ptグリッド（16中心）に統一してレイアウトの安定性を上げた |
 | Bookshelfの空状態/カードが重い | 空状態ボタンの強いshadowやカードの強いshadowでoverdrawが増える | 空状態ボタンのshadowを削除し、カードshadowを弱めて描画負荷を軽くした |
 | ダッシュボードのクイックアクションが重い | カード群に強いshadow（radius 10 / y 6）が多発し、overdrawが増える | shadowを弱め（radius 6 / y 3）て描画負荷を軽くした |
 | 学習タブのspacing/paddingが8ptグリッドに合っていない | summaryMetricsのspacing=12、StudySectionCardのpadding=18で中途半端 | spacing=16、padding=16に統一して8ptグリッドに合わせた |
@@ -293,7 +302,10 @@ open ANKI-HUB-iOS.xcodeproj
 | `CalendarView` / `StudyView` 重複定義エラー | `StatCard`, `SubjectCard`等が複数ファイルで定義 | コンポーネントを`Components/`ディレクトリに外部化し、重複を削除 |
 | `SettingsView`の`accountSection`で構文崩れ | パッチ適用の差分競合でView構造が破損 | `accountSection`を再構築し`SettingsIcon`統一のレイアウトに修正 |
 | `CalendarView.swift`が空ファイルになりビルド不能 | ファイル内容が消失 | git履歴から復旧し、`CalendarStatCard`/`DayCell`に適合させた |
+| `StudyView`で`StreakIndicator`/`.adaptiveVisualEffect`/`VisualEffectsManager`が見つからない | ビジュアルエフェクト関連のSwiftファイルが`xcodeproj`のターゲット（Compile Sources）に未登録 | `project.pbxproj`にファイル参照とBuild Phaseを追加してターゲットに含め、`StudyView`の設定画面リンクと未使用変数警告も修正 |
+| `WallpaperGalleryView`でビルドエラー（`hex`が見つからない/Optional unwrap） | `Button`のaction内で定義した`hex`をlabel側で参照していた | `hex`を行スコープで先に定義し、`nil`時はデフォルト値にフォールバック |
 | `xcodebuild`でiPhone 16 Proが見つからない | `OS:latest`が26.2になり対象端末が存在しない | `-destination`に`OS=18.2`を明示 |
+| `xcodebuild`で`build.db`がロックされる | 同一ビルドディレクトリで並行ビルドが走っている | `build/`を削除して再ビルド |
 
 ### UI刷新・リファクタリング
 - **Apple HIG準拠**: 設定画面やプロフィール画面のリストスタイルを`insetGrouped`に統一し、アイコンデザインを`SettingsIcon`コンポーネントで標準化。

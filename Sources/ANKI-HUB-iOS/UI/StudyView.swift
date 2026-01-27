@@ -5,6 +5,7 @@ struct StudyView: View {
 
     @ObservedObject private var theme = ThemeManager.shared
     @ObservedObject private var stats = LearningStats.shared
+    @ObservedObject private var effects = VisualEffectsManager.shared
 
     var body: some View {
         NavigationStack {
@@ -46,7 +47,16 @@ struct StudyView: View {
                     .padding(.top, 16)
                 }
             }
+            .adaptiveVisualEffect(enableOverlay: true)
             .navigationTitle("学習")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: VisualEffectsSettingsView()) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                }
+            }
             .applyAppTheme()
         }
     }

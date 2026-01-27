@@ -2200,3 +2200,75 @@ extension View {
         self.modifier(AppThemeModifier())
     }
 }
+
+// MARK: - Visual Effect Styles
+
+enum VisualEffectStyle: String, CaseIterable, Identifiable {
+    case adaptive = "adaptive"
+    case cyberpunk = "cyberpunk"
+    case cardStack = "cardStack"
+    case healthApp = "healthApp"
+    case minimal = "minimal"
+    
+    var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .adaptive: return "自動選択"
+        case .cyberpunk: return "サイバーパンク"
+        case .cardStack: return "カードスタック"
+        case .healthApp: return "ヘルスアプリ"
+        case .minimal: return "ミニマル"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .adaptive: return "テーマに応じて自動的にスタイルを選択"
+        case .cyberpunk: return "グリッド + データポイント + 波形エフェクト"
+        case .cardStack: return "カラフルなカード重ねエフェクト"
+        case .healthApp: return "グラフアニメーション + メトリクス"
+        case .minimal: return "シンプルなエフェクトのみ"
+        }
+    }
+}
+
+// MARK: - Animation Configurations
+
+struct AnimationConfig {
+    var duration: Double = 0.3
+    var springDamping: CGFloat = 0.8
+    var springResponse: CGFloat = 0.4
+    var delay: Double = 0
+    
+    static let quick = AnimationConfig(duration: 0.2, springDamping: 0.9, springResponse: 0.3)
+    static let smooth = AnimationConfig(duration: 0.3, springDamping: 0.8, springResponse: 0.4)
+    static let bouncy = AnimationConfig(duration: 0.5, springDamping: 0.6, springResponse: 0.5)
+    static let slow = AnimationConfig(duration: 0.6, springDamping: 0.85, springResponse: 0.45)
+}
+
+// MARK: - Particle System Configuration
+
+struct ParticleConfig {
+    var count: Int = 50
+    var size: CGFloat = 4
+    var speed: CGFloat = 1.0
+    var lifetime: TimeInterval = 3.0
+    var colors: [Color] = [.white.opacity(0.6)]
+    
+    static let cyberpunk = ParticleConfig(
+        count: 30,
+        size: 3,
+        speed: 0.5,
+        lifetime: 4.0,
+        colors: [.red.opacity(0.8), .cyan.opacity(0.6), .white.opacity(0.4)]
+    )
+    
+    static let celebration = ParticleConfig(
+        count: 100,
+        size: 6,
+        speed: 2.0,
+        lifetime: 2.0,
+        colors: [.yellow, .orange, .red, .pink, .purple]
+    )
+}

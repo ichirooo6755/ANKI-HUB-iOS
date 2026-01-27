@@ -305,8 +305,8 @@ struct WallpaperGalleryView: View {
     private var solidColorGrid: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
             ForEach(solidColors, id: \.self) { color in
+                let hex = color.toHexString() ?? "#FFFFFFFF"
                 Button {
-                    let hex = color.toHexString()
                     theme.applyWallpaper(kind: "solid", value: hex)
                 } label: {
                     RoundedRectangle(cornerRadius: 12)
