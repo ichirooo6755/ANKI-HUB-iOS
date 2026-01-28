@@ -7,6 +7,7 @@ struct MainTabView: View {
     @State private var activeSheet: ActiveSheet?
 
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.colorScheme) private var colorScheme
 
     @ObservedObject private var theme = ThemeManager.shared
 
@@ -24,6 +25,7 @@ struct MainTabView: View {
             case timer(TimerStartRequest)
             case scan
             case frontCamera
+            case sessionPin
         }
 
         let kind: Kind
@@ -36,6 +38,8 @@ struct MainTabView: View {
                 return "frontCamera"
             case .timer(let req):
                 return "timer_\(req.mode)_\(req.minutes)"
+            case .sessionPin:
+                return "sessionPin"
             }
         }
     }
@@ -94,8 +98,12 @@ struct MainTabView: View {
             if newValue == .active {
                 consumeFrontCameraRequest()
                 checkScanRequest()
+                theme.updateSystemColorScheme(colorScheme)
             }
             logger.log("scenePhase changed to \(String(describing: newValue), privacy: .public) selectedThemeId=\(theme.selectedThemeId, privacy: .public)")
+        }
+        .onChange(of: colorScheme) { _, newValue in
+            theme.updateSystemColorScheme(newValue)
         }
         .onChange(of: frontCameraStartRequest) { _, _ in
             consumeFrontCameraRequest()
@@ -108,6 +116,8 @@ struct MainTabView: View {
                 ScanView(startScanning: true)
             case .frontCamera:
                 FrontCameraView()
+            case .sessionPin:
+                PinRecordingSheet()
             }
         }
     }
@@ -142,6 +152,23 @@ struct MainTabView: View {
                 selectedTab = .home
             case "/profile":
                 selectedTab = .profile
+            default:
+                break
+            }
+        case "session":
+            switch url.path {
+            case "/start":
+                selectedTab = .study
+                StudySessionManager.shared.startSession()
+            case "/stop":
+                selectedTab = .study
+                StudySessionManager.shared.stopSession()
+            case "/pin":
+                selectedTab = .study
+                if !StudySessionManager.shared.isSessionActive {
+                    StudySessionManager.shared.startSession()
+                }
+                activeSheet = ActiveSheet(kind: .sessionPin)
             default:
                 break
             }

@@ -28,6 +28,8 @@
 		200431E047FDFACCFF413C21 /* DueReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F79BCB55DEDFE78F084EAA /* DueReviewView.swift */; };
 		23D6245B68DE4BB723F84A60 /* CustomVocabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4398A49B466FC3993E8172 /* CustomVocabView.swift */; };
 		0E1F2031425364758697A8B9 /* VisualEffectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1F2031425364758697A8B8 /* VisualEffectsManager.swift */; };
+		A1B2C3D4E5F60718293A4B6C /* StudySessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */; };
+		A1B2C3D4E5F60718293A4B6E /* StudySessionBentoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */; };
 		E6A9F2F4C3D4B5A697887779 /* LockScreenMirrorGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */; };
 		263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */; };
 		2A0EF5C09EDB43D7B8FE26DC /* PaperWordbookSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741D8F69D11144E5DD9DB9BC /* PaperWordbookSyncView.swift */; };
@@ -166,6 +168,8 @@
 		34C205FA228416CEF67DAA8F /* FocusTimerAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerAttributes.swift; sourceTree = "<group>"; };
 		3565F5636D859200FC648AF8 /* WeakWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakWordsView.swift; sourceTree = "<group>"; };
 		3F58365865FC827B5844A3DF /* StudyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionManager.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionBentoCard.swift; sourceTree = "<group>"; };
 		40A5C945DE2F4DDC5048A9B7 /* RawData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawData.swift; sourceTree = "<group>"; };
 		42699E2B54C4381847C49A84 /* CSVTextDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVTextDocument.swift; sourceTree = "<group>"; };
 		490FB40BEE416D935DF6646D /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift; sourceTree = "<group>"; };
@@ -300,6 +304,7 @@
 				F453DE758E6BC12E0DEC58D0 /* ExamResultManager.swift */,
 				72781903D422A43C1827C20E /* InputModeManager.swift */,
 				221DCECC633597AA9BF3D1FE /* LearningManager.swift */,
+				A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */,
 				955F72AD0CF329B18285B470 /* StudyMaterialManager.swift */,
 				F97C7BBB583C8543D4324624 /* SyncManager.swift */,
 				551E2ADD61CAB99F6B29C362 /* TimelineManager.swift */,
@@ -346,6 +351,7 @@
 				490FB40BEE416D935DF6646D /* CircularProgressView.swift */,
 				339AB4910D5268AA3D376674 /* DashboardCharts.swift */,
 				54AEB8D38B6CE12F06BE3358 /* DashboardComponents.swift */,
+				A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */,
 				0B1C2D3E4F5061728394A5B5 /* CyberpunkEffects.swift */,
 				0A1B2C3D4E5F60718293A4B4 /* CardStackEffects.swift */,
 				0C1D2E3F405162738495A6B6 /* HealthAppEffects.swift */,
@@ -646,7 +652,9 @@
 				A2CEB71D776018C29CE2243A /* SettingsIcon.swift in Sources */,
 				CFD264A861F48D4CB692A9DC /* SettingsView.swift in Sources */,
 				F119FFA2873968C63CC8F828 /* StudyMaterialManager.swift in Sources */,
+				A1B2C3D4E5F60718293A4B6C /* StudySessionManager.swift in Sources */,
 				AD7204EA7FE25A373DA09E58 /* StudyView.swift in Sources */,
+				A1B2C3D4E5F60718293A4B6E /* StudySessionBentoCard.swift in Sources */,
 				636593DE3315688809423807 /* SubjectMasteryChart.swift in Sources */,
 				1FC5D8B3DEEB458B33056201 /* SupabaseAuthService.swift in Sources */,
 				55BDB53F7108B6DE14BFD1AF /* SupabaseConfig.swift in Sources */,

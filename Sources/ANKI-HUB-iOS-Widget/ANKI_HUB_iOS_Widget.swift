@@ -46,6 +46,9 @@ private let controlTimerURL = URL(string: "sugwranki://timer/start?minutes=25")!
 private let controlFrontCameraURL = URL(string: "sugwranki://camera/front")!
 private let controlScanURL = URL(string: "sugwranki://scan/start")!
 private let controlStudyTabURL = URL(string: "sugwranki://tab/study")!
+private let controlSessionStartURL = URL(string: "sugwranki://session/start")!
+private let controlSessionStopURL = URL(string: "sugwranki://session/stop")!
+private let controlSessionPinURL = URL(string: "sugwranki://session/pin")!
 
 private let widgetAccent = Color(red: 0.96, green: 0.36, blue: 0.20)
 
@@ -170,7 +173,45 @@ struct StudyTabControlWidget: ControlWidget {
     }
 }
 
- #endif
+@available(iOS 18.0, *)
+struct SessionStartControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "SessionStartControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlSessionStartURL)) {
+                Label("開始", systemImage: "play.circle.fill")
+            }
+        }
+        .displayName("勉強をスタート")
+        .description("学習セッションを開始します")
+    }
+}
+
+@available(iOS 18.0, *)
+struct SessionStopControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "SessionStopControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlSessionStopURL)) {
+                Label("終了", systemImage: "stop.circle.fill")
+            }
+        }
+        .displayName("勉強を終了")
+        .description("学習セッションを終了します")
+    }
+}
+
+@available(iOS 18.0, *)
+struct SessionPinControlWidget: ControlWidget {
+    var body: some ControlConfiguration {
+        StaticControlConfiguration(kind: "SessionPinControl") {
+            ControlWidgetButton(intent: OpenURLIntent(url: controlSessionPinURL)) {
+                Label("ピン", systemImage: "pin.circle.fill")
+            }
+        }
+        .displayName("ピンを打つ")
+        .description("学習内容を記録するピン入力を開きます")
+    }
+}
+#endif
 
 struct BlackClockWidget: Widget {
     let kind: String = "BlackClockWidget"
@@ -1407,6 +1448,9 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                 FrontCameraControlWidget()
                 ScanControlWidget()
                 StudyTabControlWidget()
+                SessionStartControlWidget()
+                SessionStopControlWidget()
+                SessionPinControlWidget()
             }
         #endif
     }

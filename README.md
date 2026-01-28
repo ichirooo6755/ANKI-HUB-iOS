@@ -121,6 +121,8 @@ open ANKI-HUB-iOS.xcodeproj
 | DashboardViewのビルドエラー | ヒーロー追加時に余分な閉じ括弧が混入 | 余分な`}`を削除して`private func`のスコープを修正 |
 | StatBoxの引数エラー | 引数順序の不一致 | color引数をicon引数の前に移動 |
 | build.dbがロックされてビルド失敗 | 同一出力先で並行ビルドが実行中 | 既存ビルドを停止し、build/XCBuildData/build.dbを削除して再ビルド |
+| StudySessionManager/StudySessionBentoCardが見つからない | 新規ファイルがXcodeターゲット未登録 | `.pbxproj`にファイル参照とSources登録を追加 |
+| xcodebuildでiPhone 15が見つからない | 指定シミュレータが環境に存在しない | `xcodebuild -destination`を実在デバイス（例: iPhone 16/OS 18.2）に変更 |
 
 ### UIコンポーネント関連
 
@@ -163,6 +165,7 @@ open ANKI-HUB-iOS.xcodeproj
 | 漢文の問題が出ない | `category`フィルタが効かない | 全語彙4分割方式に変更 |
 | 古文ヒントが出ない | PDF版にhint欠落 | `kobun.json`から補完 |
 | 政経に答えが見える | 状態リセット漏れ | `nextQuestion()`でリセット |
+| 政経の空欄出題順/正答判定/本文表示が不安定 | 空欄生成が`allAnswers`依存で順序不定、本文が空欄化済み文字列になっていた | `fullText`を解析してID順で出題、本文は原文を保持し、記事単位の正誤判定に統一 |
 
 ### タイマー・学習時間関連
 
@@ -182,6 +185,7 @@ open ANKI-HUB-iOS.xcodeproj
 | テーマが画面ごとに揺れる | `applyAppTheme()`適用漏れ | 全画面に適用 |
 | 文字が背景に埋もれる | 固定色使用、コントラスト不足 | `ThemeManager.primaryText/onColor`使用 |
 | Liquid Glassが効かない | 監視が弱い | `AdaptiveLiquidGlassModifier`統一 |
+| 学習タブの一部Bentoが復帰後にダーク化する | 復帰時にシステムの`colorScheme`がThemeManagerへ反映されない | `scenePhase`復帰時と`colorScheme`変更時に`updateSystemColorScheme`を同期 |
 | 写真壁紙でコンテナ見えない | 透明度不足 | 壁紙時は不透明度/ボーダー強化 |
 | ダークモードで読めない | `.secondary`等システム色依存 | テーマ基準の色に統一 |
 | ダーク/ライトが混在して見える | 色指定が固定でもMaterialがシステム色に引っ張られる | カラー強制時はMaterialを無効化しテーマ色に統一 |

@@ -2240,15 +2240,9 @@ struct QuizView: View {
         }
 
         for word in vocab {
-            if subject == .seikei, word.questionType == "blank", let answers = word.allAnswers,
-                !answers.isEmpty
-            {
-                let answerToBlankId: [String: Int] = {
-                    guard let fullText = word.fullText, !fullText.isEmpty else { return [:] }
-                    let (_, map) = cachedParseSeikeiQuizContent(fullText)
-                    // map is [blankId: answer]
-                    return Dictionary(uniqueKeysWithValues: map.map { ($0.value, $0.key) })
-                }()
+            if subject == .seikei, word.questionType == "blank" {
+                guard let fullText = word.fullText, !fullText.isEmpty else { continue }
+                let (content, blankMap) = cachedParseSeikeiQuizContent(fullText)
 
                 let answerPool: [String] = {
                     let sameCategory = allVocabPool.filter {
@@ -2258,11 +2252,12 @@ struct QuizView: View {
                     return Array(Set(candidates)).filter { !isInvalidSeikeiChoice($0) }
                 }()
 
-                for (idx, answer) in answers.enumerated() {
-                    let trimmedAnswer = answer.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !isInvalidSeikeiChoice(trimmedAnswer) else { continue }
+                for (blankId, rawAnswer) in blankMap.sorted(by: { $0.key < $1.key }) {
+                    let trimmedAnswer = rawAnswer.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !trimmedAnswer.isEmpty, !isInvalidSeikeiChoice(trimmedAnswer) else { continue }
+
                     let wrongs = answerPool.filter { $0 != trimmedAnswer }.shuffled()
-                    var choices = [answer]
+                    var choices = [trimmedAnswer]
                     choices.append(contentsOf: wrongs.prefix(3))
                     choices = Array(Set(choices))
                     if choices.count < 4 {
@@ -2278,12 +2273,12 @@ struct QuizView: View {
                     choices = Array(choices.prefix(4)).shuffled()
 
                     let correctIndex = choices.firstIndex(of: trimmedAnswer) ?? 0
+                    let questionId = "\(word.id)-blank\(blankId)"
 
-                    let bid = answerToBlankId[trimmedAnswer] ?? (idx + 1)
                     results.append(
                         Question(
-                            id: word.id,
-                            questionText: "\(word.term)（空欄\(bid)）",
+                            id: questionId,
+                            questionText: "\(word.term)（空欄\(blankId)）",
                             answerText: trimmedAnswer,
                             hint: subject == .kobun
                                 ? word.hint
@@ -2291,8 +2286,8 @@ struct QuizView: View {
                             example: word.example,
                             choices: choices,
                             correctIndex: correctIndex,
-                            fullText: word.fullText,
-                            seikeiBlankId: bid
+                            fullText: fullText,
+                            seikeiBlankId: blankId
                         )
                     )
                 }
@@ -2423,6 +2418,7 @@ struct QuizView: View {
                 func baseId(_ id: String) -> String {
                     if id.hasSuffix("-num") { return String(id.dropLast(4)) }
                     if id.hasSuffix("-era") { return String(id.dropLast(4)) }
+                    if let range = id.range(of: "-blank") { return String(id[..<range.lowerBound]) }
                     return id
                 }
 
@@ -2457,7 +2453,6 @@ struct QuizView: View {
     private func parseSeikeiQuizContent(_ text: String) -> (String, [Int: String]) {
         var content = text
         var blankMap: [Int: String] = [:]
-        var answerToId: [String: Int] = [:]
         var nextId = 1
 
         let pattern = "【([^】]+)】"
@@ -2465,27 +2460,32 @@ struct QuizView: View {
             let range = NSRange(text.startIndex..., in: text)
             let matches = regex.matches(in: text, options: [], range: range)
 
-            for match in matches.reversed() {
-                if let answerRange = Range(match.range(at: 1), in: text),
-                    let fullRange = Range(match.range, in: text)
-                {
-                    let answer = String(text[answerRange])
-                    let id: Int
-                    if let existing = answerToId[answer] {
-                        id = existing
-                    } else {
-                        id = nextId
-                        nextId += 1
-                        answerToId[answer] = id
-                        blankMap[id] = answer
-                    }
-
-                    content = content.replacingCharacters(in: fullRange, with: "[\(id)]")
+            var replacements: [(range: Range<String.Index>, id: Int, answer: String)] = []
+            for match in matches {
+                guard let answerRange = Range(match.range(at: 1), in: text),
+                      let fullRange = Range(match.range, in: text) else {
+                    continue
                 }
+                let answer = String(text[answerRange])
+                let id = nextId
+                nextId += 1
+                blankMap[id] = answer
+                replacements.append((range: fullRange, id: id, answer: answer))
+            }
+
+            for rep in replacements.reversed() {
+                content = content.replacingCharacters(in: rep.range, with: "[\(rep.id)]")
             }
         }
 
         return (content, blankMap)
+    }
+
+    private func seikeiBaseId(_ id: String) -> String {
+        if id.hasSuffix("-num") { return String(id.dropLast(4)) }
+        if id.hasSuffix("-era") { return String(id.dropLast(4)) }
+        if let range = id.range(of: "-blank") { return String(id[..<range.lowerBound]) }
+        return id
     }
 
     private func blankCount(for question: Question) -> Int {
@@ -2521,15 +2521,19 @@ struct QuizView: View {
 
         // Seikei blank spec: if any blank is wrong, treat the whole article as wrong
         if subject == .seikei, question.seikeiBlankId != nil, !isCorrect {
-            failedSeikeiArticleIds.insert(question.id)
+            failedSeikeiArticleIds.insert(seikeiBaseId(question.id))
         }
 
         let effectiveIsCorrect: Bool = {
             if subject == .seikei, question.seikeiBlankId != nil {
-                return isCorrect && !failedSeikeiArticleIds.contains(question.id)
+                return isCorrect && !failedSeikeiArticleIds.contains(seikeiBaseId(question.id))
             }
             return isCorrect
         }()
+
+        if subject == .seikei, question.seikeiBlankId != nil {
+            isCorrect = effectiveIsCorrect
+        }
 
         // Haptic Feedback
         #if os(iOS)
@@ -2537,7 +2541,7 @@ struct QuizView: View {
             generator.notificationOccurred(isCorrect ? .success : .error)
         #endif
 
-        if isCorrect {
+        if effectiveIsCorrect {
             correctCount += 1
         } else {
             wrongCount += 1
@@ -2547,7 +2551,7 @@ struct QuizView: View {
         // Record mastery
         masteryTracker.recordAnswer(
             subject: subject.rawValue,
-            wordId: question.id,
+            wordId: seikeiBaseId(question.id),
             isCorrect: effectiveIsCorrect,
             responseTime: responseTime,
             blankCount: blankCount(for: question),

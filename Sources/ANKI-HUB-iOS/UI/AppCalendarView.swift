@@ -118,6 +118,8 @@ struct AppCalendarView: View {
                             subjectBreakdown(subjects)
                         }
 
+                        sessionSegmentsSection
+
                         dayExams
 
                         dayTasks
@@ -216,6 +218,119 @@ struct AppCalendarView: View {
                 RoundedRectangle(cornerRadius: 28, style: .continuous)
                     .stroke(border.opacity(0.5), lineWidth: 1)
             )
+        }
+
+        private var sessionSegmentsSection: some View {
+            let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+            let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+            let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+
+            let calendar = Calendar.current
+            let dayStart = calendar.startOfDay(for: date)
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: dayStart) else {
+                return AnyView(EmptyView())
+            }
+
+            let sessions = StudySessionManager.shared.loadCompletedSessions()
+                .filter { session in
+                    session.startTime >= dayStart && session.startTime < nextDay
+                }
+
+            guard !sessions.isEmpty else {
+                return AnyView(EmptyView())
+            }
+
+            return AnyView(
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("学習セッション")
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(theme.secondaryText.opacity(0.62))
+
+                    ForEach(sessions) { session in
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "clock.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(accent)
+                                Text(timeRangeString(from: session.startTime, to: session.endTime))
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(theme.primaryText)
+                                Spacer()
+                                Text("\(session.totalMinutes)分")
+                                    .font(.caption.weight(.bold))
+                                    .monospacedDigit()
+                                    .foregroundStyle(accent)
+                            }
+
+                            if !session.segments.isEmpty {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    ForEach(session.segments) { segment in
+                                        HStack(spacing: 8) {
+                                            Circle()
+                                                .fill(accent.opacity(0.3))
+                                                .frame(width: 6, height: 6)
+
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                HStack {
+                                                    if let subject = Subject(rawValue: segment.subject) {
+                                                        Text(subject.displayName)
+                                                            .font(.caption2.weight(.medium))
+                                                            .foregroundStyle(theme.primaryText)
+                                                    }
+                                                    Text("・")
+                                                        .font(.caption2)
+                                                        .foregroundStyle(theme.secondaryText)
+                                                    Text(segment.activity)
+                                                        .font(.caption2)
+                                                        .foregroundStyle(theme.secondaryText)
+                                                    Spacer()
+                                                    Text("\(Int(ceil(Double(segment.durationSeconds) / 60.0)))分")
+                                                        .font(.caption2.weight(.medium))
+                                                        .monospacedDigit()
+                                                        .foregroundStyle(theme.secondaryText)
+                                                }
+
+                                                if !segment.notes.isEmpty {
+                                                    Text(segment.notes)
+                                                        .font(.caption2)
+                                                        .foregroundStyle(theme.secondaryText.opacity(0.7))
+                                                        .lineLimit(2)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.leading, 8)
+                            }
+                        }
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(surface.opacity(theme.effectiveIsDark ? 0.70 : 0.86))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(border.opacity(0.45), lineWidth: 1)
+                        )
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(surface.opacity(theme.effectiveIsDark ? 0.92 : 0.98))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(border.opacity(0.5), lineWidth: 1)
+                )
+            )
+        }
+
+        private func timeRangeString(from start: Date, to end: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "ja_JP")
+            formatter.dateFormat = "HH:mm"
+            return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
         }
 
         private var dayTasks: some View {

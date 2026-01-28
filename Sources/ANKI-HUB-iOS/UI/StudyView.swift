@@ -14,13 +14,16 @@ struct StudyView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
+                        StudySessionBentoCard()
+                            .padding(.horizontal, 16)
+
                         StudySectionCard(
                             accent: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
                         ) {
                             SectionHeader(
                                 title: "学習ダッシュボード",
                                 subtitle: nil,
-                                trailing: "\(stats.streak)日連続"
+                                trailing: nil
                             )
 
                             summaryMetrics
@@ -50,12 +53,21 @@ struct StudyView: View {
             .adaptiveVisualEffect(enableOverlay: true)
             .navigationTitle("学習")
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: VisualEffectsSettingsView()) {
                         Image(systemName: "sparkles")
                             .foregroundStyle(theme.secondaryText)
                     }
                 }
+                #else
+                ToolbarItem(placement: .automatic) {
+                    NavigationLink(destination: VisualEffectsSettingsView()) {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                }
+                #endif
             }
             .applyAppTheme()
         }
@@ -65,10 +77,14 @@ struct StudyView: View {
         let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
         let mastered = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
         let todayProgress = min(1.0, Double(stats.todayMinutes) / 30.0)
+        let streakProgress = min(1.0, Double(stats.streak) / 30.0)
         let masteredProgress = stats.totalWords == 0
             ? 0
             : min(1.0, Double(stats.masteredCount) / Double(stats.totalWords))
-        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+        return LazyVGrid(
+            columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())],
+            spacing: 16
+        ) {
             HealthMetricCard(
                 title: "今日の学習",
                 value: "\(stats.todayMinutes)",
@@ -76,6 +92,14 @@ struct StudyView: View {
                 icon: "clock.fill",
                 color: accent,
                 progress: todayProgress
+            )
+            HealthMetricCard(
+                title: "連続日数",
+                value: "\(stats.streak)",
+                unit: "日",
+                icon: "flame.fill",
+                color: accent,
+                progress: streakProgress
             )
             HealthMetricCard(
                 title: "習得語彙",
