@@ -130,7 +130,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				AF61E7ABCB5E6EB2B5B9AF89 /* ANKI-HUB-iOS-Widget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -500,7 +499,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				0C2E108F6014EB1F59DBCDCD /* PBXTargetDependency */,
 			);
 			name = "ANKI-HUB-iOS";
 			packageProductDependencies = (

@@ -116,6 +116,17 @@ open ANKI-HUB-iOS.xcodeproj
 | ゲストログインがGoogle認証を起動 | `continueAsGuest`未実装 | ローカルゲストモードを追加 |
 | 同期の過負荷 | デバウンス/レート制限なし | 2秒デバウンス、30秒レート制限実装 |
 
+### 実機インストール関連
+
+| 症状 | 原因 | 解決策 |
+|------|------|--------|
+| `Failed to create plugin data containers for plugin com.ankihub.ios.widget` | ウィジェット拡張（`sugwrAnkiWidget.appex`）のプロビジョニング/App Groupコンテナ作成失敗（iOS beta で多発） | メインアプリからウィジェット同梱を外して実機Run（現状のデフォルト）。端末から古い `sugwrAnki` を削除→Clean Build Folder→再インストール |
+| LLDB `empty dSYM file detected` | Xcode 16+ の Debug 構成では本体がスタブで、実コードは `*.debug.dylib` 側にあるため | **無視して問題なし**。デバッガは `.debug.dylib` にアタッチされる。インストール失敗の原因ではない |
+| 実機で真っ黒画面 | `@AppStorage(..., store: UserDefaults(suiteName:))` が nil でクラッシュ | `AppGroupStorage.defaults`（nil 時は `.standard`）に統一 |
+| 壁紙オーバーレイで画面が真っ黒 | 壁紙デフォルト ON + 画像未設定 | `wallpaperEnabled` デフォルトを OFF に変更 |
+
+**ウィジェットを実機で使う場合**: スキーム `ANKI-HUB-iOS-Widget` を単体 Run するか、Developer Portal で `com.ankihub.ios.widget` の App Groups を有効化したうえで Embed を復元する（署名問題解消後）。
+
 ### ビルドエラー関連
 
 | 症状 | 原因 | 解決策 |
