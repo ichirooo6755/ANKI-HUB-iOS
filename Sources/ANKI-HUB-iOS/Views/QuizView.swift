@@ -2,6 +2,10 @@ import AVFoundation
 import QuartzCore
 import SwiftUI
 
+#if canImport(UIKit)
+    import UIKit
+#endif
+
 #if canImport(WidgetKit)
     import WidgetKit
 #endif
@@ -85,6 +89,7 @@ struct QuizView: View {
     @State private var isSequentialMode: Bool = false
     @State private var chapterOrder: [String] = []
     @State private var currentChapterIndex: Int = 0
+    @State private var isChapterSelectionExpanded: Bool = false
 
     private static var seikeiParseCache: [Int: (String, [Int: String])] = [:]
 
@@ -175,6 +180,41 @@ struct QuizView: View {
         return "\(sorted.prefix(2).joined(separator: ", ")) ほか\(sorted.count - 2)件"
     }
 
+    @ViewBuilder
+    private func chapterSelectionGrid(chapters: [String]) -> some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+            ForEach(chapters, id: \.self) { chapter in
+                let isSelected = selectedChapters.contains(chapter)
+                Button {
+                    toggleChapterSelection(chapter)
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(isSelected
+                                ? theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                                : .secondary)
+                        Text(chapter)
+                            .font(.subheadline)
+                            .foregroundStyle(theme.primaryText)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .layoutPriority(1)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(10)
+                    .background(
+                        isSelected
+                        ? theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.15)
+                        : Color.gray.opacity(0.08)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
     private func isTypingCorrect(typed: String, answer: String) -> Bool {
         let t = typed.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         let a = answer.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
@@ -208,6 +248,10 @@ struct QuizView: View {
         case card = "カード"
     }
 
+    private var availableQuizModes: [QuizMode] {
+        subject == .ham3 ? [.fourChoice] : QuizMode.allCases
+    }
+
     var body: some View {
         ZStack {
             theme.background
@@ -224,6 +268,9 @@ struct QuizView: View {
                             var caps = VocabularyData.shared.getSeikeiChapters()
                             caps.insert("すべて", at: 0)
                             availableChapters = caps
+                        } else if subject == .ham3 {
+                            mode = .fourChoice
+                            availableChapters = VocabularyData.shared.getHam3ChapterOptions()
                         } else if subject == .kobun {
                             let total = VocabularyData.shared.getVocabulary(for: .kobun).count
                             guard total > 0 else {
@@ -243,6 +290,7 @@ struct QuizView: View {
                         }
                         if let initChap = initialChapter {
                             selectedChapters = [initChap]
+                            isChapterSelectionExpanded = true
                             if subject == .kobun, questionCount > 0 {
                                 questionCount = max(questionCount, VocabularyData.shared.chunkSize)
                             }
@@ -366,6 +414,11 @@ struct QuizView: View {
             }
         }
         .applyAppTheme()
+        .alert("クイズを開始できません", isPresented: $showStartErrorAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(startErrorMessage)
+        }
     }
 
     // MARK: - Settings View
@@ -387,7 +440,7 @@ struct QuizView: View {
                         .foregroundStyle(.secondary)
 
                     Picker("モード", selection: $mode) {
-                        ForEach(QuizMode.allCases, id: \.self) { m in
+                        ForEach(availableQuizModes, id: \.self) { m in
                             Text(m.rawValue).tag(m)
                         }
                     }
@@ -554,45 +607,34 @@ struct QuizView: View {
                     .tint(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
                     .accessibilityValue(Text(timeLimitLabel))
 
-                    // Chapter Selection (multi-select)
-                    if subject == .seikei || subject == .kobun {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("チャプターを選択")
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
-                            
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                                ForEach(availableChapters, id: \.self) { chapter in
-                                    let isSelected = selectedChapters.contains(chapter)
-                                    Button {
-                                        toggleChapterSelection(chapter)
-                                    } label: {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                                                .foregroundStyle(isSelected
-                                                    ? theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
-                                                    : .secondary)
-                                            Text(chapter)
-                                                .font(.subheadline)
+                    // Chapter Selection (multi-select, collapsible)
+                    if subject == .seikei || subject == .kobun || subject == .ham3 {
+                        DisclosureGroup(isExpanded: $isChapterSelectionExpanded) {
+                            if subject == .ham3 {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    ForEach(VocabularyData.shared.getHam3ChapterSections()) { section in
+                                        DisclosureGroup {
+                                            chapterSelectionGrid(chapters: section.chapters)
+                                        } label: {
+                                            Text(section.title)
+                                                .font(.subheadline.weight(.semibold))
                                                 .foregroundStyle(theme.primaryText)
-                                                .multilineTextAlignment(.leading)
-                                                .lineLimit(2)
-                                                .fixedSize(horizontal: false, vertical: true)
-                                                .layoutPriority(1)
                                         }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding(10)
-                                        .background(
-                                            isSelected
-                                            ? theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.15)
-                                            : Color.gray.opacity(0.08)
-                                        )
-                                        .clipShape(RoundedRectangle(cornerRadius: 12))
                                     }
-                                    .buttonStyle(.plain)
                                 }
+                            } else {
+                                chapterSelectionGrid(chapters: availableChapters)
                             }
-                            
+                        } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("チャプターを選択")
+                                    .font(.headline)
+                                    .foregroundStyle(.secondary)
+                                Text(selectedChaptersDisplay)
+                                    .font(.caption)
+                                    .foregroundStyle(theme.secondaryText)
+                                    .lineLimit(2)
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.vertical, 8)
@@ -1061,6 +1103,16 @@ struct QuizView: View {
                         revealedSeikeiBlankId = id
                     }
                     .frame(maxWidth: .infinity, minHeight: 240)
+                } else if subject == .ham3, let fullText = question.fullText, !fullText.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(fullText)
+                            .font(.body)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Ham3QuestionImages(
+                            prefix: question.ham3ImagePrefix,
+                            names: question.ham3Images
+                        )
+                    }
                 }
 
                 // Hide hints for Kanbun/Kobun until answer is shown (per user request)
@@ -1254,6 +1306,22 @@ struct QuizView: View {
                     }
                     Text(question.questionText)
                         .font(.title2.weight(.bold))
+                        .multilineTextAlignment(.center)
+                } else if subject == .ham3 {
+                    if let fullText = question.fullText, !fullText.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(fullText)
+                                .font(.body)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Ham3QuestionImages(
+                                prefix: question.ham3ImagePrefix,
+                                names: question.ham3Images
+                            )
+                        }
+                    }
+                    Text(question.questionText)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 } else {
                     Text(question.questionText)
@@ -1876,7 +1944,11 @@ struct QuizView: View {
 
                 if selected.contains("すべて") || selected.isEmpty {
                     // Use all chapters in order (excluding "すべて")
-                    chapterOrder = availableChapters.filter { $0 != "すべて" }
+                    if subject == .ham3 {
+                        chapterOrder = VocabularyData.shared.getHam3Chapters()
+                    } else {
+                        chapterOrder = availableChapters.filter { $0 != "すべて" }
+                    }
                 } else {
                     func chapterNumberForSort(_ s: String) -> Int? {
                         let trimmed = s
@@ -2061,7 +2133,7 @@ struct QuizView: View {
         // Apply chapter filter (multi-select)
         let chaptersForFilter: Set<String> = {
             if let chapter = initialChapter, !chapter.isEmpty { return [chapter] }
-            if subject == .seikei || subject == .kobun {
+            if subject == .seikei || subject == .kobun || subject == .ham3 {
                 if selectedChapters.contains("すべて") || selectedChapters.isEmpty {
                     return []
                 }
@@ -2171,6 +2243,18 @@ struct QuizView: View {
     }
 
     // Helper to filter vocabulary by chapter
+    private func isHam3MistakeVocab(_ v: Vocabulary) -> Bool {
+        if masteryTracker.getMastery(subject: subject.rawValue, wordId: v.id) == .weak {
+            return true
+        }
+        if let item = masteryTracker.items[subject.rawValue]?[v.id],
+           item.wrong > 0,
+           item.lastAnswerWasCorrect == false {
+            return true
+        }
+        return false
+    }
+
     private func filterVocabByChapter(_ vocab: [Vocabulary], chapter: String) -> [Vocabulary] {
         let chunkSize = 50
 
@@ -2181,6 +2265,14 @@ struct QuizView: View {
         if subject == .seikei {
             // Seikei: use category field (DataParser assigns exact chapter string)
             return vocab.filter { $0.category == chapter }
+        }
+
+        if subject == .ham3 {
+            var filtered = VocabularyData.shared.filterHam3Vocabulary(vocab, chapter: chapter)
+            if Ham3ChapterOption.isMistakesChapter(chapter) {
+                filtered = filtered.filter { isHam3MistakeVocab($0) }
+            }
+            return filtered
         }
 
         if subject == .kanbun {
@@ -2242,7 +2334,7 @@ struct QuizView: View {
         for word in vocab {
             if subject == .seikei, word.questionType == "blank" {
                 guard let fullText = word.fullText, !fullText.isEmpty else { continue }
-                let (content, blankMap) = cachedParseSeikeiQuizContent(fullText)
+                let (_, blankMap) = cachedParseSeikeiQuizContent(fullText)
 
                 let answerPool: [String] = {
                     let sameCategory = allVocabPool.filter {
@@ -2386,6 +2478,27 @@ struct QuizView: View {
                         fullText: word.fullText
                     )
                 )
+            } else if subject == .ham3, word.questionType == "ham3" {
+                guard let choices = word.allAnswers, !choices.isEmpty else { continue }
+                let correct = word.meaning
+                let shuffledChoices = choices.shuffled()
+                let correctIndex = shuffledChoices.firstIndex(of: correct) ?? 0
+                let header = [word.category, word.term].compactMap { $0 }.joined(separator: " ")
+
+                results.append(
+                    Question(
+                        id: word.id,
+                        questionText: header,
+                        answerText: correct,
+                        hint: nil,
+                        example: nil,
+                        choices: shuffledChoices,
+                        correctIndex: correctIndex,
+                        fullText: word.fullText,
+                        ham3Images: word.images,
+                        ham3ImagePrefix: word.imagePrefix
+                    )
+                )
             } else {
                 let otherWords = allVocabPool.filter { $0.id != word.id }.shuffled()
                 var choices = [word.meaning]
@@ -2441,6 +2554,13 @@ struct QuizView: View {
             }
             let trimmed = ordered.count > count ? Array(ordered.prefix(count)) : ordered
             return trimmed
+        }
+
+        if subject == .ham3 {
+            let ordered = results.sorted {
+                (vocabOrder[$0.id] ?? Int.max) < (vocabOrder[$1.id] ?? Int.max)
+            }
+            return ordered.count > count ? Array(ordered.prefix(count)) : ordered
         }
 
         if results.count > count {
@@ -2889,6 +3009,66 @@ struct Question: Identifiable {
     let correctIndex: Int
     var fullText: String? = nil  // For Seikei fill-in-blank questions
     var seikeiBlankId: Int? = nil
+    var ham3Images: [String]? = nil
+    var ham3ImagePrefix: String? = nil
+}
+
+// MARK: - Ham3 Images
+
+private struct Ham3QuestionImages: View {
+    let prefix: String?
+    let names: [String]?
+
+    var body: some View {
+        if let prefix, let names, !names.isEmpty {
+            VStack(spacing: 8) {
+                ForEach(names, id: \.self) { name in
+                    Ham3BundledImage(prefix: prefix, name: name)
+                }
+            }
+        }
+    }
+}
+
+private struct Ham3BundledImage: View {
+    let prefix: String
+    let name: String
+
+    var body: some View {
+        #if canImport(UIKit)
+        if let image = Self.loadImage(prefix: prefix, name: name) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        #endif
+    }
+
+    #if canImport(UIKit)
+    static func loadImage(prefix: String, name: String) -> UIImage? {
+        var bundles: [Bundle] = [.main]
+        #if SWIFT_PACKAGE
+        bundles.append(.module)
+        #endif
+
+        let baseName = (name as NSString).deletingPathExtension
+        let ext = (name as NSString).pathExtension.isEmpty ? "png" : (name as NSString).pathExtension
+        let subdirectory = "ham3_images/\(prefix)"
+
+        for bundle in bundles {
+            if let url = bundle.url(
+                forResource: baseName,
+                withExtension: ext,
+                subdirectory: subdirectory
+            ), let image = UIImage(contentsOfFile: url.path) {
+                return image
+            }
+        }
+        return nil
+    }
+    #endif
 }
 
 // MARK: - Reset Functions

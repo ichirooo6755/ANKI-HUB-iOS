@@ -568,9 +568,8 @@ class ParticleQuizViewModel: ObservableObject {
         let allVocab = VocabularyData.shared.getVocabulary(for: .kobun)
         var items = allVocab.compactMap { $0.particleData }
 
-        // If no particle data found, use sample particles for testing
         if items.isEmpty {
-            items = Self.sampleParticles
+            items = VocabularyData.shared.getParticles()
         }
 
         guard !items.isEmpty else {
@@ -586,58 +585,6 @@ class ParticleQuizViewModel: ObservableObject {
         isQuizComplete = false
         nextQuestion()
     }
-
-    // Sample particle data for testing when particleData is not available in Vocabulary
-    private static let sampleParticles: [ParticleData] = [
-        ParticleData(
-            id: "p1", type: "係助詞", particle: "こそ",
-            meaning: "強調（最も強い）",
-            examples: ["命こそ惜しけれ（命こそが惜しいのだ）"],
-            conjugations: ConjugationData(desc: "接続: 連体形", forms: ["係り結び→已然形"])
-        ),
-        ParticleData(
-            id: "p2", type: "係助詞", particle: "ぞ",
-            meaning: "強調",
-            examples: ["花ぞ散りける"],
-            conjugations: ConjugationData(desc: "接続: 連体形", forms: ["係り結び→連体形"])
-        ),
-        ParticleData(
-            id: "p3", type: "係助詞", particle: "なむ",
-            meaning: "強調（願望）",
-            examples: ["雨なむ降りける"],
-            conjugations: ConjugationData(desc: "接続: 連体形", forms: ["係り結び→連体形"])
-        ),
-        ParticleData(
-            id: "p4", type: "接続助詞", particle: "ば",
-            meaning: "仮定・確定条件",
-            examples: ["行かば（行くならば）", "行けば（行ったので）"],
-            conjugations: ConjugationData(desc: "接続: 未然形・已然形", forms: ["未然形＋ば＝仮定", "已然形＋ば＝確定"])
-        ),
-        ParticleData(
-            id: "p5", type: "接続助詞", particle: "ど",
-            meaning: "逆接（〜けれども）",
-            examples: ["行けど帰らず"],
-            conjugations: ConjugationData(desc: "接続: 已然形", forms: ["已然形に接続"])
-        ),
-        ParticleData(
-            id: "p6", type: "接続助詞", particle: "ども",
-            meaning: "逆接（〜けれども）",
-            examples: ["見れども飽かず"],
-            conjugations: ConjugationData(desc: "接続: 已然形", forms: ["已然形に接続"])
-        ),
-        ParticleData(
-            id: "p7", type: "格助詞", particle: "の",
-            meaning: "主格・連体修飾",
-            examples: ["山の桜", "我の行く"],
-            conjugations: ConjugationData(desc: "接続: 体言・連体形", forms: ["体言に接続"])
-        ),
-        ParticleData(
-            id: "p8", type: "格助詞", particle: "が",
-            meaning: "主格・連体修飾",
-            examples: ["花が咲く", "山が紫"],
-            conjugations: ConjugationData(desc: "接続: 体言・連体形", forms: ["体言に接続"])
-        ),
-    ]
 
     func nextQuestion() {
         guard currentIndex < particles.count else {

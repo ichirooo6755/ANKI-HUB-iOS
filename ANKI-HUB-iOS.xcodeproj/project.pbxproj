@@ -3,38 +3,34 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		0472D2351194268B2FE2D110 /* QuizCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B958BA872D4132B5853A26 /* QuizCaptureView.swift */; };
 		0526B9C7AB081531A56B84D8 /* ChapterSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D96FECE438DA97CD55CF884 /* ChapterSelectionView.swift */; };
 		06EBC52649F0C2262A24CDFA /* kobun_pdf.json in Resources */ = {isa = PBXBuildFile; fileRef = D7648808FC06CE5AA0EA52A6 /* kobun_pdf.json */; };
-		0A1B2C3D4E5F60718293A4B5 /* CardStackEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B4 /* CardStackEffects.swift */; };
 		08440EF7156AF4CAE53F8C78 /* InputModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AA8580402E097FFA50EF559 /* InputModeView.swift */; };
 		08EB46CD21B1C06172C48F25 /* KanbunVerticalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3222FD2A99E8F8D6054ECD8 /* KanbunVerticalView.swift */; };
 		0913EC3DB9F4278FCCEC7C07 /* SupabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 138EF5A87CD96F36979ED3F1 /* SupabaseError.swift */; };
+		0A1B2C3D4E5F60718293A4B5 /* CardStackEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A1B2C3D4E5F60718293A4B4 /* CardStackEffects.swift */; };
 		0B1C2D3E4F5061728394A5B6 /* CyberpunkEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B1C2D3E4F5061728394A5B5 /* CyberpunkEffects.swift */; };
+		0C1D2E3F405162738495A6B7 /* HealthAppEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D2E3F405162738495A6B6 /* HealthAppEffects.swift */; };
+		0D1E2F30415263748596A7B8 /* VisualEffectModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D1E2F30415263748596A7B7 /* VisualEffectModifiers.swift */; };
+		0E1F2031425364758697A8B9 /* VisualEffectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1F2031425364758697A8B8 /* VisualEffectsManager.swift */; };
 		0E912FC2F8298A55F25BFD90 /* SeikeiWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE956E3F2E960F2EA83BA43 /* SeikeiWebView.swift */; };
 		0F0300F5D95D00B83A8D1E0D /* ParticleConjugationTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B624E4FEAA37CD94A67DF58 /* ParticleConjugationTableView.swift */; };
 		0F08F3145878FC5949DA1E43 /* ExamHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F42290185DB1686BC4377B5 /* ExamHistoryView.swift */; };
-		0C1D2E3F405162738495A6B7 /* HealthAppEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1D2E3F405162738495A6B6 /* HealthAppEffects.swift */; };
+		0F2031425364758697A8B9C1 /* VisualEffectsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2031425364758697A8B9C0 /* VisualEffectsSettingsView.swift */; };
 		1A24854AE1EE58A95495C385 /* WordbookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD13242DA43D8AC9C0ED81F0 /* WordbookView.swift */; };
 		1DB463B83147026FEE1D7BD7 /* kanbun.json in Resources */ = {isa = PBXBuildFile; fileRef = BA98B3F09DCD84AA7292B33E /* kanbun.json */; };
 		1EF8391F42BBC7F05100967C /* ReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C66D02FAC24A6FA7FA24E01E /* ReportView.swift */; };
-		0F2031425364758697A8B9C1 /* VisualEffectsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F2031425364758697A8B9C0 /* VisualEffectsSettingsView.swift */; };
-		0D1E2F30415263748596A7B8 /* VisualEffectModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D1E2F30415263748596A7B7 /* VisualEffectModifiers.swift */; };
 		1FC5D8B3DEEB458B33056201 /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE32F1808DF4458315A2714E /* SupabaseAuthService.swift */; };
 		200431E047FDFACCFF413C21 /* DueReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84F79BCB55DEDFE78F084EAA /* DueReviewView.swift */; };
 		23D6245B68DE4BB723F84A60 /* CustomVocabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4398A49B466FC3993E8172 /* CustomVocabView.swift */; };
-		0E1F2031425364758697A8B9 /* VisualEffectsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E1F2031425364758697A8B8 /* VisualEffectsManager.swift */; };
-		A1B2C3D4E5F60718293A4B6C /* StudySessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */; };
-		A1B2C3D4E5F60718293A4B6E /* StudySessionBentoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */; };
-		E6A9F2F4C3D4B5A697887779 /* LockScreenMirrorGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */; };
-		263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */; };
+		263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */ = {isa = PBXBuildFile; fileRef = 76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */; };
 		2A0EF5C09EDB43D7B8FE26DC /* PaperWordbookSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741D8F69D11144E5DD9DB9BC /* PaperWordbookSyncView.swift */; };
 		2C1ABDC45CD5F8ADA035D35F /* SupabaseUserService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1C5FE8DB7BFD3B11BD999F /* SupabaseUserService.swift */; };
-		E6A9F2F1C3D4B5A697887776 /* CustomSpeechTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2F0C3D4B5A697887775 /* CustomSpeechTranscriber.swift */; };
 		315D15A35EAC862834E16EDD /* RawData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40A5C945DE2F4DDC5048A9B7 /* RawData.swift */; };
 		3313FBF795251E8BA0E3145E /* BookshelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B579BC5A0B02A3EE39EC7AF /* BookshelfView.swift */; };
 		35DA4EA644A1A53F210825FB /* SupabaseInvitationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7FBE44B362F2B324B20A381 /* SupabaseInvitationService.swift */; };
@@ -77,17 +73,22 @@
 		987D66342D25A2DC19FC7530 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5E329F923BA8E6CB5BFF9724 /* Assets.xcassets */; };
 		9A6A436936119DE838E6CD4D /* VocabularyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5818B7DD4E6D94E86C1C51A0 /* VocabularyData.swift */; };
 		9B2CDF52A381F673847D85E2 /* grammar.json in Resources */ = {isa = PBXBuildFile; fileRef = 8AFF1A9872CEA26C59B13B50 /* grammar.json */; };
+		A1B2C3D4E5F60718293A4B6C /* StudySessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */; };
+		A1B2C3D4E5F60718293A4B6E /* StudySessionBentoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */; };
 		A2CEB71D776018C29CE2243A /* SettingsIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6ECDB9E79C196E190A0123 /* SettingsIcon.swift */; };
 		A3D894DFB107646CD5765CDE /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175DF687B5B72F0A1287D7C8 /* AuthView.swift */; };
 		AD7204EA7FE25A373DA09E58 /* StudyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F58365865FC827B5844A3DF /* StudyView.swift */; };
 		AF206C45C76C127198A3CAA2 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1841F3BD7BC47EBEE04FFBA0 /* MainTabView.swift */; };
-		AF61E7ABCB5E6EB2B5B9AF89 /* ANKI-HUB-iOS-Widget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 61393CB0BC16AE745E73C5F0 /* ANKI-HUB-iOS-Widget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AF61E7ABCB5E6EB2B5B9AF89 /* ANKI-HUB-iOS-Widget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 61393CB0BC16AE745E73C5F0 /* sugwrAnkiWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B1C2D3E4F5A6789012345002 /* ham3.json in Resources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6789012345001 /* ham3.json */; };
+		B1C2D3E4F5A6789012345004 /* ham3_images in Resources */ = {isa = PBXBuildFile; fileRef = B1C2D3E4F5A6789012345003 /* ham3_images */; };
 		B77E69E118EF3148EAF7F36A /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADA96F2A157000729DE70FE /* ThemeManager.swift */; };
 		BF852B66B4DF7E5580218757 /* IMG_5275.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 847B2C7F2FCED2418C7A2565 /* IMG_5275.jpg */; };
 		C01A134A29F6D6FF1398B0D1 /* IMG_5278.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1520F30DF5831EB5B7B6819F /* IMG_5278.jpg */; };
 		C3C61A4FC5BA162038415E1E /* SupabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16E0A064EF69F6FE57A51F4 /* SupabaseManager.swift */; };
 		C4C17ED47742BAE932C23E0A /* IMG_5274.jpg in Resources */ = {isa = PBXBuildFile; fileRef = BBA115CFD27ED4C6EE9C318E /* IMG_5274.jpg */; };
 		C9DBC044F47CB0160A262EFC /* RedSheetOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DC8766508BCAF4762DEF34E /* RedSheetOverlay.swift */; };
+		C2D3E4F5A6789012345006 /* particles.json in Resources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6789012345005 /* particles.json */; };
 		CFD264A861F48D4CB692A9DC /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1689952502895FE3F220BC5 /* SettingsView.swift */; };
 		D300E7F439C7BF1ABDDBCDAC /* TimelineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 551E2ADD61CAB99F6B29C362 /* TimelineManager.swift */; };
 		D42BA3E7BA9B68ECB9D0FA7B /* TodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBBA12BF8879806EA5BEE6F6 /* TodoView.swift */; };
@@ -99,15 +100,16 @@
 		E3D2141DE4A0AB7B6CAC8087 /* SupabaseMistakeReportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A632D2E28EE798B2CF33A7BE /* SupabaseMistakeReportService.swift */; };
 		E4D9D6A0F6A028DB212F42DE /* RankUpManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90E3AA9E9DFE9A8E30B1896 /* RankUpManager.swift */; };
 		E5B181117E41EEE73E7DE2F2 /* SupabaseHTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 740662370E2D90A1663E2962 /* SupabaseHTTPClient.swift */; };
+		E6A9F2E5C3D4B5A697887767 /* HealthComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2E4C3D4B5A697887766 /* HealthComponents.swift */; };
+		E6A9F2EDC3D4B5A697887771 /* AppCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2ECC3D4B5A697887770 /* AppCalendarView.swift */; };
+		E6A9F2F1C3D4B5A697887776 /* CustomSpeechTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2F0C3D4B5A697887775 /* CustomSpeechTranscriber.swift */; };
+		E6A9F2F4C3D4B5A697887779 /* LockScreenMirrorGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */; };
 		EE43DFBF020289432699FEDE /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF5D5AFADBDD2F0E0962E4 /* Models.swift */; };
 		EF0E824C1DB175AF729618DA /* ANKIHUBApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59065F29958F253BC78B88F8 /* ANKIHUBApp.swift */; };
 		F02AE03A08757C17DE9DE070 /* ANKI_HUB_iOS_Widget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB59E2115FA8A262B97F8D /* ANKI_HUB_iOS_Widget.swift */; };
 		F119FFA2873968C63CC8F828 /* StudyMaterialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 955F72AD0CF329B18285B470 /* StudyMaterialManager.swift */; };
-		F7661290D5F29B04BB747D57 /* WidgetSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78B7752570DC6C4E5D928C3D /* WidgetSettingsView.swift */; };
 		F7F0D63DD84E50398C7CE511 /* ScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB6C4627E4259AC39C79F97B /* ScanView.swift */; };
 		FBA0CB665E38ADFE48A7BE85 /* CalendarComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D80E99C7CA4AA2FDEC78B19 /* CalendarComponents.swift */; };
-		E6A9F2E5C3D4B5A697887767 /* HealthComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2E4C3D4B5A697887766 /* HealthComponents.swift */; };
-		E6A9F2EDC3D4B5A697887771 /* AppCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A9F2ECC3D4B5A697887770 /* AppCalendarView.swift */; };
 		FEDF02D06C6EF680639C553D /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E47B989230174E6185BFE75 /* KeychainService.swift */; };
 /* End PBXBuildFile section */
 
@@ -140,15 +142,15 @@
 		06122B34B24999861C8946E4 /* FrontCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontCameraView.swift; sourceTree = "<group>"; };
 		08A4C6065EE246C8B4C348C4 /* TextRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecognitionService.swift; sourceTree = "<group>"; };
 		0A1B2C3D4E5F60718293A4B4 /* CardStackEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardStackEffects.swift; sourceTree = "<group>"; };
+		0AA8580402E097FFA50EF559 /* InputModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputModeView.swift; sourceTree = "<group>"; };
+		0ADA96F2A157000729DE70FE /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		0B1C2D3E4F5061728394A5B5 /* CyberpunkEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyberpunkEffects.swift; sourceTree = "<group>"; };
 		0C1D2E3F405162738495A6B6 /* HealthAppEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthAppEffects.swift; sourceTree = "<group>"; };
+		0D10CE7B75BBB8FDB0998DFB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0D1E2F30415263748596A7B7 /* VisualEffectModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectModifiers.swift; sourceTree = "<group>"; };
 		0E1F2031425364758697A8B8 /* VisualEffectsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectsManager.swift; sourceTree = "<group>"; };
 		0F2031425364758697A8B9C0 /* VisualEffectsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualEffectsSettingsView.swift; sourceTree = "<group>"; };
-		0AA8580402E097FFA50EF559 /* InputModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputModeView.swift; sourceTree = "<group>"; };
-		0ADA96F2A157000729DE70FE /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
-		0D10CE7B75BBB8FDB0998DFB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		1364BC3DC160BA9167F2E954 /* ANKI-HUB-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "ANKI-HUB-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1364BC3DC160BA9167F2E954 /* sugwrAnki.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sugwrAnki.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		138EF5A87CD96F36979ED3F1 /* SupabaseError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseError.swift; sourceTree = "<group>"; };
 		1520F30DF5831EB5B7B6819F /* IMG_5278.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_5278.jpg; sourceTree = "<group>"; };
 		15E4AE6F56E943FB5A0CDC9A /* MasteryColorEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasteryColorEditorView.swift; sourceTree = "<group>"; };
@@ -156,7 +158,6 @@
 		17B11C72B418B82E87B2C9BB /* constitution.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = constitution.json; sourceTree = "<group>"; };
 		1841F3BD7BC47EBEE04FFBA0 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		1B12AA2DE6A4F80C244FD7C8 /* SubjectMasteryChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectMasteryChart.swift; sourceTree = "<group>"; };
-		1D71C9CE0CC6415B865512E1 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		1D80E99C7CA4AA2FDEC78B19 /* CalendarComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarComponents.swift; sourceTree = "<group>"; };
 		221DCECC633597AA9BF3D1FE /* LearningManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningManager.swift; sourceTree = "<group>"; };
 		2362483F3855E8BB934043DD /* ANKI-HUB-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "ANKI-HUB-iOS.entitlements"; sourceTree = "<group>"; };
@@ -164,12 +165,10 @@
 		2F42290185DB1686BC4377B5 /* ExamHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamHistoryView.swift; sourceTree = "<group>"; };
 		305EDF981FCEF4E9139FACCC /* SupabaseSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseSession.swift; sourceTree = "<group>"; };
 		339AB4910D5268AA3D376674 /* DashboardCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardCharts.swift; sourceTree = "<group>"; };
-		3411F36B7C9778DDA4B2FC44 /* 古文単語リスト - Table 1.csv */ = {isa = PBXFileReference; path = "古文単語リスト - Table 1.csv"; sourceTree = "<group>"; };
+		3411F36B7C9778DDA4B2FC44 /* 古文単語リスト - Table 1.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "古文単語リスト - Table 1.csv"; sourceTree = "<group>"; };
 		34C205FA228416CEF67DAA8F /* FocusTimerAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerAttributes.swift; sourceTree = "<group>"; };
 		3565F5636D859200FC648AF8 /* WeakWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeakWordsView.swift; sourceTree = "<group>"; };
 		3F58365865FC827B5844A3DF /* StudyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionManager.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionBentoCard.swift; sourceTree = "<group>"; };
 		40A5C945DE2F4DDC5048A9B7 /* RawData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawData.swift; sourceTree = "<group>"; };
 		42699E2B54C4381847C49A84 /* CSVTextDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVTextDocument.swift; sourceTree = "<group>"; };
 		490FB40BEE416D935DF6646D /* CircularProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularProgressView.swift; sourceTree = "<group>"; };
@@ -182,8 +181,6 @@
 		4ECF5D5AFADBDD2F0E0962E4 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		53FD2A057ACA26E1B86B75DF /* KanbunWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbunWebView.swift; sourceTree = "<group>"; };
 		54AEB8D38B6CE12F06BE3358 /* DashboardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardComponents.swift; sourceTree = "<group>"; };
-		E6A9F2E4C3D4B5A697887766 /* HealthComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthComponents.swift; sourceTree = "<group>"; };
-		E6A9F2ECC3D4B5A697887770 /* AppCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCalendarView.swift; sourceTree = "<group>"; };
 		551E2ADD61CAB99F6B29C362 /* TimelineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineManager.swift; sourceTree = "<group>"; };
 		5818B7DD4E6D94E86C1C51A0 /* VocabularyData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyData.swift; sourceTree = "<group>"; };
 		59065F29958F253BC78B88F8 /* ANKIHUBApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ANKIHUBApp.swift; sourceTree = "<group>"; };
@@ -192,38 +189,40 @@
 		5D96FECE438DA97CD55CF884 /* ChapterSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChapterSelectionView.swift; sourceTree = "<group>"; };
 		5E329F923BA8E6CB5BFF9724 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5E47B989230174E6185BFE75 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
-		61393CB0BC16AE745E73C5F0 /* ANKI-HUB-iOS-Widget.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = "ANKI-HUB-iOS-Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		61393CB0BC16AE745E73C5F0 /* sugwrAnkiWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = sugwrAnkiWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		72781903D422A43C1827C20E /* InputModeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputModeManager.swift; sourceTree = "<group>"; };
 		740662370E2D90A1663E2962 /* SupabaseHTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseHTTPClient.swift; sourceTree = "<group>"; };
 		741D8F69D11144E5DD9DB9BC /* PaperWordbookSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaperWordbookSyncView.swift; sourceTree = "<group>"; };
 		767910158F8B2E691292C680 /* ANKI-HUB-iOS-Widget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "ANKI-HUB-iOS-Widget.entitlements"; sourceTree = "<group>"; };
-		76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */ = {isa = PBXFileReference; path = "重要古語・プラスアルファ古文単語一覧 - Table 1.csv"; sourceTree = "<group>"; };
-		78B7752570DC6C4E5D928C3D /* WidgetSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSettingsView.swift; sourceTree = "<group>"; };
+		76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */ = {isa = PBXFileReference; lastKnownFileType = text; path = "重要古語・プラスアルファ古文単語一覧 - Table 1.csv"; sourceTree = "<group>"; };
 		7DE956E3F2E960F2EA83BA43 /* SeikeiWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeikeiWebView.swift; sourceTree = "<group>"; };
 		847B2C7F2FCED2418C7A2565 /* IMG_5275.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_5275.jpg; sourceTree = "<group>"; };
 		84F79BCB55DEDFE78F084EAA /* DueReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DueReviewView.swift; sourceTree = "<group>"; };
 		8AFF1A9872CEA26C59B13B50 /* grammar.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = grammar.json; sourceTree = "<group>"; };
 		8B579BC5A0B02A3EE39EC7AF /* BookshelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfView.swift; sourceTree = "<group>"; };
 		8D687CD0B8AC7FC7F62849EB /* SupabaseStudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseStudyService.swift; sourceTree = "<group>"; };
-		E6A9F2F0C3D4B5A697887775 /* CustomSpeechTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSpeechTranscriber.swift; sourceTree = "<group>"; };
-		E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenMirrorGuideView.swift; sourceTree = "<group>"; };
 		91A8B460487D27F4E7824723 /* kanbun_grammar.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = kanbun_grammar.json; sourceTree = "<group>"; };
 		93E772878E5A32024827FECD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		955F72AD0CF329B18285B470 /* StudyMaterialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyMaterialManager.swift; sourceTree = "<group>"; };
 		9AB7E98C8F52AF0968D7EE55 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionManager.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionBentoCard.swift; sourceTree = "<group>"; };
 		A632D2E28EE798B2CF33A7BE /* SupabaseMistakeReportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseMistakeReportService.swift; sourceTree = "<group>"; };
 		AABB59E2115FA8A262B97F8D /* ANKI_HUB_iOS_Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ANKI_HUB_iOS_Widget.swift; sourceTree = "<group>"; };
 		AD13242DA43D8AC9C0ED81F0 /* WordbookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordbookView.swift; sourceTree = "<group>"; };
 		B0F45F4D0B5898160E82D6FC /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
 		B1689952502895FE3F220BC5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B1C2D3E4F5A6789012345001 /* ham3.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ham3.json; sourceTree = "<group>"; };
+		B1C2D3E4F5A6789012345003 /* ham3_images */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ham3_images; sourceTree = "<group>"; };
 		B3222FD2A99E8F8D6054ECD8 /* KanbunVerticalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KanbunVerticalView.swift; sourceTree = "<group>"; };
 		B6B958BA872D4132B5853A26 /* QuizCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizCaptureView.swift; sourceTree = "<group>"; };
 		B9232EA102F7E337B552FD5F /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		BA7BB3F93154CF38182D09B9 /* DataParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataParser.swift; sourceTree = "<group>"; };
 		BA98B3F09DCD84AA7292B33E /* kanbun.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = kanbun.json; sourceTree = "<group>"; };
 		BBA115CFD27ED4C6EE9C318E /* IMG_5274.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_5274.jpg; sourceTree = "<group>"; };
-		BDB2587306CD8270B3D5E82D /* vocab1900.tsv */ = {isa = PBXFileReference; path = vocab1900.tsv; sourceTree = "<group>"; };
+		BDB2587306CD8270B3D5E82D /* vocab1900.tsv */ = {isa = PBXFileReference; lastKnownFileType = text; path = vocab1900.tsv; sourceTree = "<group>"; };
 		C16E0A064EF69F6FE57A51F4 /* SupabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseManager.swift; sourceTree = "<group>"; };
+		C2D3E4F5A6789012345005 /* particles.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = particles.json; sourceTree = "<group>"; };
 		C3BC4DD9224428544F1D35A0 /* AppUsageTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUsageTracker.swift; sourceTree = "<group>"; };
 		C66D02FAC24A6FA7FA24E01E /* ReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportView.swift; sourceTree = "<group>"; };
 		D7648808FC06CE5AA0EA52A6 /* kobun_pdf.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = kobun_pdf.json; sourceTree = "<group>"; };
@@ -233,6 +232,10 @@
 		DCBD57E1484856233A1DDAF7 /* IMG_5276.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_5276.jpg; sourceTree = "<group>"; };
 		DE32F1808DF4458315A2714E /* SupabaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthService.swift; sourceTree = "<group>"; };
 		E4140A4BEBEE9BEF65F7CABF /* FlashcardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardView.swift; sourceTree = "<group>"; };
+		E6A9F2E4C3D4B5A697887766 /* HealthComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthComponents.swift; sourceTree = "<group>"; };
+		E6A9F2ECC3D4B5A697887770 /* AppCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCalendarView.swift; sourceTree = "<group>"; };
+		E6A9F2F0C3D4B5A697887775 /* CustomSpeechTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomSpeechTranscriber.swift; sourceTree = "<group>"; };
+		E6A9F2F3C3D4B5A697887778 /* LockScreenMirrorGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenMirrorGuideView.swift; sourceTree = "<group>"; };
 		E85FEC5175E96EF91668DEEA /* SyncStatusIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatusIndicator.swift; sourceTree = "<group>"; };
 		EB1000AAEC8DA867C954437A /* IMG_5277.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = IMG_5277.jpg; sourceTree = "<group>"; };
 		EEC866DB880AD7BDA2DF587D /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
@@ -315,8 +318,8 @@
 		3A0170937A3825E259F5300C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				61393CB0BC16AE745E73C5F0 /* ANKI-HUB-iOS-Widget.appex */,
-				1364BC3DC160BA9167F2E954 /* ANKI-HUB-iOS.app */,
+				61393CB0BC16AE745E73C5F0 /* sugwrAnkiWidget.appex */,
+				1364BC3DC160BA9167F2E954 /* sugwrAnki.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -394,7 +397,7 @@
 			isa = PBXGroup;
 			children = (
 				3411F36B7C9778DDA4B2FC44 /* 古文単語リスト - Table 1.csv */,
-				76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */,
+				76F7626BA24561AA81CC6CA8 /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv */,
 			);
 			path = OriginalData;
 			sourceTree = "<group>";
@@ -420,7 +423,6 @@
 				0F2031425364758697A8B9C0 /* VisualEffectsSettingsView.swift */,
 				FEF13ED832F228C117797D2F /* WallpaperGalleryView.swift */,
 				3565F5636D859200FC648AF8 /* WeakWordsView.swift */,
-				78B7752570DC6C4E5D928C3D /* WidgetSettingsView.swift */,
 				AD13242DA43D8AC9C0ED81F0 /* WordbookView.swift */,
 			);
 			path = Views;
@@ -458,6 +460,9 @@
 		E12322A6E03EA67A6C7B10FD /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B1C2D3E4F5A6789012345001 /* ham3.json */,
+				B1C2D3E4F5A6789012345003 /* ham3_images */,
+				C2D3E4F5A6789012345005 /* particles.json */,
 				17B11C72B418B82E87B2C9BB /* constitution.json */,
 				8AFF1A9872CEA26C59B13B50 /* grammar.json */,
 				91A8B460487D27F4E7824723 /* kanbun_grammar.json */,
@@ -501,7 +506,7 @@
 			packageProductDependencies = (
 			);
 			productName = "ANKI-HUB-iOS";
-			productReference = 1364BC3DC160BA9167F2E954 /* ANKI-HUB-iOS.app */;
+			productReference = 1364BC3DC160BA9167F2E954 /* sugwrAnki.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1203992621608FE7F4121BAF /* ANKI-HUB-iOS-Widget */ = {
@@ -518,7 +523,7 @@
 			packageProductDependencies = (
 			);
 			productName = "ANKI-HUB-iOS-Widget";
-			productReference = 61393CB0BC16AE745E73C5F0 /* ANKI-HUB-iOS-Widget.appex */;
+			productReference = 61393CB0BC16AE745E73C5F0 /* sugwrAnkiWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -528,8 +533,8 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2620;
 				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					032C2D7DFD65E8BF42D3C001 = {
 						DevelopmentTeam = K5D7GVJFG7;
@@ -551,7 +556,6 @@
 			);
 			mainGroup = C83B8297AE0BCE50FCF85A34;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -572,6 +576,9 @@
 				5C5F8F3C283465A033768A50 /* IMG_5276.jpg in Resources */,
 				70190EB366A1BAD930A40ED9 /* IMG_5277.jpg in Resources */,
 				C01A134A29F6D6FF1398B0D1 /* IMG_5278.jpg in Resources */,
+				B1C2D3E4F5A6789012345002 /* ham3.json in Resources */,
+				B1C2D3E4F5A6789012345004 /* ham3_images in Resources */,
+				C2D3E4F5A6789012345006 /* particles.json in Resources */,
 				6370B8FABF3205781D7727D6 /* constitution.json in Resources */,
 				9B2CDF52A381F673847D85E2 /* grammar.json in Resources */,
 				1DB463B83147026FEE1D7BD7 /* kanbun.json in Resources */,
@@ -580,7 +587,7 @@
 				06EBC52649F0C2262A24CDFA /* kobun_pdf.json in Resources */,
 				39C2CC9034AD6C8202BB8BD7 /* vocab1900.tsv in Resources */,
 				3BCDFDF6DDCDC4BAFC9F160F /* 古文単語リスト - Table 1.csv in Resources */,
-				263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */,
+				263DB00EA8B31AD57F0A162A /* 重要古語・プラスアルファ古文単語一覧 - Table 1.csv in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -682,7 +689,6 @@
 				9A6A436936119DE838E6CD4D /* VocabularyData.swift in Sources */,
 				7272ADD622274EA366DE82D6 /* WallpaperGalleryView.swift in Sources */,
 				520FD74D811979BC9EA66443 /* WeakWordsView.swift in Sources */,
-				F7661290D5F29B04BB747D57 /* WidgetSettingsView.swift in Sources */,
 				1A24854AE1EE58A95495C385 /* WordbookView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -706,12 +712,11 @@
 				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
 				CODE_SIGN_ENTITLEMENTS = "Sources/ANKI-HUB-iOS/ANKI-HUB-iOS.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				INFOPLIST_FILE = "Sources/ANKI-HUB-iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -736,13 +741,14 @@
 		86081536D13E658C6740179F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
 				CODE_SIGN_ENTITLEMENTS = "Sources/ANKI-HUB-iOS-Widget/ANKI-HUB-iOS-Widget.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				INFOPLIST_FILE = "Sources/ANKI-HUB-iOS-Widget/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -756,6 +762,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ankihub.ios.widget;
 				PRODUCT_NAME = sugwrAnkiWidget;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.9;
 				SYMROOT = "$(HOME)/Library/Developer/Xcode/DerivedData/ANKI-HUB-iOS-Build";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -765,13 +772,14 @@
 		8FEC5B6EA121E21D1AC2BD35 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
 				CODE_SIGN_ENTITLEMENTS = "Sources/ANKI-HUB-iOS-Widget/ANKI-HUB-iOS-Widget.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				INFOPLIST_FILE = "Sources/ANKI-HUB-iOS-Widget/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -785,6 +793,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.ankihub.ios.widget;
 				PRODUCT_NAME = sugwrAnkiWidget;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.9;
 				SYMROOT = "$(HOME)/Library/Developer/Xcode/DerivedData/ANKI-HUB-iOS-Build";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -826,6 +835,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -841,6 +851,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
@@ -855,12 +866,11 @@
 				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
 				CODE_SIGN_ENTITLEMENTS = "Sources/ANKI-HUB-iOS/ANKI-HUB-iOS.entitlements";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				INFOPLIST_FILE = "Sources/ANKI-HUB-iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -918,6 +928,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = K5D7GVJFG7;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -940,6 +951,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;

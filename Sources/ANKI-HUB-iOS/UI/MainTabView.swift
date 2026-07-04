@@ -15,7 +15,7 @@ struct MainTabView: View {
 
     @AppStorage(
         "anki_hub_front_camera_start_request_v1",
-        store: UserDefaults(suiteName: "group.com.ankihub.ios")
+        store: AppGroupStorage.defaults
     ) private var frontCameraStartRequest: Double = 0
 
     private let scanStartRequestKey = "anki_hub_scan_start_request_v1"
@@ -52,35 +52,30 @@ struct MainTabView: View {
     }
     
     var body: some View {
-        ZStack {
-            theme.background
-                .ignoresSafeArea()
+        TabView(selection: $selectedTab) {
+            DashboardView()
+                .tabItem {
+                    Label("ホーム", systemImage: "house.fill")
+                }
+                .tag(Tab.home)
 
-            TabView(selection: $selectedTab) {
-                DashboardView()
-                    .tabItem {
-                        Label("ホーム", systemImage: "house.fill")
-                    }
-                    .tag(Tab.home)
+            StudyView()
+                .tabItem {
+                    Label("学習", systemImage: "book.fill")
+                }
+                .tag(Tab.study)
 
-                StudyView()
-                    .tabItem {
-                        Label("学習", systemImage: "book.fill")
-                    }
-                    .tag(Tab.study)
+            AppCalendarView()
+                .tabItem {
+                    Label("カレンダー", systemImage: "calendar")
+                }
+                .tag(Tab.calendar)
 
-                AppCalendarView()
-                    .tabItem {
-                        Label("カレンダー", systemImage: "calendar")
-                    }
-                    .tag(Tab.calendar)
-
-                SettingsView()
-                    .tabItem {
-                        Label("マイページ", systemImage: "person.circle.fill")
-                    }
-                    .tag(Tab.profile)
-            }
+            SettingsView()
+                .tabItem {
+                    Label("マイページ", systemImage: "person.circle.fill")
+                }
+                .tag(Tab.profile)
         }
         .applyAppTheme()
         .onAppear {
@@ -178,7 +173,7 @@ struct MainTabView: View {
     }
 
     private func checkScanRequest() {
-        guard let defaults = UserDefaults(suiteName: "group.com.ankihub.ios") else { return }
+        let defaults = AppGroupStorage.defaults
         guard defaults.object(forKey: scanStartRequestKey) != nil else { return }
         defaults.removeObject(forKey: scanStartRequestKey)
         startScannerFlow()

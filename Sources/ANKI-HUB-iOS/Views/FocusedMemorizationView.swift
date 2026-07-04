@@ -13,7 +13,11 @@ struct FocusedMemorizationView: View {
 
     @ObservedObject private var theme = ThemeManager.shared
 
-    private let subjectOptions: [Subject] = [.english, .kobun]
+    private var subjectOptions: [Subject] {
+        Subject.allStudySubjects.filter {
+            !VocabularyData.shared.getVocabulary(for: $0).isEmpty
+        }
+    }
     
     // MARK: - State
     @State private var currentScreen: ScreenState = .daySelect
@@ -36,7 +40,7 @@ struct FocusedMemorizationView: View {
     
     // Settings
     @State private var showSettings: Bool = false
-    @AppStorage("anki_hub_inputmode_day2_seconds_v1") private var day2Seconds: Double = 1.5
+    @AppStorage(AppStorageKey.inputModeDay2Limit) private var day2Seconds: Double = 1.5
     @AppStorage("anki_hub_inputmode_day3_seconds_v1") private var day3Seconds: Double = 1.0
     @AppStorage("anki_hub_inputmode_day2_unknown_only_v1") private var day2UnknownOnly: Bool = false
 
@@ -69,6 +73,15 @@ struct FocusedMemorizationView: View {
             kobunInputModeUseAll = true
         }
         kobunInputModeUseAllMigrated = true
+    }
+
+    private func migrateInputModeDay2SettingIfNeeded() {
+        guard UserDefaults.standard.object(forKey: AppStorageKey.inputModeDay2Limit) == nil else { return }
+        guard UserDefaults.standard.object(forKey: AppStorageKey.inputModeDay2LimitLegacy) != nil else { return }
+        let legacy = UserDefaults.standard.double(forKey: AppStorageKey.inputModeDay2LimitLegacy)
+        guard legacy > 0 else { return }
+        UserDefaults.standard.set(legacy, forKey: AppStorageKey.inputModeDay2Limit)
+        day2Seconds = legacy
     }
 
     private func handleSwipeAnswer(known: Bool) {
@@ -155,6 +168,7 @@ struct FocusedMemorizationView: View {
         .applyAppTheme()
         .onAppear {
             migrateKobunInputModeSettingIfNeeded()
+            migrateInputModeDay2SettingIfNeeded()
         }
         .task(id: timerActive) {
             guard timerActive, totalTime > 0 else { return }
@@ -414,7 +428,7 @@ struct FocusedMemorizationView: View {
                 let word = words[currentWordIndex]
                 ZStack {
                     FlashcardInputView(
-                        word: word.term,
+                        word: flashcardPrompt(for: word),
                         hint: word.hint ?? "",
                         meaning: word.meaning,
                         isFlipped: $isFlipped,
@@ -730,8 +744,6 @@ struct FocusedMemorizationView: View {
         }
     }
     
-    // MARK: - Helper Functions
-    
     private func dayLabel(_ day: Int) -> String {
         switch day {
         case 1: return "1日目（初接触）"
@@ -739,6 +751,13 @@ struct FocusedMemorizationView: View {
         case 3: return "3日目（音読固定）"
         default: return "学習"
         }
+    }
+
+    private func flashcardPrompt(for word: Vocabulary) -> String {
+        if let text = word.fullText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+            return text
+        }
+        return word.term
     }
     
     private func getSecondsForDay(_ day: Int) -> Double {

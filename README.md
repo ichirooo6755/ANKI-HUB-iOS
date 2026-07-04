@@ -36,10 +36,10 @@
 
 ### 科目
 - 英単語（ターゲット1900対応）
-- 英検
 - 古文単語・文法
 - 漢文句法・語彙
 - 政経用語（憲法・年号）
+- 3アマ（アマチュア無線3級・法規/工学4択問題）
 
 ## 技術スタック
 
@@ -109,7 +109,11 @@ open ANKI-HUB-iOS.xcodeproj
 | Googleログイン後にアプリへ戻らない | `ASWebAuthenticationSession`がローカル変数、Cookie継承 | 強参照プロパティ化、`prefersEphemeralWebBrowserSession = true` |
 | サインイン後にWebサイトへ飛ぶ | 既存Webセッションへのリダイレクト | エフェメラルセッション使用 |
 | ログイン状態にならない | `code`がfragment形式で返るケース未対応 | query/fragment両方から取得 |
-| ToDoが端末間で同期されない | SyncManagerにToDo未対象 | `SyncManager`にToDo追加 |
+| ToDoが端末間で同期されない | SyncManagerがv1キー+standardのみ参照、TodoManagerはv2+App Group | `AppStorageKey`でv2+App Groupに統一 |
+| 試験結果が端末間で同期されない | 同上（exam v1/v2不一致） | `AppStorageKey.examScores`に統一 |
+| ウィジェットToDoが空 | ウィジェットがv1キーを参照 | v2キー+レガシーフォールバック |
+| クイズ開始失敗時に無反応 | エラーアラート未接続 | `QuizView`に`.alert`追加 |
+| ゲストログインがGoogle認証を起動 | `continueAsGuest`未実装 | ローカルゲストモードを追加 |
 | 同期の過負荷 | デバウンス/レート制限なし | 2秒デバウンス、30秒レート制限実装 |
 
 ### ビルドエラー関連

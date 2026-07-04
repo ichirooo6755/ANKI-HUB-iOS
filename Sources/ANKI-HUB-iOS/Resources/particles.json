@@ -1,0 +1,134 @@
+[
+  {
+    "id": "p1",
+    "type": "係助詞",
+    "particle": "こそ",
+    "meaning": "強調（最も強い）",
+    "examples": ["命こそ惜しけれ（命こそが惜しいのだ）"],
+    "conjugations": {
+      "desc": "接続: 連体形",
+      "forms": ["係り結び→已然形"]
+    }
+  },
+  {
+    "id": "p2",
+    "type": "係助詞",
+    "particle": "ぞ",
+    "meaning": "強調",
+    "examples": ["花ぞ散りける"],
+    "conjugations": {
+      "desc": "接続: 連体形",
+      "forms": ["係り結び→連体形"]
+    }
+  },
+  {
+    "id": "p3",
+    "type": "係助詞",
+    "particle": "なむ",
+    "meaning": "強調（願望）",
+    "examples": ["雨なむ降りける"],
+    "conjugations": {
+      "desc": "接続: 連体形",
+      "forms": ["係り結び→連体形"]
+    }
+  },
+  {
+    "id": "p4",
+    "type": "接続助詞",
+    "particle": "ば",
+    "meaning": "仮定・確定条件",
+    "examples": ["行かば（行くならば）", "行けば（行ったので）"],
+    "conjugations": {
+      "desc": "接続: 未然形・已然形",
+      "forms": ["未然形＋ば＝仮定", "已然形＋ば＝確定"]
+    }
+  },
+  {
+    "id": "p5",
+    "type": "接続助詞",
+    "particle": "ど",
+    "meaning": "逆接（〜けれども）",
+    "examples": ["行けど帰らず"],
+    "conjugations": {
+      "desc": "接続: 已然形",
+      "forms": ["已然形に接続"]
+    }
+  },
+  {
+    "id": "p6",
+    "type": "接続助詞",
+    "particle": "ども",
+    "meaning": "逆接（〜けれども）",
+    "examples": ["見れども飽かず"],
+    "conjugations": {
+      "desc": "接続: 已然形",
+      "forms": ["已然形に接続"]
+    }
+  },
+  {
+    "id": "p7",
+    "type": "格助詞",
+    "particle": "の",
+    "meaning": "主格・連体修飾",
+    "examples": ["山の桜", "我の行く"],
+    "conjugations": {
+      "desc": "接続: 体言・連体形",
+      "forms": ["体言に接続"]
+    }
+  },
+  {
+    "id": "p8",
+    "type": "格助詞",
+    "particle": "が",
+    "meaning": "主格・連体修飾",
+    "examples": ["花が咲く", "山が紫"],
+    "conjugations": {
+      "desc": "接続: 体言・連体形",
+      "forms": ["体言に接続"]
+    }
+  },
+  {
+    "id": "p9",
+    "type": "係助詞",
+    "particle": "や",
+    "meaning": "詠嘆・並列",
+    "examples": ["春の日や"],
+    "conjugations": {
+      "desc": "接続: 終止形",
+      "forms": ["終止形に接続"]
+    }
+  },
+  {
+    "id": "p10",
+    "type": "係助詞",
+    "particle": "か",
+    "meaning": "疑問・詠嘆",
+    "examples": ["いづれの時にか"],
+    "conjugations": {
+      "desc": "接続: 終止形",
+      "forms": ["終止形に接続"]
+    }
+  },
+  {
+    "id": "p11",
+    "type": "接続助詞",
+    "particle": "て",
+    "meaning": "並列・原因・手段",
+    "examples": ["行きて帰る"],
+    "conjugations": {
+      "desc": "接続: 連用形",
+      "forms": ["連用形に接続"]
+    }
+  },
+  {
+    "id": "p12",
+    "type": "接続助詞",
+    "particle": "で",
+    "meaning": "並列・原因",
+    "examples": ["見てで知る"],
+    "conjugations": {
+      "desc": "接続: 連用形",
+      "forms": ["連用形に接続"]
+    }
+  }
+]

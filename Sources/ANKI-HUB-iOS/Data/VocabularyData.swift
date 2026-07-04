@@ -1,5 +1,59 @@
 import Foundation
 
+/// 3アマ（ham3）の仮想チャプター名。放棄=法規、高額=工学。
+enum Ham3ChapterOption {
+    static let all = "すべて"
+    static let regulationAll = "放棄すべて"
+    static let engineeringAll = "高額すべて"
+    static let regulationMistakes = "放棄間違い"
+    static let engineeringMistakes = "高額間違い"
+    static let mistakesSuffix = "（間違い）"
+
+    static func isMistakesChapter(_ chapter: String) -> Bool {
+        chapter == regulationMistakes
+            || chapter == engineeringMistakes
+            || chapter.hasSuffix(mistakesSuffix)
+    }
+
+    static func isVirtualAggregate(_ chapter: String) -> Bool {
+        chapter == all
+            || chapter == regulationAll
+            || chapter == engineeringAll
+            || chapter == regulationMistakes
+            || chapter == engineeringMistakes
+    }
+
+    static func description(for chapter: String) -> String {
+        switch chapter {
+        case all: return "法規・工学の全問題"
+        case regulationAll: return "法規問題すべて"
+        case engineeringAll: return "工学問題すべて"
+        case regulationMistakes: return "法規で間違えた問題"
+        case engineeringMistakes: return "工学で間違えた問題"
+        default:
+            if chapter.hasSuffix(mistakesSuffix) {
+                let base = String(chapter.dropLast(mistakesSuffix.count))
+                return "\(base)で間違えた問題"
+            }
+            if chapter.hasPrefix("法規") { return "法規問題" }
+            if chapter.hasPrefix("工学") { return "工学問題" }
+            return chapter
+        }
+    }
+
+    static func examChaptersOnly(from options: [String]) -> [String] {
+        options.filter { option in
+            !isVirtualAggregate(option) && !isMistakesChapter(option)
+        }
+    }
+}
+
+struct Ham3ChapterSection: Identifiable {
+    let id: String
+    let title: String
+    let chapters: [String]
+}
+
 class VocabularyData: ObservableObject {
     static let shared = VocabularyData()
     
@@ -17,6 +71,10 @@ class VocabularyData: ObservableObject {
     
     private var seikeiData: [Vocabulary] = []
     
+    private var ham3Data: [Vocabulary] = []
+
+    private var particlesData: [ParticleData] = []
+
     init() {
         setupData()
     }
@@ -27,7 +85,12 @@ class VocabularyData: ObservableObject {
         case .kobun: return kobunData
         case .kanbun: return kanbunData
         case .seikei: return seikeiData
+        case .ham3: return ham3Data
         }
+    }
+
+    func getParticles() -> [ParticleData] {
+        particlesData
     }
     
     // MARK: - Chapter / Chunk Logic
@@ -54,12 +117,105 @@ class VocabularyData: ObservableObject {
         // Sort effectively (assuming format like "Chapter 1", "Chapter 2" etc, simple string sort might be okay for now)
         return Array(uniqueCategories).sorted()
     }
+
+    func getHam3Chapters() -> [String] {
+        let uniqueCategories = Set(ham3Data.compactMap { $0.category })
+        return Array(uniqueCategories).sorted { lhs, rhs in
+            ham3ChapterSortKey(lhs) < ham3ChapterSortKey(rhs)
+        }
+    }
+
+    /// クイズ設定・チャプター一覧用（すべて / 放棄・高額グループ / 各回 / 間違い）
+    func getHam3ChapterOptions() -> [String] {
+        let examChapters = getHam3Chapters()
+        let regulation = examChapters.filter { ($0).hasPrefix("法規") }
+        let engineering = examChapters.filter { ($0).hasPrefix("工学") }
+
+        var options: [String] = [
+            Ham3ChapterOption.all,
+            Ham3ChapterOption.regulationAll,
+            Ham3ChapterOption.regulationMistakes,
+        ]
+        for chapter in regulation {
+            options.append(chapter)
+            options.append(chapter + Ham3ChapterOption.mistakesSuffix)
+        }
+        options.append(Ham3ChapterOption.engineeringAll)
+        options.append(Ham3ChapterOption.engineeringMistakes)
+        for chapter in engineering {
+            options.append(chapter)
+            options.append(chapter + Ham3ChapterOption.mistakesSuffix)
+        }
+        return options
+    }
+
+    func getHam3ChapterSections() -> [Ham3ChapterSection] {
+        let examChapters = getHam3Chapters()
+        let regulation = examChapters.filter { $0.hasPrefix("法規") }
+        let engineering = examChapters.filter { $0.hasPrefix("工学") }
+
+        var regulationChapters: [String] = [
+            Ham3ChapterOption.regulationAll,
+            Ham3ChapterOption.regulationMistakes,
+        ]
+        for chapter in regulation {
+            regulationChapters.append(chapter)
+            regulationChapters.append(chapter + Ham3ChapterOption.mistakesSuffix)
+        }
+
+        var engineeringChapters: [String] = [
+            Ham3ChapterOption.engineeringAll,
+            Ham3ChapterOption.engineeringMistakes,
+        ]
+        for chapter in engineering {
+            engineeringChapters.append(chapter)
+            engineeringChapters.append(chapter + Ham3ChapterOption.mistakesSuffix)
+        }
+
+        return [
+            Ham3ChapterSection(id: "all", title: "全体", chapters: [Ham3ChapterOption.all]),
+            Ham3ChapterSection(id: "regulation", title: "放棄（法規）", chapters: regulationChapters),
+            Ham3ChapterSection(id: "engineering", title: "高額（工学）", chapters: engineeringChapters),
+        ]
+    }
+
+    /// カテゴリのみで絞り込み（間違いフィルタは QuizView 側で適用）
+    func filterHam3Vocabulary(_ vocab: [Vocabulary], chapter: String) -> [Vocabulary] {
+        if chapter == Ham3ChapterOption.all {
+            return vocab
+        }
+        switch chapter {
+        case Ham3ChapterOption.regulationAll, Ham3ChapterOption.regulationMistakes:
+            return vocab.filter { ($0.category ?? "").hasPrefix("法規") }
+        case Ham3ChapterOption.engineeringAll, Ham3ChapterOption.engineeringMistakes:
+            return vocab.filter { ($0.category ?? "").hasPrefix("工学") }
+        default:
+            if chapter.hasSuffix(Ham3ChapterOption.mistakesSuffix) {
+                let base = String(chapter.dropLast(Ham3ChapterOption.mistakesSuffix.count))
+                return vocab.filter { $0.category == base }
+            }
+            return vocab.filter { $0.category == chapter }
+        }
+    }
+
+    private func ham3ChapterSortKey(_ chapter: String) -> (Int, Int) {
+        let isRegulation = chapter.hasPrefix("法規") ? 0 : 1
+        let digits = chapter.filter(\.isNumber)
+        let number = Int(digits) ?? 0
+        return (isRegulation, number)
+    }
     
     func getVocabulary(for subject: Subject, chapter: String?) -> [Vocabulary] {
         let all = getVocabulary(for: subject)
-        guard let chapter = chapter, subject == .seikei else { return all }
-        
-        return all.filter { $0.category == chapter }
+        guard let chapter = chapter else { return all }
+        switch subject {
+        case .seikei:
+            return all.filter { $0.category == chapter }
+        case .ham3:
+            return all.filter { $0.category == chapter }
+        default:
+            return all
+        }
     }
     
     private func setupData() {
@@ -388,6 +544,26 @@ class VocabularyData: ObservableObject {
         // Merge constitution and nengou data
         seikeiData = constitutionItems + nengouItems
         print("📚 Seikei Total: \(seikeiData.count) items loaded")
+
+        // 6. Ham3 Data (3アマ) from ham3.json
+        if let content = loadResource(name: "ham3", ext: "json") {
+            ham3Data = DataParser.shared.parseHam3Data(content)
+            print("📚 Ham3: \(ham3Data.count) questions loaded")
+        } else {
+            ham3Data = []
+            print("⚠️ Ham3: ham3.json not found in Resources.")
+        }
+
+        if let content = loadResource(name: "particles", ext: "json"),
+           let data = content.data(using: .utf8),
+           let decoded = try? JSONDecoder().decode([ParticleData].self, from: data)
+        {
+            particlesData = decoded
+            print("📚 Kobun Particles: \(particlesData.count) items loaded")
+        } else {
+            particlesData = []
+            print("⚠️ Kobun: particles.json not found in Resources.")
+        }
     }
 }
 

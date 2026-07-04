@@ -78,6 +78,7 @@ final class SyncManager: ObservableObject {
         case kobun = "kobun"
         case kanbun = "kanbun"
         case seikei = "seikei"
+        case ham3 = "ham3"
         case wordbook = "wordlist"
         case theme = "theme"
         case rankUp = "rank_up"
@@ -192,7 +193,7 @@ final class SyncManager: ObservableObject {
 
         // 2) Mastery per subject
         let mastery = MasteryTracker.shared
-        for subject in [Subject.english, .kobun, .kanbun, .seikei] {
+        for subject in Subject.allCases {
             let perSubject = mastery.items[subject.rawValue] ?? [:]
             let encoded = try JSONEncoder().encode(perSubject)
             let any = try JSONSerialization.jsonObject(with: encoded, options: [])
@@ -241,7 +242,7 @@ final class SyncManager: ObservableObject {
             accessToken: accessToken)
 
         // 6) Past exam scores
-        if let data = UserDefaults.standard.data(forKey: "anki_hub_exam_scores_v1"),
+        if let data = payloadData(forKey: AppStorageKey.examScores, legacyKey: AppStorageKey.examScoresLegacy),
             let any = try? JSONSerialization.jsonObject(with: data, options: [])
         {
             try await SupabaseStudyService.shared.upsert(
@@ -250,7 +251,7 @@ final class SyncManager: ObservableObject {
         }
 
         // 7) Todo
-        if let data = UserDefaults.standard.data(forKey: "anki_hub_todo_items_v1"),
+        if let data = payloadData(forKey: AppStorageKey.todoItems, legacyKey: AppStorageKey.todoItemsLegacy),
             let any = try? JSONSerialization.jsonObject(with: data, options: [])
         {
             try await SupabaseStudyService.shared.upsert(
@@ -259,7 +260,7 @@ final class SyncManager: ObservableObject {
         }
 
         // 8) Timeline
-        if let data = UserDefaults.standard.data(forKey: "anki_hub_timeline_entries_v1"),
+        if let data = payloadData(forKey: AppStorageKey.timelineEntries),
             let any = try? JSONSerialization.jsonObject(with: data, options: [])
         {
             try await SupabaseStudyService.shared.upsert(
@@ -268,7 +269,7 @@ final class SyncManager: ObservableObject {
         }
 
         // 9) Study materials
-        if let data = UserDefaults.standard.data(forKey: "anki_hub_study_materials_v1"),
+        if let data = payloadData(forKey: AppStorageKey.studyMaterials),
             let any = try? JSONSerialization.jsonObject(with: data, options: [])
         {
             try await SupabaseStudyService.shared.upsert(
@@ -277,7 +278,7 @@ final class SyncManager: ObservableObject {
         }
 
         // 10) Study material records
-        if let data = UserDefaults.standard.data(forKey: "anki_hub_study_material_records_v1"),
+        if let data = payloadData(forKey: AppStorageKey.studyMaterialRecords),
             let any = try? JSONSerialization.jsonObject(with: data, options: [])
         {
             try await SupabaseStudyService.shared.upsert(
@@ -299,7 +300,12 @@ final class SyncManager: ObservableObject {
         let fallbackDays = storedDays == 0 ? 7 : storedDays
         let kobunInputModeUseAll = UserDefaults.standard.bool(
             forKey: "anki_hub_kobun_inputmode_use_all_v1")
-        let day2LimitSeconds = UserDefaults.standard.double(forKey: "anki_hub_inputmode_day2_limit_v1")
+        let day2LimitSeconds: Double = {
+            let primary = UserDefaults.standard.double(forKey: AppStorageKey.inputModeDay2Limit)
+            if primary > 0 { return primary }
+            let legacy = UserDefaults.standard.double(forKey: AppStorageKey.inputModeDay2LimitLegacy)
+            return legacy > 0 ? legacy : 1.5
+        }()
         let day2UnknownOnly = UserDefaults.standard.bool(forKey: "anki_hub_inputmode_day2_unknown_only_v1")
         let inputModeMistakesOnly = UserDefaults.standard.bool(forKey: "anki_hub_inputmode_mistakes_only_v1")
         let storedTimestamp = UserDefaults.standard.double(forKey: "anki_hub_target_date_timestamp_v2")
@@ -415,7 +421,7 @@ final class SyncManager: ObservableObject {
             }
 
             // 2) Mastery per subject
-            for subject in [Subject.english, .kobun, .kanbun, .seikei] {
+            for subject in Subject.allCases {
                 if let any = try await SupabaseStudyService.shared.fetch(
                     userId: userId, appId: subject.rawValue, accessToken: accessToken),
                     JSONSerialization.isValidJSONObject(any),
@@ -489,7 +495,9 @@ final class SyncManager: ObservableObject {
                 JSONSerialization.isValidJSONObject(any),
                 let data = try? JSONSerialization.data(withJSONObject: any, options: [])
             {
-                UserDefaults.standard.set(data, forKey: "anki_hub_exam_scores_v1")
+                persistPayload(data, forKey: AppStorageKey.examScores)
+                NotificationCenter.default.post(
+                    name: Notification.Name("anki_hub_exam_scores_updated"), object: nil)
             }
 
             // 7) Todo
@@ -498,8 +506,9 @@ final class SyncManager: ObservableObject {
                 JSONSerialization.isValidJSONObject(any),
                 let data = try? JSONSerialization.data(withJSONObject: any, options: [])
             {
-                UserDefaults.standard.set(data, forKey: "anki_hub_todo_items_v1")
-                NotificationCenter.default.post(name: Notification.Name("anki_hub_todo_items_updated"), object: nil)
+                persistPayload(data, forKey: AppStorageKey.todoItems)
+                NotificationCenter.default.post(
+                    name: Notification.Name("anki_hub_todo_items_updated"), object: nil)
             }
 
             // 8) Timeline
@@ -508,7 +517,7 @@ final class SyncManager: ObservableObject {
                 JSONSerialization.isValidJSONObject(any),
                 let data = try? JSONSerialization.data(withJSONObject: any, options: [])
             {
-                UserDefaults.standard.set(data, forKey: "anki_hub_timeline_entries_v1")
+                persistPayload(data, forKey: AppStorageKey.timelineEntries)
                 TimelineManager.shared.loadEntries()
             }
 
@@ -518,7 +527,7 @@ final class SyncManager: ObservableObject {
                 JSONSerialization.isValidJSONObject(any),
                 let data = try? JSONSerialization.data(withJSONObject: any, options: [])
             {
-                UserDefaults.standard.set(data, forKey: "anki_hub_study_materials_v1")
+                persistPayload(data, forKey: AppStorageKey.studyMaterials)
                 StudyMaterialManager.shared.load()
             }
 
@@ -528,7 +537,7 @@ final class SyncManager: ObservableObject {
                 JSONSerialization.isValidJSONObject(any),
                 let data = try? JSONSerialization.data(withJSONObject: any, options: [])
             {
-                UserDefaults.standard.set(data, forKey: "anki_hub_study_material_records_v1")
+                persistPayload(data, forKey: AppStorageKey.studyMaterialRecords)
                 StudyMaterialManager.shared.load()
             }
 
@@ -552,7 +561,8 @@ final class SyncManager: ObservableObject {
                 }
 
                 if let limit = any["day2LimitSeconds"] as? Double, limit != 0 {
-                    UserDefaults.standard.set(limit, forKey: "anki_hub_inputmode_day2_limit_v1")
+                    UserDefaults.standard.set(limit, forKey: AppStorageKey.inputModeDay2Limit)
+                    UserDefaults.standard.set(limit, forKey: AppStorageKey.inputModeDay2LimitLegacy)
                 }
 
                 if let unknownOnly = any["day2UnknownOnly"] as? Bool {
@@ -590,8 +600,25 @@ final class SyncManager: ObservableObject {
 
             lastSyncDate = Date()
         } catch {
-            // Keep lastSyncDate as-is
+            logSyncError("performLoadAll", error)
         }
+    }
+
+    // MARK: - App Group payload helpers
+
+    private var syncDefaults: UserDefaults { AppGroupStorage.defaults }
+
+    private func payloadData(forKey key: String, legacyKey: String? = nil) -> Data? {
+        if let data = syncDefaults.data(forKey: key) { return data }
+        if let legacyKey, let data = syncDefaults.data(forKey: legacyKey) { return data }
+        if let data = UserDefaults.standard.data(forKey: key) { return data }
+        if let legacyKey, let data = UserDefaults.standard.data(forKey: legacyKey) { return data }
+        return nil
+    }
+
+    private func persistPayload(_ data: Data, forKey key: String) {
+        syncDefaults.set(data, forKey: key)
+        UserDefaults.standard.set(data, forKey: key)
     }
 
     // MARK: - Helper Functions (Mocked for reference)

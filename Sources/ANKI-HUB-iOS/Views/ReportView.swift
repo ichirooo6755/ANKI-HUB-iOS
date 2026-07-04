@@ -540,14 +540,11 @@ struct SubjectStrengthChart: View {
     @ObservedObject private var theme = ThemeManager.shared
     
     var subjectStrength: [(subject: String, score: Double)] {
-        let subjects = ["english", "kobun", "kanbun", "seikei"]
-        let names = ["英単語", "古文", "漢文", "政経"]
-        
-        return subjects.enumerated().map { index, subject in
-            let data = masteryTracker.items[subject] ?? [:]
+        Subject.allStudySubjects.map { subject in
+            let data = masteryTracker.items[subject.rawValue] ?? [:]
             let total = data.count
-            guard total > 0 else { return (names[index], 0.0) }
-            
+            guard total > 0 else { return (subject.displayName, 0.0) }
+
             var score = 0.0
             for (_, item) in data {
                 switch item.mastery {
@@ -558,8 +555,8 @@ struct SubjectStrengthChart: View {
                 case .new: score += 0
                 }
             }
-            
-            return (names[index], (score / Double(total)) * 100)
+
+            return (subject.displayName, (score / Double(total)) * 100)
         }
     }
     

@@ -281,7 +281,7 @@ class ThemeManager: ObservableObject {
     @AppStorage("anki_hub_wallpaper_kind") var wallpaperKind: String = ""
     @AppStorage("anki_hub_wallpaper_value") var wallpaperValue: String = ""
 
-    @AppStorage("anki_hub_wallpaper_enabled_v1") var wallpaperEnabled: Bool = true
+    @AppStorage("anki_hub_wallpaper_enabled_v1") var wallpaperEnabled: Bool = false
     @AppStorage("anki_hub_wallpaper_enabled_migrated_v1") var wallpaperEnabledMigrated: Bool = false
 
     // 0: system, 1: light, 2: dark
@@ -521,10 +521,13 @@ class ThemeManager: ObservableObject {
 
     private func migrateWallpaperEnabledIfNeeded() {
         guard !wallpaperEnabledMigrated else { return }
-        if wallpaperKind == "bundle" || wallpaperKind == "photo" {
-            wallpaperEnabled = false
+        let shouldDisable = wallpaperKind == "bundle" || wallpaperKind == "photo"
+        DispatchQueue.main.async {
+            if shouldDisable {
+                self.wallpaperEnabled = false
+            }
+            self.wallpaperEnabledMigrated = true
         }
-        wallpaperEnabledMigrated = true
     }
 
     // Liquid Glass Effect Background

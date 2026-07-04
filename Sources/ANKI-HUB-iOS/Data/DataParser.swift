@@ -242,4 +242,47 @@ class DataParser {
         }
         return "不明"
     }
+
+    /// Parses Ham3 (アマチュア無線3級) multiple-choice questions.
+    /// Source: https://soft.taprix.org/web/mn2/ham3/ — select[0] is the correct answer.
+    func parseHam3Data(_ jsonString: String) -> [Vocabulary] {
+        struct Ham3Item: Codable {
+            let id: String
+            let category: String
+            let text: String
+            let select: [String]
+            let imagePrefix: String?
+            let images: [String]?
+        }
+
+        guard let items = parseJSONData(jsonString, type: [Ham3Item].self) else { return [] }
+
+        return items.compactMap { item in
+            let choices = item.select.map {
+                $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            }.filter { !$0.isEmpty }
+            guard let correct = choices.first else { return nil }
+
+            let questionNo: String = {
+                if let last = item.id.split(separator: "-").last, let n = Int(last) {
+                    return "第\(n)問"
+                }
+                return "問題"
+            }()
+
+            var vocab = Vocabulary(
+                id: item.id,
+                term: questionNo,
+                meaning: correct,
+                explanation: "出典: soft.taprix.org/web/mn2/ham3"
+            )
+            vocab.fullText = item.text
+            vocab.allAnswers = choices
+            vocab.questionType = "ham3"
+            vocab.category = item.category
+            vocab.images = item.images
+            vocab.imagePrefix = item.imagePrefix
+            return vocab
+        }
+    }
 }

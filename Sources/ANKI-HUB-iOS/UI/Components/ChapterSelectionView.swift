@@ -113,11 +113,12 @@ struct ChapterSelectionView: View {
                 .sorted()
 
             if !categories.isEmpty {
+                let mastery = masteryTracker.items[subject.rawValue] ?? [:]
                 chapters = categories.map { cat in
                     Chapter(
                         title: cat,
                         description: "カテゴリ",
-                        progress: 0,
+                        progress: progressForKanbunCategory(cat, mastery: mastery),
                         isLocked: false
                     )
                 }
@@ -150,6 +151,16 @@ struct ChapterSelectionView: View {
                     description: desc,
                     progress: getProgress(for: subject, chapterId: id),
                     isLocked: id > 1 && getProgress(for: subject, chapterId: id-1) < 0.8
+                )
+            }
+        } else if subject == .ham3 {
+            let options = VocabularyData.shared.getHam3ChapterOptions()
+            chapters = options.map { title in
+                Chapter(
+                    title: title,
+                    description: Ham3ChapterOption.description(for: title),
+                    progress: getHam3Progress(for: title),
+                    isLocked: false
                 )
             }
         } else {
@@ -223,6 +234,64 @@ struct ChapterSelectionView: View {
                 acc + (isCompleted(mastery[v.id]) ? 1 : 0)
             }
             return total > 0 ? Double(completed) / Double(total) : 0
+
+        case .ham3:
+            let chapters = VocabularyData.shared.getHam3Chapters()
+            guard (1...chapters.count).contains(chapterId) else { return 0 }
+            let title = chapters[chapterId - 1]
+            let slice = VocabularyData.shared.getVocabulary(for: .ham3, chapter: title)
+            let total = slice.count
+            let completed = slice.reduce(0) { acc, v in
+                acc + (isCompleted(mastery[v.id]) ? 1 : 0)
+            }
+            return total > 0 ? Double(completed) / Double(total) : 0
         }
+    }
+
+    private func getHam3Progress(for chapterTitle: String) -> Double {
+        let mastery = masteryTracker.items[Subject.ham3.rawValue] ?? [:]
+        let all = VocabularyData.shared.getVocabulary(for: .ham3)
+        let slice = VocabularyData.shared.filterHam3Vocabulary(all, chapter: chapterTitle)
+        guard !slice.isEmpty else { return 0 }
+
+        func isCompleted(_ item: MasteryItem?) -> Bool {
+            guard let item else { return false }
+            return item.mastery == .almost || item.mastery == .mastered
+        }
+
+        if Ham3ChapterOption.isMistakesChapter(chapterTitle) {
+            let mistakeSlice = slice.filter { v in
+                if mastery[v.id]?.mastery == .weak { return true }
+                if let item = mastery[v.id], item.wrong > 0, item.lastAnswerWasCorrect == false {
+                    return true
+                }
+                return false
+            }
+            guard !mistakeSlice.isEmpty else { return 1 }
+            let cleared = mistakeSlice.reduce(0) { acc, v in
+                acc + (isCompleted(mastery[v.id]) ? 1 : 0)
+            }
+            return Double(cleared) / Double(mistakeSlice.count)
+        }
+
+        let completed = slice.reduce(0) { acc, v in
+            acc + (isCompleted(mastery[v.id]) ? 1 : 0)
+        }
+        return Double(completed) / Double(slice.count)
+    }
+
+    private func progressForKanbunCategory(_ category: String, mastery: [String: MasteryItem]) -> Double {
+        let vocab = VocabularyData.shared.getVocabulary(for: .kanbun).filter { $0.category == category }
+        guard !vocab.isEmpty else { return 0 }
+
+        func isCompleted(_ item: MasteryItem?) -> Bool {
+            guard let item else { return false }
+            return item.mastery == .almost || item.mastery == .mastered
+        }
+
+        let completed = vocab.reduce(0) { acc, v in
+            acc + (isCompleted(mastery[v.id]) ? 1 : 0)
+        }
+        return Double(completed) / Double(vocab.count)
     }
 }

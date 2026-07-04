@@ -35,7 +35,7 @@ struct DashboardView: View {
     private let heroPullThreshold: CGFloat = 110
 
     private var totalWeakCount: Int {
-        let subjects = [Subject.english, .kobun, .kanbun, .seikei]
+        let subjects = Subject.allCases
         return subjects.reduce(0) { partial, subject in
             let data = masteryTracker.items[subject.rawValue] ?? [:]
             return partial + data.values.filter { $0.mastery == .weak }.count
@@ -43,7 +43,7 @@ struct DashboardView: View {
     }
 
     private var totalDueCount: Int {
-        let subjects = [Subject.english, .kobun, .kanbun, .seikei]
+        let subjects = Subject.allCases
         return subjects.reduce(0) { partial, subject in
             let vocab = VocabularyData.shared.getVocabulary(for: subject)
             let due = masteryTracker.getSpacedRepetitionItems(

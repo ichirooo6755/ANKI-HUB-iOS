@@ -1,7 +1,6 @@
+import Foundation
 import SwiftUI
 import WidgetKit
-
-import Foundation
 
 #if canImport(ANKI_HUB_iOS_Shared)
     import ANKI_HUB_iOS_Shared
@@ -52,28 +51,31 @@ private let controlSessionPinURL = URL(string: "sugwranki://session/pin")!
 
 private let widgetAccent = Color(red: 0.96, green: 0.36, blue: 0.20)
 
-private let todoItemsKey = "anki_hub_todo_items_v1"
+private let todoItemsKey = "anki_hub_todo_items_v2"
+private let todoItemsLegacyKey = "anki_hub_todo_items_v1"
 
-private extension View {
+extension View {
     @ViewBuilder
-    func widgetContainerBackground(_ style: AnyShapeStyle, fallback: Color? = nil) -> some View {
+    fileprivate func widgetContainerBackground(_ style: AnyShapeStyle, fallback: Color? = nil)
+        -> some View
+    {
         #if os(iOS)
-        if #available(iOSApplicationExtension 17.0, *) {
-            self.containerBackground(style, for: .widget)
-        } else {
-            if let fallback {
-                self.background(fallback)
+            if #available(iOSApplicationExtension 17.0, *) {
+                self.containerBackground(style, for: .widget)
             } else {
-                self
+                if let fallback {
+                    self.background(fallback)
+                } else {
+                    self
+                }
             }
-        }
         #else
-        self
+            self
         #endif
     }
 }
 
-fileprivate struct WidgetSettings {
+private struct WidgetSettings {
     let showStreak: Bool
     let showTodayMinutes: Bool
     let showMistakes: Bool
@@ -101,13 +103,13 @@ fileprivate struct WidgetSettings {
 
 }
 
-fileprivate struct WidgetDailyEntry: Decodable {
+private struct WidgetDailyEntry: Decodable {
     let words: Int
     let minutes: Int
     let subjects: [String: Int]
 }
 
-fileprivate struct WidgetStoredStats: Decodable {
+private struct WidgetStoredStats: Decodable {
     let streak: Int
     let todayMinutes: Int
     let dailyHistory: [String: WidgetDailyEntry]
@@ -121,97 +123,349 @@ struct WidgetCalendarDay: Identifiable {
 }
 
 #if canImport(AppIntents) && swift(>=6.0) && os(iOS)
-@available(iOS 18.0, *)
-struct TimerStartControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "TimerStartControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlTimerURL)) {
-                Label("タイマー", systemImage: "timer")
+    @available(iOS 18.0, *)
+    struct TimerStartControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "TimerStartControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlTimerURL)) {
+                    Label("タイマー", systemImage: "timer")
+                }
             }
+            .displayName("タイマー開始")
+            .description("25分のタイマーを開始します")
         }
-        .displayName("タイマー開始")
-        .description("25分のタイマーを開始します")
     }
-}
 
-@available(iOS 18.0, *)
-struct FrontCameraControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "FrontCameraControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlFrontCameraURL)) {
-                Label("カメラ", systemImage: "camera.fill")
+    @available(iOS 18.0, *)
+    struct FrontCameraControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "FrontCameraControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlFrontCameraURL)) {
+                    Label("カメラ", systemImage: "camera.fill")
+                }
             }
+            .displayName("フロントカメラ")
+            .description("フロントカメラ撮影を起動します")
         }
-        .displayName("フロントカメラ")
-        .description("フロントカメラ撮影を起動します")
     }
-}
 
-@available(iOS 18.0, *)
-struct ScanControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "ScanControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlScanURL)) {
-                Label("スキャン", systemImage: "doc.text.viewfinder")
+    @available(iOS 18.0, *)
+    struct ScanControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "ScanControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlScanURL)) {
+                    Label("スキャン", systemImage: "doc.text.viewfinder")
+                }
             }
+            .displayName("スキャン")
+            .description("スキャンを開始します")
         }
-        .displayName("スキャン")
-        .description("スキャンを開始します")
     }
-}
 
-@available(iOS 18.0, *)
-struct StudyTabControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "StudyTabControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlStudyTabURL)) {
-                Label("学習タブ", systemImage: "book.fill")
+    @available(iOS 18.0, *)
+    struct StudyTabControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "StudyTabControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlStudyTabURL)) {
+                    Label("学習タブ", systemImage: "book.fill")
+                }
             }
+            .displayName("学習タブ")
+            .description("学習タブをすぐ開きます")
         }
-        .displayName("学習タブ")
-        .description("学習タブをすぐ開きます")
     }
-}
 
-@available(iOS 18.0, *)
-struct SessionStartControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "SessionStartControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlSessionStartURL)) {
-                Label("開始", systemImage: "play.circle.fill")
+    @available(iOS 18.0, *)
+    struct SessionStartControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "SessionStartControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlSessionStartURL)) {
+                    Label("開始", systemImage: "play.circle.fill")
+                }
             }
+            .displayName("勉強をスタート")
+            .description("学習セッションを開始します")
         }
-        .displayName("勉強をスタート")
-        .description("学習セッションを開始します")
     }
-}
 
-@available(iOS 18.0, *)
-struct SessionStopControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "SessionStopControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlSessionStopURL)) {
-                Label("終了", systemImage: "stop.circle.fill")
+    @available(iOS 18.0, *)
+    struct SessionStopControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "SessionStopControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlSessionStopURL)) {
+                    Label("終了", systemImage: "stop.circle.fill")
+                }
             }
+            .displayName("勉強を終了")
+            .description("学習セッションを終了します")
         }
-        .displayName("勉強を終了")
-        .description("学習セッションを終了します")
     }
-}
 
-@available(iOS 18.0, *)
-struct SessionPinControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "SessionPinControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlSessionPinURL)) {
-                Label("ピン", systemImage: "pin.circle.fill")
+    @available(iOS 18.0, *)
+    struct SessionPinControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "SessionPinControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlSessionPinURL)) {
+                    Label("ピン", systemImage: "pin.circle.fill")
+                }
             }
+            .displayName("ピンを打つ")
+            .description("学習内容を記録するピン入力を開きます")
         }
-        .displayName("ピンを打つ")
-        .description("学習内容を記録するピン入力を開きます")
     }
-}
 #endif
+
+// MARK: - Study Session Widget (Home Screen)
+
+private let sessionStateKey = "anki_hub_active_study_session_v1"
+
+private struct WidgetSessionState: Decodable {
+    let id: String
+    let startTime: Date
+    let pins: [WidgetPinMarker]
+    let currentSegmentStart: Date
+
+    struct WidgetPinMarker: Decodable {
+        let id: String
+        let timestamp: Date
+        let subject: String
+        let activity: String
+        let notes: String
+        let durationSeconds: Int
+    }
+}
+
+struct SessionEntry: TimelineEntry {
+    let date: Date
+    let isSessionActive: Bool
+    let sessionStartTime: Date?
+    let elapsedSeconds: Int
+    let pinCount: Int
+}
+
+struct SessionProvider: TimelineProvider {
+    func placeholder(in context: Context) -> SessionEntry {
+        SessionEntry(
+            date: Date(), isSessionActive: false, sessionStartTime: nil, elapsedSeconds: 0,
+            pinCount: 0)
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (SessionEntry) -> Void) {
+        completion(loadEntry(at: Date()))
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<SessionEntry>) -> Void) {
+        let now = Date()
+        var entries: [SessionEntry] = []
+
+        // Create entries every minute for the next hour when session is active
+        for i in 0..<60 {
+            let entryDate = now.addingTimeInterval(Double(i * 60))
+            entries.append(loadEntry(at: entryDate))
+        }
+
+        // Reload every minute when session is active
+        let nextUpdate = now.addingTimeInterval(60)
+        completion(Timeline(entries: entries, policy: .after(nextUpdate)))
+    }
+
+    private func loadEntry(at date: Date) -> SessionEntry {
+        let defaults = UserDefaults(suiteName: appGroupId)
+
+        guard let data = defaults?.data(forKey: sessionStateKey),
+            let session = try? JSONDecoder().decode(WidgetSessionState.self, from: data)
+        else {
+            return SessionEntry(
+                date: date, isSessionActive: false, sessionStartTime: nil, elapsedSeconds: 0,
+                pinCount: 0)
+        }
+
+        let elapsed = Int(date.timeIntervalSince(session.startTime))
+        return SessionEntry(
+            date: date,
+            isSessionActive: true,
+            sessionStartTime: session.startTime,
+            elapsedSeconds: max(0, elapsed),
+            pinCount: session.pins.count
+        )
+    }
+}
+
+struct StudySessionWidgetEntryView: View {
+    var entry: SessionProvider.Entry
+
+    @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var themeSnapshot: WidgetThemeSnapshot? {
+        WidgetThemeSnapshot.load(defaults: UserDefaults(suiteName: appGroupId))
+    }
+
+    private var accentColor: Color {
+        themeSnapshot?.resolvedAccent(for: colorScheme) ?? widgetAccent
+    }
+
+    private var textColor: Color {
+        themeSnapshot?.resolvedText(for: colorScheme) ?? (colorScheme == .dark ? .white : .black)
+    }
+
+    private var secondaryText: Color {
+        textColor.opacity(0.65)
+    }
+
+    private var surfaceColor: Color {
+        themeSnapshot?.resolvedSurface(for: colorScheme)
+            ?? (colorScheme == .dark ? Color.black : Color.white)
+    }
+
+    private var widgetBackground: Color {
+        themeSnapshot?.resolvedBackground(for: colorScheme)
+            ?? (colorScheme == .dark ? Color.black : Color.white)
+    }
+
+    private var elapsedTimeFormatted: String {
+        let hours = entry.elapsedSeconds / 3600
+        let minutes = (entry.elapsedSeconds % 3600) / 60
+        let secs = entry.elapsedSeconds % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, secs)
+    }
+
+    var body: some View {
+        if entry.isSessionActive {
+            activeSessionView
+        } else {
+            inactiveSessionView
+        }
+    }
+
+    private var inactiveSessionView: some View {
+        VStack(spacing: family == .systemMedium ? 14 : 10) {
+            VStack(spacing: 4) {
+                Image(systemName: "play.circle.fill")
+                    .font(.system(size: family == .systemMedium ? 40 : 32))
+                    .foregroundStyle(accentColor)
+
+                Text("勉強スタート")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(textColor)
+
+                Text("タップして学習を開始")
+                    .font(.caption2)
+                    .foregroundStyle(secondaryText)
+            }
+
+            if family == .systemMedium {
+                HStack(spacing: 8) {
+                    Image(systemName: "clock")
+                        .font(.caption2)
+                        .foregroundStyle(secondaryText)
+                    Text("記録と振り返りができます")
+                        .font(.caption2)
+                        .foregroundStyle(secondaryText)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .widgetURL(controlSessionStartURL)
+    }
+
+    private var activeSessionView: some View {
+        VStack(spacing: family == .systemMedium ? 10 : 6) {
+            // Header with elapsed time
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 8, height: 8)
+                        Text("学習中")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(secondaryText)
+                    }
+
+                    Text(elapsedTimeFormatted)
+                        .font(
+                            .system(
+                                size: family == .systemMedium ? 32 : 26, weight: .bold,
+                                design: .monospaced)
+                        )
+                        .foregroundStyle(accentColor)
+                }
+
+                Spacer()
+
+                // Pin count badge
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(entry.pinCount)")
+                        .font(.system(size: 22, weight: .bold, design: .default))
+                        .foregroundStyle(textColor)
+                    Text("ピン")
+                        .font(.caption2)
+                        .foregroundStyle(secondaryText)
+                }
+            }
+
+            Spacer(minLength: 0)
+
+            // Action buttons
+            HStack(spacing: 10) {
+                Link(destination: controlSessionPinURL) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "pin.fill")
+                            .font(.caption.weight(.semibold))
+                        Text("ピン")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Capsule().fill(accentColor))
+                }
+
+                Spacer()
+
+                Link(destination: controlSessionStopURL) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "stop.fill")
+                            .font(.caption.weight(.semibold))
+                        Text("終了")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .foregroundStyle(Color.red)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Capsule().fill(Color.red.opacity(0.15)))
+                }
+            }
+        }
+        .padding(family == .systemMedium ? 14 : 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+struct StudySessionWidget: Widget {
+    let kind: String = "StudySessionWidget"
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: SessionProvider()) { entry in
+            StudySessionWidgetEntryView(entry: entry)
+                .widgetContainerBackground(
+                    AnyShapeStyle(
+                        WidgetThemeSnapshot.load(defaults: UserDefaults(suiteName: appGroupId))?
+                            .resolvedBackground(for: .light) ?? Color.white
+                    )
+                )
+        }
+        .configurationDisplayName("学習セッション")
+        .description("勉強スタートとピン記録をウィジェットから操作")
+        .contentMarginsDisabled()
+        #if os(iOS)
+            .supportedFamilies([.systemSmall, .systemMedium])
+        #else
+            .supportedFamilies([.systemSmall, .systemMedium])
+        #endif
+    }
+}
 
 struct BlackClockWidget: Widget {
     let kind: String = "BlackClockWidget"
@@ -283,7 +537,8 @@ private struct BlackClockWidgetEntryView: View {
 
     var body: some View {
         let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
-        let bg = resolvedScheme == .dark
+        let bg =
+            resolvedScheme == .dark
             ? Color.black.opacity(0.9)
             : (themeSnapshot?.resolvedBackground(for: resolvedScheme) ?? Color.white)
         let border = accentColor.opacity(0.20)
@@ -475,7 +730,8 @@ private struct BlackStatsWidgetEntryView: View {
 
     var body: some View {
         let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
-        let bg = resolvedScheme == .dark
+        let bg =
+            resolvedScheme == .dark
             ? Color.black.opacity(0.9)
             : (themeSnapshot?.resolvedBackground(for: resolvedScheme) ?? Color.white)
         let border = accentColor.opacity(0.20)
@@ -606,7 +862,8 @@ private struct BlackFocusRingWidgetEntryView: View {
 
     var body: some View {
         let cardShape = RoundedRectangle(cornerRadius: 28, style: .continuous)
-        let bg = resolvedScheme == .dark
+        let bg =
+            resolvedScheme == .dark
             ? Color.black.opacity(0.9)
             : (themeSnapshot?.resolvedBackground(for: resolvedScheme) ?? Color.white)
         let border = accentColor.opacity(0.20)
@@ -698,45 +955,45 @@ private struct BlackFocusRingWidgetEntryView: View {
     }
 }
 
- #if canImport(AppIntents) && swift(>=6.0) && os(iOS)
-@available(iOS 18.0, *)
-struct FrontCameraControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "FrontCameraControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlFrontCameraURL)) {
-                Label("ミラー", systemImage: "camera.viewfinder")
+#if canImport(AppIntents) && swift(>=6.0) && os(iOS)
+    @available(iOS 18.0, *)
+    struct FrontCameraControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "FrontCameraControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlFrontCameraURL)) {
+                    Label("ミラー", systemImage: "camera.viewfinder")
+                }
             }
+            .displayName("ミラー")
+            .description("ロック画面からミラーを起動します")
         }
-        .displayName("ミラー")
-        .description("ロック画面からミラーを起動します")
     }
-}
 
-@available(iOS 18.0, *)
-struct ScanControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "ScanControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlScanURL)) {
-                Label("スキャン", systemImage: "doc.viewfinder")
+    @available(iOS 18.0, *)
+    struct ScanControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "ScanControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlScanURL)) {
+                    Label("スキャン", systemImage: "doc.viewfinder")
+                }
             }
+            .displayName("スキャン")
+            .description("ロック画面からスキャンを起動します")
         }
-        .displayName("スキャン")
-        .description("ロック画面からスキャンを起動します")
     }
-}
 
-@available(iOS 18.0, *)
-struct StudyTabControlWidget: ControlWidget {
-    var body: some ControlConfiguration {
-        StaticControlConfiguration(kind: "StudyTabControl") {
-            ControlWidgetButton(intent: OpenURLIntent(url: controlStudyTabURL)) {
-                Label("学習", systemImage: "book.fill")
+    @available(iOS 18.0, *)
+    struct StudyTabControlWidget: ControlWidget {
+        var body: some ControlConfiguration {
+            StaticControlConfiguration(kind: "StudyTabControl") {
+                ControlWidgetButton(intent: OpenURLIntent(url: controlStudyTabURL)) {
+                    Label("学習", systemImage: "book.fill")
+                }
             }
+            .displayName("学習")
+            .description("学習タブを開きます")
         }
-        .displayName("学習")
-        .description("学習タブを開きます")
     }
-}
 #endif
 
 private struct WidgetThemeSnapshot {
@@ -813,8 +1070,8 @@ private struct WidgetThemeSnapshot {
     }
 }
 
-private extension Color {
-    init(hex: String) {
+extension Color {
+    fileprivate init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
@@ -879,7 +1136,7 @@ private struct FocusRing: View {
                         gradient: Gradient(colors: [
                             accent.opacity(0.5),
                             accent,
-                            accent.opacity(0.35)
+                            accent.opacity(0.35),
                         ]),
                         center: .center
                     ),
@@ -923,16 +1180,22 @@ struct Provider: TimelineProvider {
         let calendar = Calendar.current
         let now = Date()
         let startOfHour = calendar.dateInterval(of: .hour, for: now)?.start ?? now
-        let first = calendar.date(byAdding: .hour, value: 1, to: startOfHour) ?? now.addingTimeInterval(3600)
+        let first =
+            calendar.date(byAdding: .hour, value: 1, to: startOfHour)
+            ?? now.addingTimeInterval(3600)
 
         var entries: [StudyEntry] = []
         entries.append(loadEntry(at: now))
         for i in 0..<24 {
-            let date = calendar.date(byAdding: .hour, value: i, to: first) ?? first.addingTimeInterval(TimeInterval(i * 3600))
+            let date =
+                calendar.date(byAdding: .hour, value: i, to: first)
+                ?? first.addingTimeInterval(TimeInterval(i * 3600))
             entries.append(loadEntry(at: date))
         }
 
-        let policyDate = calendar.date(byAdding: .hour, value: 24, to: first) ?? first.addingTimeInterval(24 * 3600)
+        let policyDate =
+            calendar.date(byAdding: .hour, value: 24, to: first)
+            ?? first.addingTimeInterval(24 * 3600)
         completion(Timeline(entries: entries, policy: .after(policyDate)))
     }
 
@@ -989,7 +1252,8 @@ struct Provider: TimelineProvider {
             let decoded = try? JSONDecoder().decode(WidgetStoredStats.self, from: data)
         {
             let todos = loadTodos(defaults: defaults, settings: settings)
-            let calendarDays = settings.showCalendar
+            let calendarDays =
+                settings.showCalendar
                 ? calendarDays(for: date, history: decoded.dailyHistory)
                 : []
             return StudyEntry(
@@ -1018,7 +1282,9 @@ struct Provider: TimelineProvider {
 
     private func loadTodos(defaults: UserDefaults?, settings: WidgetSettings) -> [String] {
         guard settings.showTodo else { return [] }
-        guard let data = defaults?.data(forKey: todoItemsKey) else { return [] }
+        let data = defaults?.data(forKey: todoItemsKey)
+            ?? defaults?.data(forKey: todoItemsLegacyKey)
+        guard let data else { return [] }
 
         struct StoredTodoItem: Decodable {
             let id: UUID
@@ -1032,7 +1298,8 @@ struct Provider: TimelineProvider {
             return []
         }
 
-        let pending = decoded
+        let pending =
+            decoded
             .filter { !$0.isCompleted }
             .sorted { ($0.dueDate ?? .distantFuture) < ($1.dueDate ?? .distantFuture) }
             .map { $0.title }
@@ -1045,7 +1312,9 @@ struct Provider: TimelineProvider {
     {
         let calendar = Calendar.current
         let days = (0..<21).compactMap { offset -> WidgetCalendarDay? in
-            guard let day = calendar.date(byAdding: .day, value: -offset, to: date) else { return nil }
+            guard let day = calendar.date(byAdding: .day, value: -offset, to: date) else {
+                return nil
+            }
             let entry = history[dateKey(day)]
             let level = activityLevel(for: entry)
             return WidgetCalendarDay(
@@ -1114,7 +1383,8 @@ struct StudyWidgetEntryView: View {
 
     @ViewBuilder
     var body: some View {
-        let bg: AnyShapeStyle = isAccessoryFamily
+        let bg: AnyShapeStyle =
+            isAccessoryFamily
             ? AnyShapeStyle(.fill.tertiary)
             : AnyShapeStyle(widgetBackground)
 
@@ -1130,10 +1400,10 @@ struct StudyWidgetEntryView: View {
             case .systemSmall:
                 smallWidget
             #if os(iOS)
-            case .accessoryRectangular:
-                accessoryRectangular
-            case .accessoryInline:
-                accessoryInline
+                case .accessoryRectangular:
+                    accessoryRectangular
+                case .accessoryInline:
+                    accessoryInline
             #endif
             default:
                 smallWidget
@@ -1143,9 +1413,9 @@ struct StudyWidgetEntryView: View {
 
     private var isAccessoryFamily: Bool {
         #if os(iOS)
-        return family == .accessoryRectangular || family == .accessoryInline
+            return family == .accessoryRectangular || family == .accessoryInline
         #else
-        return false
+            return false
         #endif
     }
 
@@ -1250,45 +1520,45 @@ struct StudyWidgetEntryView: View {
     }
 
     #if os(iOS)
-    private var accessoryRectangular: some View {
-        HStack(spacing: 6) {
-            FocusBadge(size: 22, fontSize: 11, accent: accentColor)
-            VStack(alignment: .leading, spacing: 2) {
-                if entry.settings.showStreak {
-                    Text("連続 \(entry.streak)日")
-                        .font(.headline)
+        private var accessoryRectangular: some View {
+            HStack(spacing: 6) {
+                FocusBadge(size: 22, fontSize: 11, accent: accentColor)
+                VStack(alignment: .leading, spacing: 2) {
+                    if entry.settings.showStreak {
+                        Text("連続 \(entry.streak)日")
+                            .font(.headline)
+                    }
+                    if let m = entry.mistakes.first {
+                        Text(m)
+                            .font(.caption2)
+                            .foregroundStyle(secondaryText)
+                            .lineLimit(1)
+                    } else if entry.settings.showTodayMinutes {
+                        Text("今日 \(entry.todayMinutes)分")
+                            .font(.caption2)
+                            .foregroundStyle(secondaryText)
+                    }
                 }
-                if let m = entry.mistakes.first {
-                    Text(m)
-                        .font(.caption2)
-                        .foregroundStyle(secondaryText)
-                        .lineLimit(1)
-                } else if entry.settings.showTodayMinutes {
-                    Text("今日 \(entry.todayMinutes)分")
-                        .font(.caption2)
-                        .foregroundStyle(secondaryText)
-                }
+                Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
+            .padding(.horizontal, 2)
         }
-        .padding(.horizontal, 2)
-    }
 
-    private var accessoryInline: some View {
-        HStack(spacing: 6) {
-            Text("學")
-                .font(.caption2.weight(.bold))
-                .foregroundStyle(accentColor)
-            if entry.settings.showStreak {
-                Text("\(entry.streak)日")
-            } else if entry.settings.showTodayMinutes {
-                Text("\(entry.todayMinutes)分")
+        private var accessoryInline: some View {
+            HStack(spacing: 6) {
+                Text("學")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(accentColor)
+                if entry.settings.showStreak {
+                    Text("\(entry.streak)日")
+                } else if entry.settings.showTodayMinutes {
+                    Text("\(entry.todayMinutes)分")
+                }
             }
+            .font(.caption2)
+            .foregroundStyle(textColor)
+            .lineLimit(1)
         }
-        .font(.caption2)
-        .foregroundStyle(textColor)
-        .lineLimit(1)
-    }
     #endif
 
     private func metricBlock(title: String, value: Int, unit: String) -> some View {
@@ -1333,7 +1603,8 @@ struct StudyWidgetEntryView: View {
                         .frame(width: cellSize, height: cellSize)
                         .overlay(
                             RoundedRectangle(cornerRadius: 3, style: .continuous)
-                                .stroke(day.isToday ? accentColor.opacity(0.7) : .clear, lineWidth: 1)
+                                .stroke(
+                                    day.isToday ? accentColor.opacity(0.7) : .clear, lineWidth: 1)
                         )
                 }
             }
@@ -1434,6 +1705,7 @@ struct StudyWidget: Widget {
 struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
     var body: some Widget {
         StudyWidget()
+        StudySessionWidget()
         BlackClockWidget()
         BlackStatsWidget()
         BlackFocusRingWidget()
@@ -1442,6 +1714,7 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                 StudyLiveActivity()
             }
         #endif
+
         #if canImport(AppIntents) && swift(>=6.0) && os(iOS)
             if #available(iOS 18.0, *) {
                 TimerStartControlWidget()
@@ -1524,7 +1797,8 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                     pausedRemainingSeconds: 0,
                     isPaused: true
                 )
-                await activity.end(ActivityContent(state: state, staleDate: nil), dismissalPolicy: .immediate)
+                await activity.end(
+                    ActivityContent(state: state, staleDate: nil), dismissalPolicy: .immediate)
                 return .result()
             }
         }
@@ -1569,7 +1843,8 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
         var body: some WidgetConfiguration {
             ActivityConfiguration(for: FocusTimerAttributes.self) { context in
                 let remaining = remainingSeconds(for: context)
-                let progress = progressValue(remaining: remaining, total: context.state.totalSeconds)
+                let progress = progressValue(
+                    remaining: remaining, total: context.state.totalSeconds)
                 let statusText = context.state.isPaused ? "一時停止" : "集中"
 
                 HStack(spacing: 12) {
@@ -1582,7 +1857,7 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                             .foregroundStyle(primaryTextColor)
                     }
                     .frame(width: 56, height: 56)
-                    
+
                     // Center: Info
                     VStack(alignment: .leading, spacing: 4) {
                         Text(context.attributes.timerName)
@@ -1595,15 +1870,17 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                             .font(.caption2)
                             .foregroundStyle(.white.opacity(0.6))
                     }
-                    
+
                     Spacer(minLength: 0)
 
                     #if canImport(AppIntents)
                         // Right: Control buttons (vertical for compact layout)
                         VStack(spacing: 6) {
                             Button(intent: FocusTimerTogglePauseIntent()) {
-                                Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
-                                    .font(.system(size: 14))
+                                Image(
+                                    systemName: context.state.isPaused ? "play.fill" : "pause.fill"
+                                )
+                                .font(.system(size: 14))
                             }
                             .buttonStyle(.borderedProminent)
                             .tint(accentColor)
@@ -1631,7 +1908,8 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
 
             } dynamicIsland: { context in
                 let remaining = remainingSeconds(for: context)
-                let progress = progressValue(remaining: remaining, total: context.state.totalSeconds)
+                let progress = progressValue(
+                    remaining: remaining, total: context.state.totalSeconds)
                 let statusText = context.state.isPaused ? "一時停止" : "集中"
 
                 return DynamicIsland {
@@ -1649,7 +1927,8 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                         ZStack {
                             Circle()
                                 .fill(Color.black.opacity(0.4))
-                            FocusRing(progress: progress, size: 72, lineWidth: 6, accent: accentColor)
+                            FocusRing(
+                                progress: progress, size: 72, lineWidth: 6, accent: accentColor)
                             timerText(for: context, remaining: remaining)
                                 .font(.system(size: 16, weight: .semibold, design: .default))
                                 .monospacedDigit()
@@ -1672,7 +1951,9 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
                         #if canImport(AppIntents)
                             HStack(spacing: 10) {
                                 Button(intent: FocusTimerTogglePauseIntent()) {
-                                    Image(systemName: context.state.isPaused ? "play.fill" : "pause.fill")
+                                    Image(
+                                        systemName: context.state.isPaused
+                                            ? "play.fill" : "pause.fill")
                                 }
                                 .buttonStyle(.borderedProminent)
                                 .tint(accentColor)
@@ -1700,7 +1981,8 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
             }
         }
 
-        private func remainingSeconds(for context: ActivityViewContext<FocusTimerAttributes>) -> Int {
+        private func remainingSeconds(for context: ActivityViewContext<FocusTimerAttributes>) -> Int
+        {
             if context.state.isPaused {
                 return max(0, context.state.pausedRemainingSeconds ?? 0)
             }
@@ -1712,7 +1994,9 @@ struct ANKI_HUB_iOS_WidgetBundle: WidgetBundle {
             return Double(max(0, total - remaining)) / Double(total)
         }
 
-        private func timerText(for context: ActivityViewContext<FocusTimerAttributes>, remaining: Int) -> Text {
+        private func timerText(
+            for context: ActivityViewContext<FocusTimerAttributes>, remaining: Int
+        ) -> Text {
             if context.state.isPaused {
                 return Text(timeString(from: remaining))
             }

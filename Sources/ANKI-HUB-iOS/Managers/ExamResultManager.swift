@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Combine
 
 struct ExamResult: Identifiable, Codable {
     var id: UUID = UUID()
@@ -59,10 +60,18 @@ class ExamResultManager: ObservableObject {
     private let oldKey = "anki_hub_exam_scores_v1"
     private let appGroupId = "group.com.ankihub.ios"
     private let migratedKey = "anki_hub_exam_scores_v2_migrated_to_app_group"
+    private var cancellables: Set<AnyCancellable> = []
 
     init() {
         migrateIfNeeded()
         loadResults()
+
+        NotificationCenter.default.publisher(for: Notification.Name("anki_hub_exam_scores_updated"))
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.loadResults()
+            }
+            .store(in: &cancellables)
     }
 
     func loadResults() {

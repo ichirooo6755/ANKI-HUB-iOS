@@ -521,6 +521,9 @@ struct DashboardCharts: View {
         if subjectId == Subject.seikei.rawValue {
             return theme.currentPalette.color(.weak, isDark: isDark)
         }
+        if subjectId == Subject.ham3.rawValue {
+            return theme.currentPalette.color(.accent, isDark: isDark)
+        }
         return theme.currentPalette.color(.secondary, isDark: isDark)
     }
 }

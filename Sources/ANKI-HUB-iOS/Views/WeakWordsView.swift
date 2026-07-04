@@ -7,7 +7,7 @@ struct WeakWordsView: View {
 
     @State private var searchText: String = ""
 
-    private let subjects: [Subject] = [.english, .kobun, .kanbun, .seikei]
+    private var subjects: [Subject] { Subject.allStudySubjects }
 
     var body: some View {
         ZStack {
@@ -89,7 +89,13 @@ struct WeakWordsView: View {
     private func displayText(subject: Subject, wordId: String) -> (term: String, meaning: String) {
         let vocab = VocabularyData.shared.getVocabulary(for: subject)
         if let found = vocab.first(where: { $0.id == wordId }) {
-            return (found.term, found.meaning)
+            let term: String
+            if let full = found.fullText?.trimmingCharacters(in: .whitespacesAndNewlines), !full.isEmpty {
+                term = full
+            } else {
+                term = found.term
+            }
+            return (term, found.meaning)
         }
         return (wordId, "")
     }

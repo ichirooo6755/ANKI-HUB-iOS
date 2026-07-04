@@ -9,6 +9,24 @@ import SwiftUI
     import WidgetKit
 #endif
 
+enum AppGroupStorage {
+    static let suiteName = "group.com.ankihub.ios"
+    static let defaults: UserDefaults = UserDefaults(suiteName: suiteName) ?? .standard
+}
+
+/// UserDefaults / App Group で共有する永続化キー
+enum AppStorageKey {
+    static let todoItems = "anki_hub_todo_items_v2"
+    static let todoItemsLegacy = "anki_hub_todo_items_v1"
+    static let examScores = "anki_hub_exam_scores_v2"
+    static let examScoresLegacy = "anki_hub_exam_scores_v1"
+    static let timelineEntries = "anki_hub_timeline_entries_v1"
+    static let studyMaterials = "anki_hub_study_materials_v1"
+    static let studyMaterialRecords = "anki_hub_study_material_records_v1"
+    static let inputModeDay2Limit = "anki_hub_inputmode_day2_limit_v1"
+    static let inputModeDay2LimitLegacy = "anki_hub_inputmode_day2_seconds_v1"
+}
+
 public struct TimerStartRequest: Identifiable {
     public let id = UUID()
     public let mode: String
@@ -171,6 +189,10 @@ struct Vocabulary: Identifiable, Codable {
     var articleNumbers: [String]?
     var fullText: String?
     var category: String?
+
+    // Ham3 (3アマ) specifics
+    var images: [String]?
+    var imagePrefix: String?
 
     // Kobun specifics
     var type: String?  // "vocab" or "particle"
@@ -346,6 +368,14 @@ class AuthManager: ObservableObject {
 
     func clearAuthError() {
         lastAuthErrorMessage = nil
+    }
+
+    /// クラウド同期なしのローカル利用（ゲスト）
+    func continueAsGuest() {
+        currentUser = User(id: "local-guest", email: "guest@local.app")
+        isInvited = false
+        lastAuthErrorMessage = nil
+        saveUser()
     }
 
     func signOut() async {
@@ -1078,8 +1108,12 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
     case kobun = "kobun"
     case kanbun = "kanbun"
     case seikei = "seikei"
+    case ham3 = "ham3"
 
     public var id: String { rawValue }
+
+    /// 苦手・復習・レポートなど全機能で共通利用する科目一覧（`CaseIterable` と同期）
+    public static var allStudySubjects: [Subject] { Array(allCases) }
 
     public var displayName: String {
         switch self {
@@ -1087,6 +1121,7 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
         case .kobun: return "古文"
         case .kanbun: return "漢文"
         case .seikei: return "政経"
+        case .ham3: return "3アマ"
         }
     }
 
@@ -1114,6 +1149,8 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
             // Prefer a text/character book icon; fall back to a stable book icon.
             return pick(["text.book.closed", "text.book.closed.fill", "doc.text"], fallback: "doc.text")
         case .seikei: return "books.vertical"
+        case .ham3:
+            return pick(["antenna.radiowaves.left.and.right", "dot.radiowaves.left.and.right"], fallback: "antenna.radiowaves.left.and.right")
         }
     }
 
@@ -1125,6 +1162,7 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
         case .kobun: return theme.currentPalette.color(ThemeColorKey.selection, isDark: isDark)
         case .kanbun: return theme.currentPalette.color(ThemeColorKey.weak, isDark: isDark)
         case .seikei: return theme.currentPalette.color(ThemeColorKey.accent, isDark: isDark)
+        case .ham3: return theme.currentPalette.color(ThemeColorKey.selection, isDark: isDark)
         }
     }
 
@@ -1134,6 +1172,7 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
         case .kobun: return "古典文法・単語"
         case .kanbun: return "句法・語彙"
         case .seikei: return "憲法・政治経済"
+        case .ham3: return "アマチュア無線3級"
         }
     }
 }

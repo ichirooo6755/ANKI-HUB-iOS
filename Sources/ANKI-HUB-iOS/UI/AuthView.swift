@@ -118,10 +118,7 @@ struct AuthView: View {
                         
                         // Guest Access
                         Button {
-                            Task {
-                                // Demo login
-                                await authManager.signInWithGoogle()
-                            }
+                            authManager.continueAsGuest()
                         } label: {
                             Text("Continue as Guest")
                                 .font(.footnote)

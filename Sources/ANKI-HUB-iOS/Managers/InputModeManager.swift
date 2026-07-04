@@ -51,9 +51,11 @@ class InputModeManager: ObservableObject {
     // Target: "unknown" words from Day 1 need review.
     func processDay2(wordId: String, isCorrect: Bool, responseTime: TimeInterval) {
         var item = data[wordId] ?? InputData(id: wordId, status: "unknown", lastReview: Date())
-        
-        let timeLimit = 1.5 // Tight limit for Day 2
-        
+
+        let stored = UserDefaults.standard.double(forKey: AppStorageKey.inputModeDay2Limit)
+        let legacy = UserDefaults.standard.double(forKey: AppStorageKey.inputModeDay2LimitLegacy)
+        let timeLimit = stored > 0 ? stored : (legacy > 0 ? legacy : 1.5)
+
         if isCorrect && responseTime < timeLimit {
             item.status = "known"
         } else {

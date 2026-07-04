@@ -43,11 +43,13 @@ class RankUpManager: ObservableObject {
                 Subject.english.rawValue: 1, // Start with 1 chunk unlocked
                 Subject.kobun.rawValue: 1,
                 Subject.kanbun.rawValue: 1,
-                Subject.seikei.rawValue: 1
+                Subject.seikei.rawValue: 1,
+                Subject.ham3.rawValue: 1
             ]
             // Seikei might default to all unlocked? JS: chaptersUnlocked: true
             // We can handle that in the UI or here.
             unlockedChunks[Subject.seikei.rawValue] = 999 // Unlock all for Seikei
+            unlockedChunks[Subject.ham3.rawValue] = 999 // Unlock all for Ham3
         }
     }
     

@@ -858,10 +858,9 @@ struct WidgetSettingsView: View {
             Section("ウィジェット") {
                 Picker("教科", selection: $widgetSubjectFilter) {
                     Text("すべて").tag("")
-                    Text("英語").tag(Subject.english.rawValue)
-                    Text("古文").tag(Subject.kobun.rawValue)
-                    Text("漢文").tag(Subject.kanbun.rawValue)
-                    Text("政経").tag(Subject.seikei.rawValue)
+                    ForEach(Subject.allStudySubjects) { subject in
+                        Text(subject.displayName).tag(subject.rawValue)
+                    }
                 }
                 .pickerStyle(.menu)
 
