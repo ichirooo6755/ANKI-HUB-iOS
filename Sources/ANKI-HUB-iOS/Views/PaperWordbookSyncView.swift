@@ -1,19 +1,20 @@
 import SwiftUI
 
-struct PaperWordbookSyncView: View {
+/// 紙の単語帳番号入力（ScanView 内タブでも使用）
+struct PaperWordbookSyncContent: View {
     @State private var inputNumber: String = ""
     @State private var syncedWords: [SyncedWord] = []
     @State private var showSuccess: Bool = false
 
     @ObservedObject private var theme = ThemeManager.shared
-    
+
     struct SyncedWord: Identifiable {
         let id = UUID()
         let number: Int
         let term: String
         let meaning: String
     }
-    
+
     private var englishIndex: [Int: Vocabulary] {
         let vocab = VocabularyData.shared.getVocabulary(for: .english)
         var dict: [Int: Vocabulary] = [:]
@@ -24,162 +25,128 @@ struct PaperWordbookSyncView: View {
         }
         return dict
     }
-    
+
     var body: some View {
-        NavigationStack {
+        ScrollView {
             VStack(spacing: 24) {
-                Spacer()
-                
                 Image(systemName: "book.pages.fill")
                     .font(.largeTitle.weight(.semibold))
                     .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-                
+
                 Text("紙の単語帳と同期")
                     .font(.title2.bold())
-                
+                    .foregroundStyle(theme.primaryText)
+
                 Text("紙の単語帳の番号を入力すると、\n対応する単語がアプリに取り込まれます")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(theme.secondaryText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
-                
-                Spacer()
-                
-                // Number Input
+
                 VStack(alignment: .leading, spacing: 12) {
                     Text("番号を入力")
                         .font(.headline)
-                    
+                        .foregroundStyle(theme.primaryText)
+
                     HStack {
                         TextField("例: 1-10 または 1,2,5", text: $inputNumber)
                             .textFieldStyle(.roundedBorder)
                             #if os(iOS)
                             .keyboardType(.numbersAndPunctuation)
                             #endif
-                        
-                        Button {
+
+                        Button("同期") {
                             syncWords()
-                        } label: {
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .padding()
-                                .background(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
-                                .foregroundStyle(
-                                    theme.onColor(for: theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
-                                )
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
+                        .buttonStyle(.borderedProminent)
                     }
-                    
-                    Text("範囲指定: 1-10 / 複数指定: 1,2,5,7")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
                 .padding(.horizontal)
-                
-                // Synced Words List
+
                 if !syncedWords.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("同期済み: \(syncedWords.count)語")
-                                .font(.headline)
-                                .monospacedDigit()
-                            Spacer()
-                            Button("単語帳に追加") {
-                                addAllToWordbook()
-                            }
-                            .font(.callout.weight(.semibold))
-                            .foregroundStyle(theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark))
-                        }
-                        
-                        ScrollView {
-                            LazyVStack(spacing: 8) {
-                                ForEach(syncedWords) { word in
-                                    HStack {
-                                        Text("#\(word.number)")
-                                            .font(.footnote.weight(.medium))
-                                            .monospacedDigit()
-                                            .foregroundStyle(.secondary)
-                                            .frame(width: 40, alignment: .leading)
-                                        Text(word.term)
-                                            .font(.headline)
-                                        Spacer()
-                                        Text(word.meaning)
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    .padding()
-                                    .liquidGlass()
+                        Text("プレビュー (\(syncedWords.count)語)")
+                            .font(.headline)
+                            .foregroundStyle(theme.primaryText)
+
+                        ForEach(syncedWords) { word in
+                            HStack {
+                                Text("#\(word.number)")
+                                    .font(.caption)
+                                    .foregroundStyle(theme.secondaryText)
+                                    .frame(width: 40, alignment: .leading)
+                                VStack(alignment: .leading) {
+                                    Text(word.term).font(.headline)
+                                    Text(word.meaning).font(.caption).foregroundStyle(theme.secondaryText)
                                 }
+                                Spacer()
                             }
+                            .padding(10)
+                            .background(theme.cardBackground, in: RoundedRectangle(cornerRadius: 12))
                         }
-                        .frame(maxHeight: 200)
+
+                        Button {
+                            addAllToWordbook()
+                        } label: {
+                            let bg = theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
+                            Text("単語帳に追加")
+                                .font(.headline)
+                                .foregroundStyle(theme.onColor(for: bg))
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(bg, in: RoundedRectangle(cornerRadius: 12))
+                        }
                     }
                     .padding(.horizontal)
                 }
-                
-                Spacer()
             }
-            .navigationTitle("紙の単語帳同期")
-            .alert("追加完了", isPresented: $showSuccess) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text("\(syncedWords.count)語を単語帳に追加しました")
-            }
+            .padding(.vertical, 24)
+        }
+        .alert("追加完了", isPresented: $showSuccess) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("\(syncedWords.count)語を単語帳に追加しました")
         }
     }
-    
+
     private func syncWords() {
         syncedWords = []
-        
-        // Parse input
         var numbers: [Int] = []
-        
-        // Handle range (e.g., "1-10")
+
         if inputNumber.contains("-") {
             let parts = inputNumber.components(separatedBy: "-")
             if parts.count == 2,
                let start = Int(parts[0].trimmingCharacters(in: .whitespaces)),
-               let end = Int(parts[1].trimmingCharacters(in: .whitespaces)) {
+               let end = Int(parts[1].trimmingCharacters(in: .whitespaces))
+            {
                 numbers = Array(start...end)
             }
-        }
-        // Handle comma-separated (e.g., "1,2,5")
-        else if inputNumber.contains(",") {
-            let parts = inputNumber.components(separatedBy: ",")
-            for part in parts {
+        } else if inputNumber.contains(",") {
+            for part in inputNumber.components(separatedBy: ",") {
                 if let num = Int(part.trimmingCharacters(in: .whitespaces)) {
                     numbers.append(num)
                 }
             }
-        }
-        // Single number
-        else if let num = Int(inputNumber.trimmingCharacters(in: .whitespaces)) {
+        } else if let num = Int(inputNumber.trimmingCharacters(in: .whitespaces)) {
             numbers = [num]
         }
-        
-        // Fetch words
+
         for num in numbers {
             if let v = englishIndex[num] {
-                syncedWords.append(SyncedWord(
-                    number: num,
-                    term: v.term,
-                    meaning: v.meaning
-                ))
+                syncedWords.append(SyncedWord(number: num, term: v.term, meaning: v.meaning))
             }
         }
     }
-    
+
     private func addAllToWordbook() {
-        // Load existing wordbook
         var words: [WordbookEntry] = []
         if let data = UserDefaults.standard.data(forKey: "anki_hub_wordbook"),
-           let decoded = try? JSONDecoder().decode([WordbookEntry].self, from: data) {
+           let decoded = try? JSONDecoder().decode([WordbookEntry].self, from: data)
+        {
             words = decoded
         }
-        
-        let source = "紙の単語帳"
 
-        // Add synced words
+        let source = "紙の単語帳"
         for synced in syncedWords {
             let entry = WordbookEntry(
                 id: "paper_\(synced.number)",
@@ -193,18 +160,20 @@ struct PaperWordbookSyncView: View {
                 words.append(entry)
             }
         }
-        
-        // Save
+
         if let data = try? JSONEncoder().encode(words) {
             UserDefaults.standard.set(data, forKey: "anki_hub_wordbook")
         }
-
         Task { @MainActor in
             SyncManager.shared.requestAutoSync()
         }
-        
         showSuccess = true
     }
 }
 
-// Preview removed for SPM compatibility
+/// 後方互換。`ScanView(initialMode: .paper)` へ転送。
+struct PaperWordbookSyncView: View {
+    var body: some View {
+        ScanView(initialMode: .paper)
+    }
+}

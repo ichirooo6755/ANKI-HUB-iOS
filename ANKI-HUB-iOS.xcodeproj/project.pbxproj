@@ -74,6 +74,8 @@
 		9A6A436936119DE838E6CD4D /* VocabularyData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5818B7DD4E6D94E86C1C51A0 /* VocabularyData.swift */; };
 		9B2CDF52A381F673847D85E2 /* grammar.json in Resources */ = {isa = PBXBuildFile; fileRef = 8AFF1A9872CEA26C59B13B50 /* grammar.json */; };
 		A1B2C3D4E5F60718293A4B6C /* StudySessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */; };
+		B2C3D4E5F60718293A4B6E /* ScanSessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B6F /* ScanSessionManager.swift */; };
+		B2C3D4E5F60718293A4B70 /* DisplaySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B71 /* DisplaySettingsView.swift */; };
 		A1B2C3D4E5F60718293A4B6E /* StudySessionBentoCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */; };
 		A2CEB71D776018C29CE2243A /* SettingsIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6ECDB9E79C196E190A0123 /* SettingsIcon.swift */; };
 		A3D894DFB107646CD5765CDE /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175DF687B5B72F0A1287D7C8 /* AuthView.swift */; };
@@ -205,6 +207,8 @@
 		955F72AD0CF329B18285B470 /* StudyMaterialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyMaterialManager.swift; sourceTree = "<group>"; };
 		9AB7E98C8F52AF0968D7EE55 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionManager.swift; sourceTree = "<group>"; };
+		B2C3D4E5F60718293A4B6F /* ScanSessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanSessionManager.swift; sourceTree = "<group>"; };
+		B2C3D4E5F60718293A4B71 /* DisplaySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplaySettingsView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F60718293A4B6F /* StudySessionBentoCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySessionBentoCard.swift; sourceTree = "<group>"; };
 		A632D2E28EE798B2CF33A7BE /* SupabaseMistakeReportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseMistakeReportService.swift; sourceTree = "<group>"; };
 		AABB59E2115FA8A262B97F8D /* ANKI_HUB_iOS_Widget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ANKI_HUB_iOS_Widget.swift; sourceTree = "<group>"; };
@@ -307,6 +311,7 @@
 				72781903D422A43C1827C20E /* InputModeManager.swift */,
 				221DCECC633597AA9BF3D1FE /* LearningManager.swift */,
 				A1B2C3D4E5F60718293A4B6D /* StudySessionManager.swift */,
+				B2C3D4E5F60718293A4B6F /* ScanSessionManager.swift */,
 				955F72AD0CF329B18285B470 /* StudyMaterialManager.swift */,
 				F97C7BBB583C8543D4324624 /* SyncManager.swift */,
 				551E2ADD61CAB99F6B29C362 /* TimelineManager.swift */,
@@ -415,6 +420,7 @@
 				B6B958BA872D4132B5853A26 /* QuizCaptureView.swift */,
 				4E166FB010CA8011EB0B52DD /* QuizView.swift */,
 				C66D02FAC24A6FA7FA24E01E /* ReportView.swift */,
+				B2C3D4E5F60718293A4B71 /* DisplaySettingsView.swift */,
 				B1689952502895FE3F220BC5 /* SettingsView.swift */,
 				5C04D8BA12528F411BFB83CB /* ThemeSettingsView.swift */,
 				492F8BE2D7FB4AACD581EC01 /* TimelineView.swift */,
@@ -658,6 +664,8 @@
 				CFD264A861F48D4CB692A9DC /* SettingsView.swift in Sources */,
 				F119FFA2873968C63CC8F828 /* StudyMaterialManager.swift in Sources */,
 				A1B2C3D4E5F60718293A4B6C /* StudySessionManager.swift in Sources */,
+				B2C3D4E5F60718293A4B6E /* ScanSessionManager.swift in Sources */,
+				B2C3D4E5F60718293A4B70 /* DisplaySettingsView.swift in Sources */,
 				AD7204EA7FE25A373DA09E58 /* StudyView.swift in Sources */,
 				A1B2C3D4E5F60718293A4B6E /* StudySessionBentoCard.swift in Sources */,
 				636593DE3315688809423807 /* SubjectMasteryChart.swift in Sources */,

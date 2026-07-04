@@ -161,42 +161,41 @@ struct StudySessionBentoCard: View {
     }
     
     private var inactiveSessionContent: some View {
-        HStack(spacing: 16) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.2))
-                    .frame(width: 64, height: 64)
-                
-                Image(systemName: "play.circle.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
-            }
-            
-            // Text
-            VStack(alignment: .leading, spacing: 4) {
-                Text("勉強スタート")
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(theme.primaryText)
-                
-                Text("学習セッションを開始して記録を残そう")
-                    .font(.caption)
-                    .foregroundStyle(theme.secondaryText)
-            }
-            
-            Spacer()
-            
-            // Start button
-            Button {
-                sessionManager.startSession()
-            } label: {
+        Button {
+            sessionManager.startSession()
+        } label: {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark).opacity(0.2))
+                        .frame(width: 64, height: 64)
+
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 32))
+                        .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("勉強スタート")
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(theme.primaryText)
+
+                    Text("学習セッションを開始して記録を残そう")
+                        .font(.caption)
+                        .foregroundStyle(theme.secondaryText)
+                }
+
+                Spacer()
+
                 Image(systemName: "chevron.right.circle.fill")
                     .font(.system(size: 28))
                     .foregroundStyle(theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark))
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .buttonStyle(.plain)
     }
     
     private var activeSessionContent: some View {

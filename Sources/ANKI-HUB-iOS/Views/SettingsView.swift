@@ -287,7 +287,7 @@ struct SettingsView: View {
             .accessibilityValue(Text(targetStudyMinutesText))
 
             Toggle(isOn: $kobunInputModeUseAll) {
-                Text("古文インプットモードを全単語で行う")
+                Text("古文集中暗記を全単語で行う")
             }
 
             timerSettingRow
@@ -314,6 +314,28 @@ struct SettingsView: View {
                         foregroundColor: .white
                     )
                     Text("学習リマインド設定")
+                }
+            }
+        }
+        .listRowBackground(rowBg)
+    }
+
+    @ViewBuilder
+    private var displaySection: some View {
+        let rowBg = themeManager.color(.surface, scheme: colorScheme)
+        Section("表示") {
+            NavigationLink {
+                DisplaySettingsView()
+                    .environmentObject(themeManager)
+            } label: {
+                HStack {
+                    SettingsIcon(
+                        icon: "paintbrush.fill",
+                        color: themeManager.color(.primary, scheme: colorScheme),
+                        foregroundColor: themeManager.onColor(
+                            for: themeManager.color(.primary, scheme: colorScheme))
+                    )
+                    Text("テーマ・壁紙・ウィジェット")
                 }
             }
         }
@@ -617,9 +639,8 @@ struct SettingsView: View {
                     accountSection
                     statsSection
                     studySection
-                    widgetSection
+                    displaySection
                     reminderSection
-                    appearanceSection
                     syncSection
                     infoSection
                 }

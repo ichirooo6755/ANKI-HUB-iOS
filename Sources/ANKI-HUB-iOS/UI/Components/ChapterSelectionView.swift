@@ -259,21 +259,6 @@ struct ChapterSelectionView: View {
             return item.mastery == .almost || item.mastery == .mastered
         }
 
-        if Ham3ChapterOption.isMistakesChapter(chapterTitle) {
-            let mistakeSlice = slice.filter { v in
-                if mastery[v.id]?.mastery == .weak { return true }
-                if let item = mastery[v.id], item.wrong > 0, item.lastAnswerWasCorrect == false {
-                    return true
-                }
-                return false
-            }
-            guard !mistakeSlice.isEmpty else { return 1 }
-            let cleared = mistakeSlice.reduce(0) { acc, v in
-                acc + (isCompleted(mastery[v.id]) ? 1 : 0)
-            }
-            return Double(cleared) / Double(mistakeSlice.count)
-        }
-
         let completed = slice.reduce(0) { acc, v in
             acc + (isCompleted(mastery[v.id]) ? 1 : 0)
         }

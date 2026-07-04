@@ -14,9 +14,6 @@ struct StudyView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        StudySessionBentoCard()
-                            .padding(.horizontal, 16)
-
                         StudySectionCard(
                             accent: theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
                         ) {
@@ -52,23 +49,6 @@ struct StudyView: View {
             }
             .adaptiveVisualEffect(enableOverlay: true)
             .navigationTitle("学習")
-            .toolbar {
-                #if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    NavigationLink(destination: VisualEffectsSettingsView()) {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(theme.secondaryText)
-                    }
-                }
-                #else
-                ToolbarItem(placement: .automatic) {
-                    NavigationLink(destination: VisualEffectsSettingsView()) {
-                        Image(systemName: "sparkles")
-                            .foregroundStyle(theme.secondaryText)
-                    }
-                }
-                #endif
-            }
             .applyAppTheme()
         }
     }
@@ -148,7 +128,7 @@ struct KobunStudyMenuView: View {
                 }
 
                 NavigationLink(destination: FocusedMemorizationView(subject: .kobun)) {
-                    menuCard(title: "インプットモード")
+                    menuCard(title: "集中暗記")
                 }
 
                 NavigationLink(destination: KobunParticleQuizView()) {
@@ -219,9 +199,6 @@ struct ToolsGridView: View {
                 NavigationLink(destination: TodoView()) {
                     ToolCard(title: "やること", icon: "list.bullet", color: .teal)
                 }
-                NavigationLink(destination: PaperWordbookSyncView()) {
-                    ToolCard(title: "紙の単語帳", icon: "book.pages.fill", color: .brown)
-                }
             }
 
             toolSection(
@@ -229,7 +206,7 @@ struct ToolsGridView: View {
                 accent: theme.currentPalette.color(.primary, isDark: theme.effectiveIsDark)
             ) {
                 NavigationLink(destination: TimerView()) {
-                    ToolCard(title: "タイマー", icon: "timer", color: .red)
+                    ToolCard(title: "集中", icon: "timer", color: .red)
                 }
                 NavigationLink(destination: FocusedMemorizationView()) {
                     ToolCard(title: "集中暗記", icon: "brain.head.profile", color: .orange)
@@ -246,6 +223,9 @@ struct ToolsGridView: View {
                 title: "記録・分析",
                 accent: theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
             ) {
+                NavigationLink(destination: TimelineView()) {
+                    ToolCard(title: "タイムライン", icon: "clock.arrow.circlepath", color: .mint)
+                }
                 NavigationLink(destination: ReportView()) {
                     ToolCard(title: "レポート", icon: "chart.pie.fill", color: .purple)
                 }

@@ -98,6 +98,10 @@ open ANKI-HUB-iOS.xcodeproj
 - Xcode 15.0 以上
 - iOS 17.0 以上のシミュレータまたは実機
 
+**要件・実装条件の正本**: [requirements.md](requirements.md)（作業のたびに更新）
+
+**Supabase / Google ログイン**: [docs/supabase/README.md](docs/supabase/README.md)
+
 ---
 
 ## Bug Fix Log

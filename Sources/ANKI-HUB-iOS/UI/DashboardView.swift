@@ -24,15 +24,11 @@ struct DashboardView: View {
         case timer
         case timeline
         case mirror
-        case inputMode
+        case focusedMemorization
+        case report
     }
 
     @State private var navigationPath: [Destination] = []
-
-    @State private var heroPullNavigating: Bool = false
-    @GestureState private var heroPullOffset: CGFloat = 0
-
-    private let heroPullThreshold: CGFloat = 110
 
     private var totalWeakCount: Int {
         let subjects = Subject.allCases
@@ -98,37 +94,50 @@ struct DashboardView: View {
     var body: some View {
         let heroAccent = themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark)
         let heroSecondary = themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark)
-        let heroDragProgress = min(1, max(0, heroPullOffset / heroPullThreshold))
-        let heroPullHintOpacity = heroPullNavigating ? 1 : max(heroDragProgress, 0)
 
-        let heroDragGesture = DragGesture(minimumDistance: 24)
-            .updating($heroPullOffset) { value, state, _ in
-                state = max(0, value.translation.height)
-            }
-            .onEnded { value in
-                guard value.translation.height > heroPullThreshold else { return }
-                guard !heroPullNavigating else { return }
-                heroPullNavigating = true
-                navigate(to: .weak)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    heroPullNavigating = false
-                }
-            }
         let heroItems: [HeroCarouselItem] = [
+            HeroCarouselItem(
+                id: "today",
+                title: "今日の学習",
+                subtitle: "\(learningStats.todayMinutes)分",
+                detail: goalProgressText,
+                icon: "clock.fill",
+                gradient: [heroAccent.opacity(0.95), heroSecondary.opacity(0.75)],
+                action: { navigate(to: .report) }
+            ),
             HeroCarouselItem(
                 id: "timer",
                 title: "集中タイマー",
-                subtitle: "",
-                detail: "すぐ開始",
+                subtitle: "すぐ開始",
+                detail: "",
                 icon: "timer",
                 gradient: [heroAccent.opacity(0.95), heroSecondary.opacity(0.75)],
                 action: { navigate(to: .timer) }
             ),
             HeroCarouselItem(
+                id: "todo",
+                title: "やること",
+                subtitle: "ToDo",
+                detail: "",
+                icon: "checklist",
+                gradient: [heroSecondary.opacity(0.95), heroAccent.opacity(0.65)],
+                action: { navigate(to: .todo) }
+            ),
+            HeroCarouselItem(
+                id: "timeline",
+                title: "タイムライン",
+                subtitle: "学習ログ",
+                detail: "",
+                icon: "clock.arrow.circlepath",
+                gradient: [themeManager.currentPalette.color(.learning, isDark: themeManager.effectiveIsDark).opacity(0.95),
+                           heroSecondary.opacity(0.6)],
+                action: { navigate(to: .timeline) }
+            ),
+            HeroCarouselItem(
                 id: "due",
                 title: "期限到来",
-                subtitle: "",
-                detail: "\(totalDueCount)語",
+                subtitle: "\(totalDueCount)語",
+                detail: "復習待ち",
                 icon: "clock.badge.exclamationmark",
                 gradient: [heroSecondary.opacity(0.95), heroSecondary.opacity(0.6)],
                 action: { navigate(to: .due) }
@@ -136,8 +145,8 @@ struct DashboardView: View {
             HeroCarouselItem(
                 id: "weak",
                 title: "苦手克服",
-                subtitle: "",
-                detail: "\(totalWeakCount)語",
+                subtitle: "\(totalWeakCount)語",
+                detail: "",
                 icon: "bolt.fill",
                 gradient: [themeManager.currentPalette.color(.weak, isDark: themeManager.effectiveIsDark).opacity(0.95),
                            themeManager.currentPalette.color(.weak, isDark: themeManager.effectiveIsDark).opacity(0.6)],
@@ -145,14 +154,14 @@ struct DashboardView: View {
             ),
             HeroCarouselItem(
                 id: "inputmode",
-                title: "インプット",
-                subtitle: "",
+                title: "集中暗記",
+                subtitle: "インプット",
                 detail: "",
                 icon: "keyboard",
                 gradient: [themeManager.currentPalette.color(.accent, isDark: themeManager.effectiveIsDark).opacity(0.95),
                            themeManager.currentPalette.color(.primary, isDark: themeManager.effectiveIsDark).opacity(0.65)],
-                action: { navigate(to: .inputMode) }
-            )
+                action: { navigate(to: .focusedMemorization) }
+            ),
         ]
         NavigationStack(path: $navigationPath) {
             ZStack {
@@ -166,61 +175,11 @@ struct DashboardView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        ZStack(alignment: .bottom) {
-                            VStack(spacing: 12) {
-                                Button {
-                                    navigate(to: .weak)
-                                } label: {
-                                    DashboardHeroHeader(
-                                        title: "今日の学習 \(learningStats.todayMinutes)分",
-                                        subtitle: "",
-                                        caption: "学習時間",
-                                        detail: goalProgressText,
-                                        icon: "sparkles",
-                                        accent: heroAccent,
-                                        secondary: heroSecondary
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityHint(Text("苦手一括復習へ"))
-                                .padding(.horizontal)
-
-                                HeroCarouselView(items: heroItems)
-                                    .frame(height: 190)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.bottom, 4)
-                            }
-
-                            if heroPullHintOpacity > 0.05 {
-                                VStack(spacing: 8) {
-                                    Image(systemName: heroPullNavigating ? "checkmark.circle.fill" : "arrow.down.circle.fill")
-                                        .font(.system(size: 20, weight: .semibold))
-                                        .foregroundStyle(heroAccent)
-
-                                    ZStack(alignment: .leading) {
-                                        Capsule()
-                                            .fill(heroAccent.opacity(0.25))
-                                            .frame(height: 4)
-                                        Capsule()
-                                            .fill(heroAccent)
-                                            .frame(width: 120 * min(heroDragProgress, 1), height: 4)
-                                    }
-                                    .frame(width: 120)
-
-                                    Text(heroPullNavigating ? "苦手克服に遷移中..." : (heroDragProgress >= 1 ? "離して苦手克服へ" : "下に引っ張って苦手克服"))
-                                        .font(.caption2.weight(.semibold))
-                                        .foregroundStyle(heroAccent)
-                                }
-                                .padding(.vertical, 10)
-                                .padding(.horizontal, 14)
-                                .background(.ultraThinMaterial, in: Capsule())
-                                .shadow(color: Color.black.opacity(0.12), radius: 8, y: 6)
-                                .offset(y: 16 + heroPullOffset * 0.1)
-                                .opacity(heroPullHintOpacity)
-                                .accessibilityHidden(true)
-                            }
-                        }
-                        .highPriorityGesture(heroDragGesture)
+                        HeroCarouselView(items: heroItems)
+                            .frame(height: 190)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 0)
+                            .padding(.top, 8)
 
                         // Header Stats
                         HStack(spacing: 16) {
@@ -573,8 +532,10 @@ struct DashboardView: View {
                     TimelineView()
                 case .mirror:
                     FrontCameraView()
-                case .inputMode:
-                    InputModeView()
+                case .focusedMemorization:
+                    FocusedMemorizationView()
+                case .report:
+                    ReportView()
                 }
             }
         }

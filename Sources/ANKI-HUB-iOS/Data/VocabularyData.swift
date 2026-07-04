@@ -1,26 +1,15 @@
 import Foundation
 
-/// 3アマ（ham3）の仮想チャプター名。放棄=法規、高額=工学。
+/// 3アマ（ham3）の仮想チャプター名
 enum Ham3ChapterOption {
     static let all = "すべて"
-    static let regulationAll = "放棄すべて"
-    static let engineeringAll = "高額すべて"
-    static let regulationMistakes = "放棄間違い"
-    static let engineeringMistakes = "高額間違い"
-    static let mistakesSuffix = "（間違い）"
-
-    static func isMistakesChapter(_ chapter: String) -> Bool {
-        chapter == regulationMistakes
-            || chapter == engineeringMistakes
-            || chapter.hasSuffix(mistakesSuffix)
-    }
+    static let regulationAll = "法規すべて"
+    static let engineeringAll = "工学すべて"
 
     static func isVirtualAggregate(_ chapter: String) -> Bool {
         chapter == all
             || chapter == regulationAll
             || chapter == engineeringAll
-            || chapter == regulationMistakes
-            || chapter == engineeringMistakes
     }
 
     static func description(for chapter: String) -> String {
@@ -28,13 +17,7 @@ enum Ham3ChapterOption {
         case all: return "法規・工学の全問題"
         case regulationAll: return "法規問題すべて"
         case engineeringAll: return "工学問題すべて"
-        case regulationMistakes: return "法規で間違えた問題"
-        case engineeringMistakes: return "工学で間違えた問題"
         default:
-            if chapter.hasSuffix(mistakesSuffix) {
-                let base = String(chapter.dropLast(mistakesSuffix.count))
-                return "\(base)で間違えた問題"
-            }
             if chapter.hasPrefix("法規") { return "法規問題" }
             if chapter.hasPrefix("工学") { return "工学問題" }
             return chapter
@@ -42,9 +25,7 @@ enum Ham3ChapterOption {
     }
 
     static func examChaptersOnly(from options: [String]) -> [String] {
-        options.filter { option in
-            !isVirtualAggregate(option) && !isMistakesChapter(option)
-        }
+        options.filter { !isVirtualAggregate($0) }
     }
 }
 
@@ -125,7 +106,7 @@ class VocabularyData: ObservableObject {
         }
     }
 
-    /// クイズ設定・チャプター一覧用（すべて / 放棄・高額グループ / 各回 / 間違い）
+    /// クイズ設定・チャプター一覧用（すべて / 法規・工学グループ / 各回）
     func getHam3ChapterOptions() -> [String] {
         let examChapters = getHam3Chapters()
         let regulation = examChapters.filter { ($0).hasPrefix("法規") }
@@ -134,18 +115,10 @@ class VocabularyData: ObservableObject {
         var options: [String] = [
             Ham3ChapterOption.all,
             Ham3ChapterOption.regulationAll,
-            Ham3ChapterOption.regulationMistakes,
         ]
-        for chapter in regulation {
-            options.append(chapter)
-            options.append(chapter + Ham3ChapterOption.mistakesSuffix)
-        }
+        options.append(contentsOf: regulation)
         options.append(Ham3ChapterOption.engineeringAll)
-        options.append(Ham3ChapterOption.engineeringMistakes)
-        for chapter in engineering {
-            options.append(chapter)
-            options.append(chapter + Ham3ChapterOption.mistakesSuffix)
-        }
+        options.append(contentsOf: engineering)
         return options
     }
 
@@ -154,46 +127,27 @@ class VocabularyData: ObservableObject {
         let regulation = examChapters.filter { $0.hasPrefix("法規") }
         let engineering = examChapters.filter { $0.hasPrefix("工学") }
 
-        var regulationChapters: [String] = [
-            Ham3ChapterOption.regulationAll,
-            Ham3ChapterOption.regulationMistakes,
-        ]
-        for chapter in regulation {
-            regulationChapters.append(chapter)
-            regulationChapters.append(chapter + Ham3ChapterOption.mistakesSuffix)
-        }
-
-        var engineeringChapters: [String] = [
-            Ham3ChapterOption.engineeringAll,
-            Ham3ChapterOption.engineeringMistakes,
-        ]
-        for chapter in engineering {
-            engineeringChapters.append(chapter)
-            engineeringChapters.append(chapter + Ham3ChapterOption.mistakesSuffix)
-        }
+        let regulationChapters = [Ham3ChapterOption.regulationAll] + regulation
+        let engineeringChapters = [Ham3ChapterOption.engineeringAll] + engineering
 
         return [
             Ham3ChapterSection(id: "all", title: "全体", chapters: [Ham3ChapterOption.all]),
-            Ham3ChapterSection(id: "regulation", title: "放棄（法規）", chapters: regulationChapters),
-            Ham3ChapterSection(id: "engineering", title: "高額（工学）", chapters: engineeringChapters),
+            Ham3ChapterSection(id: "regulation", title: "法規", chapters: regulationChapters),
+            Ham3ChapterSection(id: "engineering", title: "工学", chapters: engineeringChapters),
         ]
     }
 
-    /// カテゴリのみで絞り込み（間違いフィルタは QuizView 側で適用）
+    /// カテゴリのみで絞り込み（間違いのみは QuizView のトグルで適用）
     func filterHam3Vocabulary(_ vocab: [Vocabulary], chapter: String) -> [Vocabulary] {
         if chapter == Ham3ChapterOption.all {
             return vocab
         }
         switch chapter {
-        case Ham3ChapterOption.regulationAll, Ham3ChapterOption.regulationMistakes:
+        case Ham3ChapterOption.regulationAll:
             return vocab.filter { ($0.category ?? "").hasPrefix("法規") }
-        case Ham3ChapterOption.engineeringAll, Ham3ChapterOption.engineeringMistakes:
+        case Ham3ChapterOption.engineeringAll:
             return vocab.filter { ($0.category ?? "").hasPrefix("工学") }
         default:
-            if chapter.hasSuffix(Ham3ChapterOption.mistakesSuffix) {
-                let base = String(chapter.dropLast(Ham3ChapterOption.mistakesSuffix.count))
-                return vocab.filter { $0.category == base }
-            }
             return vocab.filter { $0.category == chapter }
         }
     }

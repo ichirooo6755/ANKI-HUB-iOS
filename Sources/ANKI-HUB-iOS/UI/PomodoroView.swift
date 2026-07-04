@@ -194,16 +194,22 @@ struct TimerView: View {
             if showStandby {
                 standbyTimerView
             } else {
-                VStack(spacing: 20) {
-                    watchTabSelector
-                        .padding(.horizontal)
-                        .padding(.top, 16)
+                ScrollView {
+                    VStack(spacing: 20) {
+                        StudySessionBentoCard()
+                            .padding(.horizontal)
 
-                    if selectedTab == .timer {
-                        timerView
-                    } else {
-                        stopwatchView
+                        watchTabSelector
+                            .padding(.horizontal)
+
+                        if selectedTab == .timer {
+                            timerView
+                        } else {
+                            stopwatchView
+                        }
                     }
+                    .padding(.top, 16)
+                    .padding(.bottom, 24)
                 }
             }
         }

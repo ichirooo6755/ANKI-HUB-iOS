@@ -2243,18 +2243,6 @@ struct QuizView: View {
     }
 
     // Helper to filter vocabulary by chapter
-    private func isHam3MistakeVocab(_ v: Vocabulary) -> Bool {
-        if masteryTracker.getMastery(subject: subject.rawValue, wordId: v.id) == .weak {
-            return true
-        }
-        if let item = masteryTracker.items[subject.rawValue]?[v.id],
-           item.wrong > 0,
-           item.lastAnswerWasCorrect == false {
-            return true
-        }
-        return false
-    }
-
     private func filterVocabByChapter(_ vocab: [Vocabulary], chapter: String) -> [Vocabulary] {
         let chunkSize = 50
 
@@ -2268,11 +2256,7 @@ struct QuizView: View {
         }
 
         if subject == .ham3 {
-            var filtered = VocabularyData.shared.filterHam3Vocabulary(vocab, chapter: chapter)
-            if Ham3ChapterOption.isMistakesChapter(chapter) {
-                filtered = filtered.filter { isHam3MistakeVocab($0) }
-            }
-            return filtered
+            return VocabularyData.shared.filterHam3Vocabulary(vocab, chapter: chapter)
         }
 
         if subject == .kanbun {

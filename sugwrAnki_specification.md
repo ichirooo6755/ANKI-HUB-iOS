@@ -703,7 +703,7 @@ const SYNC_APP_IDS = [
   'kobun',
   'kanbun', 
   'seikei',
-  'eiken',
+  'ham3',
   'wordlist'    // カスタム単語帳
 ];
 ```

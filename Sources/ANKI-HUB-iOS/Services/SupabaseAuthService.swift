@@ -106,23 +106,7 @@ import Foundation
 
             print("[SupabaseAuth] Exchanging code for token...")
 
-            let body: [String: String] = [
-                "auth_code": code,
-                "code_verifier": verifier,
-            ]
-            let payload = try JSONEncoder().encode(body)
-
-            let (data, _) = try await http.request(
-                "POST",
-                path: "auth/v1/token",
-                queryItems: [URLQueryItem(name: "grant_type", value: "pkce")],
-                additionalHeaders: [
-                    "Content-Type": "application/json"
-                ],
-                body: payload
-            )
-
-            let decoded = try JSONDecoder().decode(SupabaseSession.self, from: data)
+            let decoded = try await exchangeAuthCode(code, verifier: verifier)
             session = decoded
             #if DEBUG
                 print("[SupabaseAuth] Sign-in successful")
@@ -132,6 +116,34 @@ import Foundation
             try KeychainService.set(encoded, service: keychainService, account: sessionAccount)
 
             return decoded
+        }
+
+        private func exchangeAuthCode(_ code: String, verifier: String) async throws -> SupabaseSession {
+            let attempts: [[String: String]] = [
+                ["auth_code": code, "code_verifier": verifier],
+                ["code": code, "code_verifier": verifier],
+            ]
+
+            var lastError: Error?
+            for body in attempts {
+                do {
+                    let payload = try JSONEncoder().encode(body)
+                    let (data, _) = try await http.request(
+                        "POST",
+                        path: "auth/v1/token",
+                        queryItems: [URLQueryItem(name: "grant_type", value: "pkce")],
+                        additionalHeaders: [
+                            "Content-Type": "application/json"
+                        ],
+                        body: payload
+                    )
+                    return try JSONDecoder().decode(SupabaseSession.self, from: data)
+                } catch {
+                    lastError = error
+                    print("[SupabaseAuth] Token exchange attempt failed: \(error)")
+                }
+            }
+            throw lastError ?? SupabaseHTTPClient.HTTPError.invalidResponse
         }
 
         func refreshIfNeeded() async {

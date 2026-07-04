@@ -362,8 +362,16 @@ class AuthManager: ObservableObject {
 
             lastAuthErrorMessage = nil
         } catch {
-            lastAuthErrorMessage = error.localizedDescription
+            lastAuthErrorMessage = friendlyAuthErrorMessage(error)
         }
+    }
+
+    private func friendlyAuthErrorMessage(_ error: Error) -> String {
+        let raw = error.localizedDescription
+        if raw.contains("invalid") || raw.contains("401") {
+            return "ログインに失敗しました。Supabase の Redirect URL（sugwranki://login-callback）と Google プロバイダ設定を確認してください。"
+        }
+        return raw
     }
 
     func clearAuthError() {

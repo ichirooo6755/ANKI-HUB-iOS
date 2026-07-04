@@ -432,9 +432,10 @@ struct FocusedMemorizationView: View {
                         hint: word.hint ?? "",
                         meaning: word.meaning,
                         isFlipped: $isFlipped,
-                        showsHintWithAnswer: true
+                        showsHintWithAnswer: true,
+                        compactLongForm: selectedSubject == .ham3 || flashcardPrompt(for: word).count > 40
                     )
-                    .frame(height: 180)
+                    .frame(height: flashcardHeight(for: word))
 
                     let okOpacity = min(1.0, max(0.0, Double(cardDragX / 90.0)))
                     let ngOpacity = min(1.0, max(0.0, Double(-cardDragX / 90.0)))
@@ -759,6 +760,14 @@ struct FocusedMemorizationView: View {
         }
         return word.term
     }
+
+    private func flashcardHeight(for word: Vocabulary) -> CGFloat {
+        let prompt = flashcardPrompt(for: word)
+        if prompt.count > 120 { return 320 }
+        if prompt.count > 60 { return 260 }
+        if prompt.count > 40 { return 220 }
+        return 180
+    }
     
     private func getSecondsForDay(_ day: Int) -> Double {
         switch day {
@@ -987,9 +996,30 @@ struct FlashcardInputView: View {
     let meaning: String
     @Binding var isFlipped: Bool
     var showsHintWithAnswer: Bool = false
+    var compactLongForm: Bool = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @ObservedObject private var theme = ThemeManager.shared
+
+    private var frontFont: Font {
+        if compactLongForm || word.count > 100 {
+            return .caption.weight(.medium)
+        }
+        if word.count > 60 {
+            return .footnote.weight(.semibold)
+        }
+        if word.count > 30 {
+            return .body.weight(.bold)
+        }
+        return .title.weight(.bold)
+    }
+
+    private var backFont: Font {
+        if meaning.count > 80 {
+            return .subheadline.weight(.semibold)
+        }
+        return .title2.weight(.bold)
+    }
     
     var body: some View {
         let okColor = theme.currentPalette.color(.mastered, isDark: theme.effectiveIsDark)
@@ -1000,7 +1030,7 @@ struct FlashcardInputView: View {
                 if showsHintWithAnswer, !hint.isEmpty {
                     Text(hint)
                         .font(.headline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                 }
                 
                 Text(meaning.components(separatedBy: CharacterSet(charactersIn: "　 、,")).first ?? meaning)
@@ -1011,9 +1041,13 @@ struct FlashcardInputView: View {
                     .clipShape(Capsule())
                     .foregroundStyle(okColor)
                 
-                Text(meaning)
-                    .font(.title2.weight(.bold))
-                    .multilineTextAlignment(.center)
+                ScrollView {
+                    Text(meaning)
+                        .font(backFont)
+                        .foregroundStyle(theme.primaryText)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
@@ -1024,20 +1058,25 @@ struct FlashcardInputView: View {
             
             // Front
             VStack(spacing: 12) {
-                Text(word)
-                    .font(.title.weight(.bold))
+                ScrollView {
+                    Text(word)
+                        .font(frontFont)
+                        .foregroundStyle(theme.primaryText)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                }
 
                 if !showsHintWithAnswer, !hint.isEmpty {
                     Text(hint)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondaryText)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
             .background(surface)
             .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: .black.opacity(0.1), radius: 8, y: 4)
+            .shadow(color: .black.opacity(theme.effectiveIsDark ? 0.35 : 0.1), radius: 8, y: 4)
             .opacity(isFlipped ? 0 : 1)
         }
         .rotation3DEffect(reduceMotion ? .zero : .degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))

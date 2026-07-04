@@ -521,10 +521,12 @@ class ThemeManager: ObservableObject {
 
     private func migrateWallpaperEnabledIfNeeded() {
         guard !wallpaperEnabledMigrated else { return }
-        let shouldDisable = wallpaperKind == "bundle" || wallpaperKind == "photo"
         DispatchQueue.main.async {
-            if shouldDisable {
-                self.wallpaperEnabled = false
+            // 以前のバグで bundle/photo 選択時に OFF にしていた設定を復元
+            if (self.wallpaperKind == "bundle" || self.wallpaperKind == "photo"),
+               !self.wallpaperValue.isEmpty
+            {
+                self.wallpaperEnabled = true
             }
             self.wallpaperEnabledMigrated = true
         }
@@ -562,8 +564,13 @@ class ThemeManager: ObservableObject {
     }
 
     var cardBackground: AnyShapeStyle {
+        #if os(iOS)
+            if wallpaperEnabled, wallpaperKind == "bundle" || wallpaperKind == "photo" {
+                return AnyShapeStyle(.ultraThinMaterial)
+            }
+        #endif
         let surface = currentPalette.color(.surface, isDark: effectiveIsDark)
-        return AnyShapeStyle(surface.opacity(effectiveIsDark ? 0.9 : 0.98))
+        return AnyShapeStyle(surface.opacity(effectiveIsDark ? 0.92 : 0.98))
     }
 
     var primaryText: Color {
@@ -2184,6 +2191,7 @@ struct AppThemeModifier: ViewModifier {
 
         content
             .preferredColorScheme(theme.effectivePreferredColorScheme)
+            .environment(\.colorScheme, theme.effectiveIsDark ? .dark : .light)
             .tint(tintColor)
             #if os(iOS)
                 .scrollContentBackground(.hidden)
