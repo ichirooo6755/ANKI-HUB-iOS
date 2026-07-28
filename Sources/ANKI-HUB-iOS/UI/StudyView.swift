@@ -197,6 +197,9 @@ struct ToolsGridView: View {
                 NavigationLink(destination: BookshelfView()) {
                     ToolCard(title: "教材", icon: "books.vertical.fill", color: .cyan)
                 }
+                NavigationLink(destination: ExamGuideHomeView()) {
+                    ToolCard(title: "試験解説", icon: "text.book.closed.fill", color: .indigo)
+                }
                 NavigationLink(destination: TodoView()) {
                     ToolCard(title: "やること", icon: "list.bullet", color: .teal)
                 }

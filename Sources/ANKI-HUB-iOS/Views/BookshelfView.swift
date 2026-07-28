@@ -38,6 +38,8 @@ struct BookshelfView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
+                        builtInExamGuidesSection
+
                         SectionHeader(
                             title: "教材ライブラリ",
                             subtitle: nil,
@@ -123,6 +125,59 @@ struct BookshelfView: View {
         .applyAppTheme()
         .onAppear {
             manager.load()
+        }
+    }
+
+    private var builtInExamGuidesSection: some View {
+        let accent = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+        let surface = theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+        let guides = ExamGuideData.subjects()
+        return VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(
+                title: "試験解説（内蔵）",
+                subtitle: "アカウンティング / マネファイ",
+                trailing: "\(guides.count)科目"
+            )
+
+            NavigationLink {
+                ExamGuideHomeView()
+            } label: {
+                HStack(spacing: 16) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(accent.opacity(0.22))
+                            .frame(width: 52, height: 52)
+                        Image(systemName: "text.book.closed.fill")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(accent)
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("期末試験解説")
+                            .font(.headline.weight(.semibold))
+                            .foregroundStyle(theme.primaryText)
+                        Text("各回の要点・YouTube・Manaba問題解説")
+                            .font(.footnote)
+                            .foregroundStyle(theme.secondaryText)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(theme.secondaryText)
+                }
+                .padding(18)
+                .background(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(accent.opacity(0.28), lineWidth: 1.5)
+                )
+            }
+            .buttonStyle(.plain)
         }
     }
 

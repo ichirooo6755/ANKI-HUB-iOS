@@ -26,6 +26,7 @@
 | R15 | `manefi.json` 充実（40問以上）と Subject 配線 | P0 | ✅ 完了（227問・PDF再解析） |
 | R16 | Quiz 出題時に選択肢シャッフル（本文判定・correctIndex 再計算） | P0 | ✅ 済（`QuizView` MCQ / accounting / manefi） |
 | R17 | 月曜`(月)`小テスト抽出＋木/月を章分け（同一 Subject `accounting`） | P0 | ✅ 月: choicesユニーク23→展開62。章「Manaba・木」「Manaba・月」。提出せず正解公開のみ |
+| R18 | 学習タブ「教材」に試験解説（accounting/manefi）を内蔵 | P0 | ✅ `exam_guides.json` + ExamGuideViews。YouTubeリンク・Manaba/PDF解説 |
 
 ---
 
@@ -181,6 +182,19 @@ ChapterSelection の章 = `category`。`先生・` / `AI・` プレフィック�
 | スクリプト | `python3 scripts/manaba_extract/merge_mf_fin_pdf.py` |
 | Manaba Web | **未使用** |
 
+### 試験解説（内蔵教材・2026-07-28）
+
+| 項目 | 内容 |
+|------|------|
+| 入口 | 学習タブ → **教材**（BookshelfView）上部「試験解説（内蔵）」／計画・管理 → **試験解説** |
+| データ | `Resources/exam_guides.json`（`ExamGuideData.swift` で読込） |
+| UI | `ExamGuideHomeView` → 科目 → 章一覧 → 詳細（箇条書き＋練習解説＋YouTube Link） |
+| accounting | 試験注意、第2–7回（YouTube前半要約）、第8–14回要点（後半）、Manaba・月/木解説 |
+| manefi | 期末PDF重点（国際収支・為替・日銀・payoff）、先生・試験・期末、前半/後半respon、AI章（軽め） |
+| YouTube | `https://youtu.be/vy605s2mXW8`（前半）、`https://youtu.be/5TEcWjoExqQ`（後半）— Safari で開く |
+| 素材 | transcript サブエージェント要約、`accounting.json`/`manefi.json` 章構成、期末PDF OCR。捏造禁止 |
+| Manaba Web | **未使用** |
+
 ### Manaba 抽出（通常 Playwright・推奨）
 
 ```bash
@@ -206,6 +220,7 @@ node scripts/manaba_extract/merge_pool.cjs --write
 
 | 日付 | 内容 |
 |------|------|
+| 2026-07-28 | R18: 学習タブ教材に試験解説（accounting/manefi）追加。`exam_guides.json`、YouTube・Manaba/PDF解説。Manaba Web未使用 |
 | 2026-07-28 | マネファイ期末.pdf: 新章 `先生・期末（マネファイ期末.pdf）` +19問（246問計）。Vision OCR。`先生・試験・期末` と別章。Manaba Web未使用 |
 | 2026-07-28 | マネファイ: category を先生/AIで章分け（先生208 / AI38）。ChapterSelection で選択可。分類ルールを requirements に追記 |
 | 2026-07-28 | マネファイ PDF再解析: `manefi.json` 175→227問。第16–19回クイズ・respon取りこぼし・章立て授業回化。Vision OCR。実機 iPhoneA13 BUILD SUCCEEDED。Manaba Web未使用 |
