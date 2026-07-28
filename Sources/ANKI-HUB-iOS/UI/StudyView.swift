@@ -34,7 +34,8 @@ struct StudyView: View {
                             LazyVGrid(
                                 columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16
                             ) {
-                                ForEach(Subject.allCases) { subject in
+                                // 一時非表示: temp/hide-english-kobun-3days。main に戻せば再表示
+                                ForEach(Subject.allStudySubjects) { subject in
                                     SubjectGridItem(subject: subject)
                                 }
                             }

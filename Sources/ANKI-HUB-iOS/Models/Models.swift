@@ -1122,8 +1122,21 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
 
     public var id: String { rawValue }
 
-    /// 苦手・復習・レポートなど全機能で共通利用する科目一覧（`CaseIterable` と同期）
-    public static var allStudySubjects: [Subject] { Array(allCases) }
+    /// 苦手・復習・学習タブなど学習導線で共通利用する科目一覧。
+    /// 一時非表示: temp/hide-english-kobun-3days。main に戻せば再表示。
+    public static var allStudySubjects: [Subject] {
+        allCases.filter { !$0.isTemporarilyHiddenFromStudy }
+    }
+
+    /// 学習タブ／復習・苦手などの入口から一時的に隠す科目（データ自体は残す）
+    public var isTemporarilyHiddenFromStudy: Bool {
+        switch self {
+        case .english, .kobun, .kanbun:
+            return true
+        default:
+            return false
+        }
+    }
 
     /// 4択問題中心の科目（ham3 形式 JSON）
     public var isMultipleChoiceSubject: Bool {

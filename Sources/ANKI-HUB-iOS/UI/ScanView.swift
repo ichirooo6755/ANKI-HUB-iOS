@@ -50,7 +50,8 @@ struct ScanView: View {
     #endif
 
     @State private var sessionTitle: String = ""
-    @State private var sessionSubject: Subject = .english
+    // 一時非表示: temp/hide-english-kobun-3days。main に戻せば再表示
+    @State private var sessionSubject: Subject = Subject.allStudySubjects.first ?? .seikei
 
     struct ExtractedWord: Identifiable {
         let id = UUID()

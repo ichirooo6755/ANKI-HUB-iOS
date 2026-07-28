@@ -8,7 +8,8 @@ struct PinRecordingSheet: View {
     @ObservedObject private var theme = ThemeManager.shared
     @ObservedObject private var sessionManager = StudySessionManager.shared
     
-    @State private var selectedSubject: Subject = .english
+    // 一時非表示: temp/hide-english-kobun-3days。main に戻せば再表示
+    @State private var selectedSubject: Subject = Subject.allStudySubjects.first ?? .seikei
     @State private var activity: String = ""
     @State private var notes: String = ""
     
@@ -31,7 +32,7 @@ struct PinRecordingSheet: View {
                 Form {
                     Section("科目") {
                         Picker("科目を選択", selection: $selectedSubject) {
-                            ForEach(Subject.allCases) { subject in
+                            ForEach(Subject.allStudySubjects) { subject in
                                 HStack {
                                     Image(systemName: subject.icon)
                                     Text(subject.displayName)

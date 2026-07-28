@@ -129,8 +129,12 @@ struct FocusedMemorizationView: View {
         scanSessionManager.sessions(for: selectedSubject)
     }
 
-    init(subject: Subject = .kobun) {
-        _selectedSubject = State(initialValue: subject)
+    // 一時非表示: temp/hide-english-kobun-3days。main に戻せば再表示（既定を隠した科目にしない）
+    init(subject: Subject = Subject.allStudySubjects.first ?? .seikei) {
+        let initial = subject.isTemporarilyHiddenFromStudy
+            ? (Subject.allStudySubjects.first ?? .seikei)
+            : subject
+        _selectedSubject = State(initialValue: initial)
     }
     
     var body: some View {
