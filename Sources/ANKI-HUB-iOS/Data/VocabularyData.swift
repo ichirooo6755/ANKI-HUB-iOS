@@ -180,7 +180,17 @@ class VocabularyData: ObservableObject {
 
     func getCategoryChapters(for subject: Subject) -> [String] {
         let unique = Set(getVocabulary(for: subject).compactMap { $0.category }.filter { !$0.isEmpty })
-        return Array(unique).sorted()
+        // マネファイ: 先生（教材・試験）→ AI（補強）の順。その他は辞書順。
+        return Array(unique).sorted { a, b in
+            func rank(_ s: String) -> Int {
+                if s.hasPrefix("先生") { return 0 }
+                if s.hasPrefix("AI") { return 1 }
+                return 2
+            }
+            let ra = rank(a), rb = rank(b)
+            if ra != rb { return ra < rb }
+            return a < b
+        }
     }
     
     private func setupData() {

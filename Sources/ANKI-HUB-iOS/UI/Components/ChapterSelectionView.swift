@@ -166,9 +166,21 @@ struct ChapterSelectionView: View {
         } else if subject == .accounting || subject == .manefi {
             let cats = VocabularyData.shared.getCategoryChapters(for: subject)
             chapters = cats.map { title in
-                Chapter(
+                let desc: String
+                if title.contains("Manaba・月") {
+                    desc = "月曜・財務会計小テスト"
+                } else if title.contains("Manaba・木") {
+                    desc = "木曜・採点外ドリル"
+                } else if title.hasPrefix("先生") {
+                    desc = "教材・試験由来"
+                } else if title.hasPrefix("AI") {
+                    desc = "スライド補強・概念確認"
+                } else {
+                    desc = "カテゴリ"
+                }
+                return Chapter(
                     title: title,
-                    description: "カテゴリ",
+                    description: desc,
                     progress: categoryProgress(for: subject, category: title),
                     isLocked: false
                 )

@@ -5,6 +5,8 @@
   "scripts": {
     "manaba:extract": "node scripts/manaba_extract/extract_drill.cjs",
     "manaba:extract:dry": "node scripts/manaba_extract/extract_drill.cjs --dry-run",
+    "manaba:list": "node scripts/manaba_extract/list_query.cjs",
+    "manaba:extract:mon": "node scripts/manaba_extract/extract_mon_quizzes.cjs",
     "manaba:merge": "node scripts/manaba_extract/merge_pool.cjs"
   },
   "dependencies": {

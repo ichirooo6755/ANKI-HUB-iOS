@@ -1,23 +1,22 @@
 #!/usr/bin/env node
 /**
- * pool.json / sources.json → accounting.json 形式へマージ
+ * pool.json / pool_mon.json → accounting.json 形式へマージ
+ *
+ * 章分け:
+ * - 木曜採点外ドリル → 「管理会計・経理実務（Manaba・木）」
+ * - 月曜小テスト     → 「管理会計・経理実務（Manaba・月）」
+ * - 旧カテゴリ「管理会計・経理実務（Manaba）」は木に移行
  *
  * ルール（案A: Web と同じ選択肢数を維持）:
- * - 正解・重複キーはラジオ value（"1","2"）ではなく選択肢本文テキスト
- *   （Manaba は出題ごとに選択肢番号が入れ替わる）
- * - 「誤っている説明を2つ選べ」系: 各誤り文につき1問に分解
- *   - select[0] = その誤りの本文（アプリ上の単一正解）
- *   - 残りの選択肢は Web 元の options をすべて維持（基本5択。4/6もそのまま）
- * - 穴埋め single: Web の options を本文で重複除去して維持（多くは4択）
- *   - Manaba 側で本文重複がある場合はダミーを捏造せず短い select のまま
- * - 既存 accounting.json の非 Manaba 項目は保持し、Manaba カテゴリは完全差し替え
+ * - 正解・重複キーは選択肢本文テキスト（番号依存禁止）
+ * - wrong_multi: 各誤り文につき1問（select[0]=誤り本文）
+ * - correct_multi: 各正解文につき1問（select[0]=正しい本文）
+ * - fill_blank / single: select[0]=正解本文、options 全文維持
  *
  * Usage:
  *   npm run manaba:merge
  *   node scripts/manaba_extract/merge_pool.cjs --write
- *   node scripts/manaba_extract/merge_pool.cjs --dry-run
  */
-
 'use strict';
 
 const fs = require('fs');
@@ -26,11 +25,17 @@ const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '../..');
 const OUT_DIR = path.join(__dirname, 'out');
-const POOL_PATH = path.join(OUT_DIR, 'pool.json');
-const SOURCES_PATH = path.join(OUT_DIR, 'sources.json');
+const POOL_THU = path.join(OUT_DIR, 'pool.json');
+const SOURCES_THU = path.join(OUT_DIR, 'sources.json');
+const POOL_MON = path.join(OUT_DIR, 'pool_mon.json');
+const SOURCES_MON = path.join(OUT_DIR, 'sources_mon.json');
 const FALLBACK_SOURCES = path.join(ROOT, '.tmp-manaba/sources.json');
 const ACC_PATH = path.join(ROOT, 'Sources/ANKI-HUB-iOS/Resources/accounting.json');
 const MERGED_OUT = path.join(OUT_DIR, 'accounting_manaba_merged.json');
+
+const CAT_THU = '管理会計・経理実務（Manaba・木）';
+const CAT_MON = '管理会計・経理実務（Manaba・月）';
+const CAT_LEGACY = '管理会計・経理実務（Manaba）';
 
 function parseArgs(argv) {
   return {
@@ -50,17 +55,23 @@ function isWrongType(prompt) {
   return p.includes('誤') && p.includes('選');
 }
 
-function loadSources() {
-  for (const p of [SOURCES_PATH, POOL_PATH, FALLBACK_SOURCES]) {
+function isCorrectMultiType(prompt, type) {
+  if (type === 'correct_multi') return true;
+  const p = prompt || '';
+  return /正し/.test(p) && (/全て|すべて|全部/.test(p) || /チェック/.test(p));
+}
+
+function loadSourcesFrom(paths, label) {
+  for (const p of paths) {
     if (!fs.existsSync(p)) continue;
     const raw = JSON.parse(fs.readFileSync(p, 'utf8'));
     const list = Array.isArray(raw) ? raw : raw.sources || [];
     if (list.length) {
-      console.log(`[load] ${list.length} sources from ${p}`);
+      console.log(`[load] ${label}: ${list.length} sources from ${p}`);
       return list;
     }
   }
-  console.warn('[load] no sources found');
+  console.warn(`[load] ${label}: no sources found`);
   return [];
 }
 
@@ -73,14 +84,14 @@ function uniquePreserveOrder(list) {
   const out = [];
   for (const x of list) {
     if (!x || seen.has(x)) continue;
-    if (isNumberOnlyLabel(x)) continue; // 番号ラベルは捨て、本文のみ
+    if (isNumberOnlyLabel(x)) continue;
     seen.add(x);
     out.push(x);
   }
   return out;
 }
 
-function toItems(sources) {
+function toItems(sources, category) {
   const items = [];
   sources.forEach((src, i) => {
     const prompt = norm(src.prompt || '');
@@ -91,7 +102,6 @@ function toItems(sources) {
     const idx = i + 1;
 
     if (qtype === 'wrong_multi' || (wrong.length && isWrongType(prompt))) {
-      // 案A: 元の options 全文を維持し、誤り1つを select[0] にする
       wrong.forEach((w, j) => {
         const fromOptions = options.filter((o) => o !== w);
         const fallback = correct.filter((d) => d !== w);
@@ -100,11 +110,28 @@ function toItems(sources) {
         if (sel.length < 2) return;
         items.push({
           id: `acc-manaba-${idx}-${j + 1}`,
-          category: '管理会計・経理実務（Manaba）',
+          category,
           text: isWrongType(prompt)
             ? '次のうち、明らかに誤っている説明はどれか。'
             : prompt.replace(/\(選択必須\)/g, '').trim() ||
               '次のうち正しいものはどれか。',
+          select: sel,
+        });
+      });
+      return;
+    }
+
+    if (qtype === 'correct_multi' || isCorrectMultiType(prompt, qtype)) {
+      correct.forEach((c, j) => {
+        const fromOptions = options.filter((o) => o !== c);
+        const fallback = wrong.filter((d) => d !== c);
+        const others = fromOptions.length ? fromOptions : fallback;
+        const sel = uniquePreserveOrder([c, ...others]);
+        if (sel.length < 2) return;
+        items.push({
+          id: `acc-manaba-${idx}-${j + 1}`,
+          category,
+          text: '次のうち、正しいものはどれか。',
           select: sel,
         });
       });
@@ -116,24 +143,27 @@ function toItems(sources) {
     if (src.answer) {
       answer = norm(src.answer);
       distractors = (src.distractors || options).map(norm).filter((x) => x && x !== answer);
-    } else if (src.checked) {
-      answer = Array.isArray(src.checked) ? norm(src.checked[0]) : norm(src.checked);
-      distractors = options.filter((x) => x !== answer);
     } else if (correct.length) {
       answer = correct[0];
       distractors = options.filter((x) => x !== answer);
       if (!distractors.length) distractors = correct.slice(1);
     }
-    // 番号だけの正解は拒否（本文テキスト必須）
     if (!answer || isNumberOnlyLabel(answer)) return;
-    // Web と同じ選択肢数を維持（slice しない）。本文重複は除去のみ（ダミー追加なし）
     const sel = uniquePreserveOrder([answer, ...distractors].filter(Boolean));
     if (sel.length < 2) return;
+
+    let text =
+      prompt.replace(/\(選択必須\)/g, '').trim() || '次のうち正しいものはどれか。';
+    if (qtype === 'fill_blank') {
+      if (!/空欄|当てはまる|語句/.test(text)) {
+        text = '次の空欄に当てはまる語句はどれか。';
+      }
+    }
+
     items.push({
       id: `acc-manaba-${idx}-1`,
-      category: '管理会計・経理実務（Manaba）',
-      text:
-        prompt.replace(/\(選択必須\)/g, '').trim() || '次のうち正しいものはどれか。',
+      category,
+      text,
       select: sel,
     });
   });
@@ -146,36 +176,30 @@ function dedupeKey(item) {
   return sel[0] + '||' + sel.slice(1).sort().join('||');
 }
 
-function main() {
-  const opts = parseArgs(process.argv.slice(2));
-  const sources = loadSources();
-  const existing = JSON.parse(fs.readFileSync(ACC_PATH, 'utf8'));
-  const newItems = toItems(sources);
-
-  const nonManaba = existing.filter((x) => !String(x.category || '').includes('Manaba'));
-
-  // Manaba は完全差し替え（旧4択を残さない）
+function finalizeManaba(items, category, idPrefix) {
   const seen = new Set();
-  const mergedManaba = [];
+  const merged = [];
   const selectLenDist = {};
-  for (const x of newItems) {
+  for (const x of items) {
     const k = dedupeKey(x);
     if (!k || seen.has(k)) continue;
     if ((x.select || []).length < 2) continue;
     seen.add(k);
-    const h = crypto.createHash('md5').update(k).digest('hex').slice(0, 8);
+    const h = crypto.createHash('md5').update(idPrefix + k).digest('hex').slice(0, 8);
     const select = Array.isArray(x.select) ? x.select.slice() : [];
     selectLenDist[select.length] = (selectLenDist[select.length] || 0) + 1;
-    mergedManaba.push({
-      id: `acc-manaba-${h}`,
-      category: x.category || '管理会計・経理実務（Manaba）',
+    merged.push({
+      id: `${idPrefix}${h}`,
+      category,
       text: x.text,
       select,
     });
   }
+  return { merged, selectLenDist };
+}
 
-  const out = [...nonManaba, ...mergedManaba];
-  const uniqueSourceChoiceSets = new Set(
+function uniqueChoiceSets(sources) {
+  return new Set(
     sources.map((s) =>
       uniquePreserveOrder((s.options || []).map(norm).filter(Boolean))
         .slice()
@@ -183,11 +207,39 @@ function main() {
         .join('||')
     )
   );
+}
+
+function main() {
+  const opts = parseArgs(process.argv.slice(2));
+  const thuSources = loadSourcesFrom([SOURCES_THU, POOL_THU, FALLBACK_SOURCES], 'thu');
+  const monSources = loadSourcesFrom([SOURCES_MON, POOL_MON], 'mon');
+
+  const existing = JSON.parse(fs.readFileSync(ACC_PATH, 'utf8'));
+  const nonManaba = existing.filter((x) => {
+    const c = String(x.category || '');
+    return !c.includes('Manaba');
+  });
+
+  const thu = finalizeManaba(toItems(thuSources, CAT_THU), CAT_THU, 'acc-manaba-thu-');
+  const mon = finalizeManaba(toItems(monSources, CAT_MON), CAT_MON, 'acc-manaba-mon-');
+
+  const out = [...nonManaba, ...thu.merged, ...mon.merged];
   const summary = {
-    sources: sources.length,
-    unique_source_choice_sets: uniqueSourceChoiceSets.size,
-    manaba_items: mergedManaba.length,
-    manaba_select_length_dist: selectLenDist,
+    thu: {
+      sources: thuSources.length,
+      unique_source_choice_sets: uniqueChoiceSets(thuSources).size,
+      items: thu.merged.length,
+      select_length_dist: thu.selectLenDist,
+      category: CAT_THU,
+    },
+    mon: {
+      sources: monSources.length,
+      unique_source_choice_sets: uniqueChoiceSets(monSources).size,
+      items: mon.merged.length,
+      select_length_dist: mon.selectLenDist,
+      category: CAT_MON,
+    },
+    legacy_category_removed: CAT_LEGACY,
     non_manaba: nonManaba.length,
     total_accounting: out.length,
     write: opts.write,

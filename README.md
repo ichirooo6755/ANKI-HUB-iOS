@@ -111,12 +111,15 @@ open ANKI-HUB-iOS.xcodeproj
 | 項目 | 状態 |
 |------|------|
 | 科目 `accounting` / `manefi` | `Subject`・`VocabularyData`・`DataParser`・`QuizView`・`ChapterSelectionView`・`RankUpManager` 配線済み（別科目） |
-| 問題データ | `accounting.json` **134問**（Manaba ソース50→展開90 + 非Manaba44） / `manefi.json` **175問**（ローカル教材のみ・Resources 登録済み） |
+| 問題データ | `accounting.json` **221問**（非Manaba44 + 木115 + 月62） / `manefi.json` **227問**（ローカル教材のみ・Resources 登録済み） |
 | 出題 | MCQ は `QuizView` で `allAnswers`/`choices` をシャッフルし、正解は本文で `correctIndex` 再計算（`select[0]` 固定表示にしない） |
 | マネファイ優先 | **前半**=小テスト/練習問題、**後半**=「テスト/試験/確認」記載重点、`respon解答`は正解付き、スライド補強は薄いときのみ |
+| マネファイ章分け | **先生 189問**（respon/練習/授業内クイズ/試験OCR） / **AI 38問**（概念確認・補強）。category プレフィックス `先生・` / `AI・`。詳細は requirements.md |
 | マネファイ制約 | **Manaba Web 禁止**（Playwright/ログイン/ドリル提出なし）。データ元は `Downloads/Manaba/マネー＆ファイナンス入門` 等のローカルのみ |
-| Manaba（会計） | **採点外ドリルのみ**（`course_6089558_drill_6812813`）。`select[0]` は選択肢**本文**。ソース50（基本5択維持）。再試験で結果画面から正解本文取得を確認済み |
-| Manaba 抽出 | 会計用: `scripts/manaba_extract/`（通常 Playwright + storageState）。マネファイ作業中は起動しない |
+| マネファイPDF再解析（2026-07-28） | 175→**227問**（+52）。`pdftotext` + Vision OCR。章を授業回付きに整理。新規主戦場=第16–19回授業内クイズ（解答付き）・respon取りこぼし・第22–26回補強・中間OCR補完 |
+| Manaba（会計・木） | 採点外ドリル `course_6089558_drill_6812813` → 章 `管理会計・経理実務（Manaba・木）`。choicesユニーク **60** → 展開 **115** |
+| Manaba（会計・月） | `(月)` 財務会計小テスト13本。**提出せず**受付終了後の「正解はこちら」のみ → 章 `管理会計・経理実務（Manaba・月）`。choicesユニーク **23** → 展開 **62** |
+| Manaba 抽出 | `scripts/manaba_extract/`（通常 Playwright + storageState）。木/月は別プール。同時に複数提出プロセスを動かさない |
 
 ### Manaba ドリル抽出（通常 Playwright・推奨）
 
@@ -128,23 +131,24 @@ npm i
 npx playwright install chromium
 
 # 初回: headed ブラウザが開く → 中央大学 SSO でログイン（パスワードはコードに書かない）
-npm run manaba:extract
+npm run manaba:extract          # 木曜・採点外ドリル
+npm run manaba:extract:dry      # 起動〜ログイン待ちだけ（提出しない）
+npm run manaba:list             # course query 一覧（(月)/(木)）
+npm run manaba:extract:mon      # 月曜小テスト（正解公開のみ・提出なし）
 
-# 起動〜ログイン待ちだけ確認（提出しない）
-npm run manaba:extract:dry
-
-# pool → accounting.json 形式プレビュー
+# pool → accounting.json 形式プレビュー / 反映（木+月を章分け）
 npm run manaba:merge
-
-# accounting.json に反映
 node scripts/manaba_extract/merge_pool.cjs --write
 ```
 
 | パス | 内容 |
 |------|------|
-| `scripts/manaba_extract/extract_drill.cjs` | 採点外ドリル抽出 |
-| `scripts/manaba_extract/merge_pool.cjs` | pool → Web同数選択肢（基本5択、`select[0]`=誤り1つ） |
-| `scripts/manaba_extract/out/pool.json` | 抽出結果 |
+| `scripts/manaba_extract/extract_drill.cjs` | 木曜・採点外ドリル抽出 |
+| `scripts/manaba_extract/list_query.cjs` | course query 一覧 |
+| `scripts/manaba_extract/extract_mon_quizzes.cjs` | 月曜小テスト（正解公開のみ） |
+| `scripts/manaba_extract/merge_pool.cjs` | 木/月 → 章分けマージ |
+| `scripts/manaba_extract/out/pool.json` | 木曜抽出 |
+| `scripts/manaba_extract/out/pool_mon.json` | 月曜抽出 |
 | `scripts/manaba_extract/storage/storageState.json` | SSO セッション（gitignore・**コミット禁止**） |
 
 詳細: [scripts/manaba_extract/README.md](scripts/manaba_extract/README.md)
