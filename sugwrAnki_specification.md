@@ -704,6 +704,8 @@ const SYNC_APP_IDS = [
   'kanbun', 
   'seikei',
   'ham3',
+  'accounting',
+  'manefi',
   'wordlist'    // カスタム単語帳
 ];
 ```

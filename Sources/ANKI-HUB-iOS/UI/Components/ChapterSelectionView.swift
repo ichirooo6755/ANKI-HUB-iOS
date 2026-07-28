@@ -163,8 +163,32 @@ struct ChapterSelectionView: View {
                     isLocked: false
                 )
             }
+        } else if subject == .accounting || subject == .manefi {
+            let cats = VocabularyData.shared.getCategoryChapters(for: subject)
+            chapters = cats.map { title in
+                Chapter(
+                    title: title,
+                    description: "カテゴリ",
+                    progress: categoryProgress(for: subject, category: title),
+                    isLocked: false
+                )
+            }
         } else {
             chapters = []
+        }
+
+        ScanSessionManager.shared.load()
+        let scanSessions = ScanSessionManager.shared.sessions(for: subject)
+        if !scanSessions.isEmpty {
+            let scanChapters = scanSessions.map { session in
+                Chapter(
+                    title: ScanSessionManager.chapterTitle(for: session),
+                    description: "スキャン問題集（\(session.vocabulary.count)問）",
+                    progress: 0,
+                    isLocked: false
+                )
+            }
+            chapters.append(contentsOf: scanChapters)
         }
     }
     
@@ -245,7 +269,22 @@ struct ChapterSelectionView: View {
                 acc + (isCompleted(mastery[v.id]) ? 1 : 0)
             }
             return total > 0 ? Double(completed) / Double(total) : 0
+
+        case .accounting, .manefi:
+            return 0
         }
+    }
+
+    private func categoryProgress(for subject: Subject, category: String) -> Double {
+        let mastery = masteryTracker.items[subject.rawValue] ?? [:]
+        let slice = VocabularyData.shared.getVocabulary(for: subject, chapter: category)
+        guard !slice.isEmpty else { return 0 }
+        let completed = slice.reduce(0) { acc, v in
+            let item = mastery[v.id]
+            let ok = item?.mastery == .almost || item?.mastery == .mastered
+            return acc + (ok ? 1 : 0)
+        }
+        return Double(completed) / Double(slice.count)
     }
 
     private func getHam3Progress(for chapterTitle: String) -> Double {

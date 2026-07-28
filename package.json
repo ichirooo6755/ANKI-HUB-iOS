@@ -1,0 +1,13 @@
+{
+  "name": "anki-hub-ios-scripts",
+  "private": true,
+  "description": "Local tooling scripts (Manaba drill extract, etc.). Not part of the iOS app build.",
+  "scripts": {
+    "manaba:extract": "node scripts/manaba_extract/extract_drill.cjs",
+    "manaba:extract:dry": "node scripts/manaba_extract/extract_drill.cjs --dry-run",
+    "manaba:merge": "node scripts/manaba_extract/merge_pool.cjs"
+  },
+  "dependencies": {
+    "playwright": "^1.54.1"
+  }
+}

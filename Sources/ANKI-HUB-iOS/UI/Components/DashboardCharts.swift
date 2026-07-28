@@ -524,6 +524,12 @@ struct DashboardCharts: View {
         if subjectId == Subject.ham3.rawValue {
             return theme.currentPalette.color(.accent, isDark: isDark)
         }
+        if subjectId == Subject.accounting.rawValue {
+            return theme.currentPalette.color(.primary, isDark: isDark)
+        }
+        if subjectId == Subject.manefi.rawValue {
+            return theme.currentPalette.color(.selection, isDark: isDark)
+        }
         return theme.currentPalette.color(.secondary, isDark: isDark)
     }
 }

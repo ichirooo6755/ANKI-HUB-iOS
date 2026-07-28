@@ -1117,11 +1117,21 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
     case kanbun = "kanbun"
     case seikei = "seikei"
     case ham3 = "ham3"
+    case accounting = "accounting"
+    case manefi = "manefi"
 
     public var id: String { rawValue }
 
     /// 苦手・復習・レポートなど全機能で共通利用する科目一覧（`CaseIterable` と同期）
     public static var allStudySubjects: [Subject] { Array(allCases) }
+
+    /// 4択問題中心の科目（ham3 形式 JSON）
+    public var isMultipleChoiceSubject: Bool {
+        switch self {
+        case .ham3, .accounting, .manefi: return true
+        default: return false
+        }
+    }
 
     public var displayName: String {
         switch self {
@@ -1130,6 +1140,8 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
         case .kanbun: return "漢文"
         case .seikei: return "政経"
         case .ham3: return "3アマ"
+        case .accounting: return "アカウンティング"
+        case .manefi: return "マネファイ"
         }
     }
 
@@ -1159,6 +1171,10 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
         case .seikei: return "books.vertical"
         case .ham3:
             return pick(["antenna.radiowaves.left.and.right", "dot.radiowaves.left.and.right"], fallback: "antenna.radiowaves.left.and.right")
+        case .accounting:
+            return pick(["chart.bar.doc.horizontal", "doc.text"], fallback: "doc.text")
+        case .manefi:
+            return pick(["yensign.circle", "banknote"], fallback: "banknote")
         }
     }
 
@@ -1171,6 +1187,8 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
         case .kanbun: return theme.currentPalette.color(ThemeColorKey.weak, isDark: isDark)
         case .seikei: return theme.currentPalette.color(ThemeColorKey.accent, isDark: isDark)
         case .ham3: return theme.currentPalette.color(ThemeColorKey.selection, isDark: isDark)
+        case .accounting: return theme.currentPalette.color(ThemeColorKey.primary, isDark: isDark)
+        case .manefi: return theme.currentPalette.color(ThemeColorKey.accent, isDark: isDark)
         }
     }
 
@@ -1181,6 +1199,8 @@ public enum Subject: String, CaseIterable, Identifiable, Codable {
         case .kanbun: return "句法・語彙"
         case .seikei: return "憲法・政治経済"
         case .ham3: return "アマチュア無線3級"
+        case .accounting: return "アカウンティング入門"
+        case .manefi: return "マネー＆ファイナンス入門"
         }
     }
 }

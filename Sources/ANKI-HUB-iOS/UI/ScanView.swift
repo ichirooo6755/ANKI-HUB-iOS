@@ -43,6 +43,10 @@ struct ScanView: View {
         @State private var isRecognizing: Bool = false
         @State private var questionText: String = ""
         @State private var answerText: String = ""
+        @State private var selectedImageIndex: Int = 0
+        @State private var questionRect: CGRect = CGRect(x: 0.03, y: 0.02, width: 0.94, height: 0.45)
+        @State private var answerRect: CGRect = CGRect(x: 0.03, y: 0.48, width: 0.94, height: 0.45)
+        @State private var activeRegion: ScanRegionKind = .question
     #endif
 
     @State private var sessionTitle: String = ""
@@ -212,13 +216,26 @@ struct ScanView: View {
                 ScrollView {
                     VStack(spacing: 16) {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 150))], spacing: 16) {
-                            ForEach(scannedImages, id: \.self) { image in
+                            ForEach(Array(scannedImages.enumerated()), id: \.offset) { index, image in
                                 Image(uiImage: image)
                                     .resizable()
                                     .scaledToFit()
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                     .shadow(radius: 2)
+                                    .overlay {
+                                        if index == selectedImageIndex {
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.accentColor, lineWidth: 3)
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        selectedImageIndex = index
+                                    }
                             }
+                        }
+
+                        if selectedImageIndex < scannedImages.count {
+                            regionSelectionSection(image: scannedImages[selectedImageIndex])
                         }
 
                         ocrSection
@@ -259,6 +276,22 @@ struct ScanView: View {
             }
         }
 
+        private func regionSelectionSection(image: UIImage) -> some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("領域選択（ページ \(selectedImageIndex + 1)）")
+                    .font(.headline)
+                    .foregroundStyle(theme.primaryText)
+
+                ImageRegionSelectorView(
+                    image: image,
+                    questionRect: $questionRect,
+                    answerRect: $answerRect,
+                    activeRegion: $activeRegion
+                )
+            }
+            .padding(.horizontal)
+        }
+
         private var ocrSection: some View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("OCR 全文")
@@ -276,7 +309,7 @@ struct ScanView: View {
 
         private var qaSection: some View {
             VStack(alignment: .leading, spacing: 12) {
-                Text("問題文 / 答え（領域選択の代わりに編集）")
+                Text("問題文 / 答え")
                     .font(.headline)
                     .foregroundStyle(theme.primaryText)
 
@@ -317,7 +350,14 @@ struct ScanView: View {
                 Button {
                     Task { await runOCR() }
                 } label: {
-                    actionButtonLabel("OCRを実行", icon: "text.viewfinder", role: .mastered)
+                    actionButtonLabel("全文OCR", icon: "text.viewfinder", role: .mastered)
+                }
+                .disabled(isRecognizing)
+
+                Button {
+                    Task { await runRegionOCR() }
+                } label: {
+                    actionButtonLabel("領域OCR（問題/答え）", icon: "viewfinder.rectangular", role: .accent)
                 }
                 .disabled(isRecognizing)
 
@@ -541,6 +581,34 @@ struct ScanView: View {
             }
         }
 
+        fileprivate func runRegionOCR() async {
+            guard selectedImageIndex < scannedImages.count else { return }
+            isRecognizing = true
+            defer { isRecognizing = false }
+            let image = scannedImages[selectedImageIndex]
+            do {
+                let q = try await TextRecognitionService.shared.recognizeText(
+                    from: image,
+                    normalizedRect: questionRect
+                )
+                let a = try await TextRecognitionService.shared.recognizeText(
+                    from: image,
+                    normalizedRect: answerRect
+                )
+                questionText = q.trimmingCharacters(in: .whitespacesAndNewlines)
+                answerText = a.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !questionText.isEmpty || !answerText.isEmpty {
+                    recognizedText = [questionText, answerText]
+                        .filter { !$0.isEmpty }
+                        .joined(separator: "\n---\n")
+                }
+                extractBlanksFromText()
+            } catch {
+                questionText = ""
+                answerText = ""
+            }
+        }
+
         fileprivate func extractBlanksFromText() {
             let lines = recognizedText.components(separatedBy: .newlines)
             var blanks: [String] = []
@@ -606,6 +674,10 @@ struct ScanView: View {
             extractedBlanks = []
             questionText = ""
             answerText = ""
+            selectedImageIndex = 0
+            questionRect = CGRect(x: 0.03, y: 0.02, width: 0.94, height: 0.45)
+            answerRect = CGRect(x: 0.03, y: 0.48, width: 0.94, height: 0.45)
+            activeRegion = .question
             isRecognizing = false
         }
     }

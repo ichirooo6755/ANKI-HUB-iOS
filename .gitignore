@@ -26,6 +26,11 @@ build/
 # Logs
 *.log
 
+# Node (Manaba extract scripts)
+node_modules/
+scripts/manaba_extract/out/
+scripts/manaba_extract/storage/
+
 # Backups
 *.bak
 

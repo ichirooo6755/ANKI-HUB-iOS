@@ -38,10 +38,46 @@ struct ScanSessionItem: Codable, Identifiable, Equatable {
 @MainActor
 final class ScanSessionManager: ObservableObject {
     static let shared = ScanSessionManager()
+    static let chapterPrefix = "📷 "
 
     @Published private(set) var sessions: [ScanSessionItem] = []
 
     private let storageKey = "anki_hub_scan_sessions_v1"
+
+    static func chapterTitle(for session: ScanSessionItem) -> String {
+        "\(chapterPrefix)\(session.title)"
+    }
+
+    static func isScanChapter(_ title: String) -> Bool {
+        title.hasPrefix(chapterPrefix)
+    }
+
+    func chapterTitles(for subject: Subject) -> [String] {
+        sessions
+            .filter { $0.subjectRaw == subject.rawValue }
+            .map { Self.chapterTitle(for: $0) }
+    }
+
+    func session(matchingChapter title: String) -> ScanSessionItem? {
+        guard Self.isScanChapter(title) else { return nil }
+        let name = String(title.dropFirst(Self.chapterPrefix.count))
+        return sessions.first { $0.title == name }
+    }
+
+    func vocabulary(forChapter title: String) -> [Vocabulary] {
+        guard let session = session(matchingChapter: title) else { return [] }
+        return session.vocabulary.map { entry in
+            Vocabulary(
+                id: "scan-\(session.id.uuidString)-\(entry.id.uuidString)",
+                term: entry.term,
+                meaning: entry.meaning
+            )
+        }
+    }
+
+    func sessions(for subject: Subject) -> [ScanSessionItem] {
+        sessions.filter { $0.subjectRaw == subject.rawValue }
+    }
 
     private init() {
         load()

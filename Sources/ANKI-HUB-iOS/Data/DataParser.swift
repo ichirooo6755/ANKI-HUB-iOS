@@ -246,7 +246,22 @@ class DataParser {
     /// Parses Ham3 (アマチュア無線3級) multiple-choice questions.
     /// Source: https://soft.taprix.org/web/mn2/ham3/ — select[0] is the correct answer.
     func parseHam3Data(_ jsonString: String) -> [Vocabulary] {
-        struct Ham3Item: Codable {
+        parseMultipleChoiceData(
+            jsonString,
+            questionType: "ham3",
+            sourceLabel: "出典: soft.taprix.org/web/mn2/ham3",
+            includeImages: true
+        )
+    }
+
+    /// Generic multiple-choice JSON: `{ id, category, text, select[] }` — `select[0]` is correct.
+    func parseMultipleChoiceData(
+        _ jsonString: String,
+        questionType: String,
+        sourceLabel: String,
+        includeImages: Bool = false
+    ) -> [Vocabulary] {
+        struct MCItem: Codable {
             let id: String
             let category: String
             let text: String
@@ -255,7 +270,7 @@ class DataParser {
             let images: [String]?
         }
 
-        guard let items = parseJSONData(jsonString, type: [Ham3Item].self) else { return [] }
+        guard let items = parseJSONData(jsonString, type: [MCItem].self) else { return [] }
 
         return items.compactMap { item in
             let choices = item.select.map {
@@ -274,14 +289,16 @@ class DataParser {
                 id: item.id,
                 term: questionNo,
                 meaning: correct,
-                explanation: "出典: soft.taprix.org/web/mn2/ham3"
+                explanation: sourceLabel
             )
             vocab.fullText = item.text
             vocab.allAnswers = choices
-            vocab.questionType = "ham3"
+            vocab.questionType = questionType
             vocab.category = item.category
-            vocab.images = item.images
-            vocab.imagePrefix = item.imagePrefix
+            if includeImages {
+                vocab.images = item.images
+                vocab.imagePrefix = item.imagePrefix
+            }
             return vocab
         }
     }

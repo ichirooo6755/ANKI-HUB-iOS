@@ -53,6 +53,8 @@ class VocabularyData: ObservableObject {
     private var seikeiData: [Vocabulary] = []
     
     private var ham3Data: [Vocabulary] = []
+    private var accountingData: [Vocabulary] = []
+    private var manefiData: [Vocabulary] = []
 
     private var particlesData: [ParticleData] = []
 
@@ -67,6 +69,8 @@ class VocabularyData: ObservableObject {
         case .kanbun: return kanbunData
         case .seikei: return seikeiData
         case .ham3: return ham3Data
+        case .accounting: return accountingData
+        case .manefi: return manefiData
         }
     }
 
@@ -167,9 +171,16 @@ class VocabularyData: ObservableObject {
             return all.filter { $0.category == chapter }
         case .ham3:
             return all.filter { $0.category == chapter }
+        case .accounting, .manefi:
+            return all.filter { $0.category == chapter }
         default:
             return all
         }
+    }
+
+    func getCategoryChapters(for subject: Subject) -> [String] {
+        let unique = Set(getVocabulary(for: subject).compactMap { $0.category }.filter { !$0.isEmpty })
+        return Array(unique).sorted()
     }
     
     private func setupData() {
@@ -506,6 +517,32 @@ class VocabularyData: ObservableObject {
         } else {
             ham3Data = []
             print("⚠️ Ham3: ham3.json not found in Resources.")
+        }
+
+        // 7. Accounting
+        if let content = loadResource(name: "accounting", ext: "json") {
+            accountingData = DataParser.shared.parseMultipleChoiceData(
+                content,
+                questionType: "accounting",
+                sourceLabel: "アカウンティング入門"
+            )
+            print("📚 Accounting: \(accountingData.count) questions loaded")
+        } else {
+            accountingData = []
+            print("⚠️ Accounting: accounting.json not found in Resources.")
+        }
+
+        // 8. Manefi
+        if let content = loadResource(name: "manefi", ext: "json") {
+            manefiData = DataParser.shared.parseMultipleChoiceData(
+                content,
+                questionType: "manefi",
+                sourceLabel: "マネファイ"
+            )
+            print("📚 Manefi: \(manefiData.count) questions loaded")
+        } else {
+            manefiData = []
+            print("⚠️ Manefi: manefi.json not found in Resources.")
         }
 
         if let content = loadResource(name: "particles", ext: "json"),

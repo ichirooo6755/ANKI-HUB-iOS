@@ -249,7 +249,24 @@ struct QuizView: View {
     }
 
     private var availableQuizModes: [QuizMode] {
-        subject == .ham3 ? [.fourChoice] : QuizMode.allCases
+        subject.isMultipleChoiceSubject ? [.fourChoice] : QuizMode.allCases
+    }
+
+    private var showsChapterSelection: Bool {
+        subject == .seikei || subject == .kobun || subject == .ham3
+            || subject == .accounting || subject == .manefi
+            || !ScanSessionManager.shared.chapterTitles(for: subject).isEmpty
+    }
+
+    private func appendScanChapters() {
+        ScanSessionManager.shared.load()
+        let scanChapters = ScanSessionManager.shared.chapterTitles(for: subject)
+        guard !scanChapters.isEmpty else { return }
+        if availableChapters.isEmpty {
+            availableChapters = ["すべて"] + scanChapters
+        } else {
+            availableChapters.append(contentsOf: scanChapters)
+        }
     }
 
     var body: some View {
@@ -271,6 +288,11 @@ struct QuizView: View {
                         } else if subject == .ham3 {
                             mode = .fourChoice
                             availableChapters = VocabularyData.shared.getHam3ChapterOptions()
+                        } else if subject == .accounting || subject == .manefi {
+                            mode = .fourChoice
+                            var caps = VocabularyData.shared.getCategoryChapters(for: subject)
+                            caps.insert("すべて", at: 0)
+                            availableChapters = caps
                         } else if subject == .kobun {
                             let total = VocabularyData.shared.getVocabulary(for: .kobun).count
                             guard total > 0 else {
@@ -288,6 +310,7 @@ struct QuizView: View {
                         } else if subject == .english {
                             // Can add chapters for English here if desired
                         }
+                        appendScanChapters()
                         if let initChap = initialChapter {
                             selectedChapters = [initChap]
                             isChapterSelectionExpanded = true
@@ -608,7 +631,7 @@ struct QuizView: View {
                     .accessibilityValue(Text(timeLimitLabel))
 
                     // Chapter Selection (multi-select, collapsible)
-                    if subject == .seikei || subject == .kobun || subject == .ham3 {
+                    if showsChapterSelection {
                         DisclosureGroup(isExpanded: $isChapterSelectionExpanded) {
                             if subject == .ham3 {
                                 VStack(alignment: .leading, spacing: 12) {
@@ -1103,15 +1126,17 @@ struct QuizView: View {
                         revealedSeikeiBlankId = id
                     }
                     .frame(maxWidth: .infinity, minHeight: 240)
-                } else if subject == .ham3, let fullText = question.fullText, !fullText.isEmpty {
+                } else if subject.isMultipleChoiceSubject, let fullText = question.fullText, !fullText.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(fullText)
                             .font(.body)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Ham3QuestionImages(
-                            prefix: question.ham3ImagePrefix,
-                            names: question.ham3Images
-                        )
+                        if subject == .ham3 {
+                            Ham3QuestionImages(
+                                prefix: question.ham3ImagePrefix,
+                                names: question.ham3Images
+                            )
+                        }
                     }
                 }
 
@@ -1307,16 +1332,18 @@ struct QuizView: View {
                     Text(question.questionText)
                         .font(.title2.weight(.bold))
                         .multilineTextAlignment(.center)
-                } else if subject == .ham3 {
+                } else if subject.isMultipleChoiceSubject {
                     if let fullText = question.fullText, !fullText.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(fullText)
                                 .font(.body)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            Ham3QuestionImages(
-                                prefix: question.ham3ImagePrefix,
-                                names: question.ham3Images
-                            )
+                            if subject == .ham3 {
+                                Ham3QuestionImages(
+                                    prefix: question.ham3ImagePrefix,
+                                    names: question.ham3Images
+                                )
+                            }
                         }
                     }
                     Text(question.questionText)
@@ -2133,13 +2160,16 @@ struct QuizView: View {
         // Apply chapter filter (multi-select)
         let chaptersForFilter: Set<String> = {
             if let chapter = initialChapter, !chapter.isEmpty { return [chapter] }
-            if subject == .seikei || subject == .kobun || subject == .ham3 {
-                if selectedChapters.contains("すべて") || selectedChapters.isEmpty {
-                    return []
-                }
+            if selectedChapters.contains("すべて") || selectedChapters.isEmpty {
+                return []
+            }
+            if subject == .seikei || subject == .kobun || subject == .ham3
+                || subject == .accounting || subject == .manefi
+            {
                 return selectedChapters
             }
-            return []
+            let scanOnly = selectedChapters.filter { ScanSessionManager.isScanChapter($0) }
+            return Set(scanOnly)
         }()
 
         if !chaptersForFilter.isEmpty {
@@ -2250,6 +2280,10 @@ struct QuizView: View {
             return vocab
         }
 
+        if ScanSessionManager.isScanChapter(chapter) {
+            return ScanSessionManager.shared.vocabulary(forChapter: chapter)
+        }
+
         if subject == .seikei {
             // Seikei: use category field (DataParser assigns exact chapter string)
             return vocab.filter { $0.category == chapter }
@@ -2257,6 +2291,11 @@ struct QuizView: View {
 
         if subject == .ham3 {
             return VocabularyData.shared.filterHam3Vocabulary(vocab, chapter: chapter)
+        }
+
+        if subject == .accounting || subject == .manefi {
+            if chapter == "すべて" { return vocab }
+            return vocab.filter { $0.category == chapter }
         }
 
         if subject == .kanbun {
@@ -2462,7 +2501,9 @@ struct QuizView: View {
                         fullText: word.fullText
                     )
                 )
-            } else if subject == .ham3, word.questionType == "ham3" {
+            } else if subject.isMultipleChoiceSubject,
+                word.questionType == subject.rawValue || word.questionType == "ham3"
+            {
                 guard let choices = word.allAnswers, !choices.isEmpty else { continue }
                 let correct = word.meaning
                 let shuffledChoices = choices.shuffled()
@@ -2479,8 +2520,8 @@ struct QuizView: View {
                         choices: shuffledChoices,
                         correctIndex: correctIndex,
                         fullText: word.fullText,
-                        ham3Images: word.images,
-                        ham3ImagePrefix: word.imagePrefix
+                        ham3Images: subject == .ham3 ? word.images : nil,
+                        ham3ImagePrefix: subject == .ham3 ? word.imagePrefix : nil
                     )
                 )
             } else {
@@ -2540,7 +2581,7 @@ struct QuizView: View {
             return trimmed
         }
 
-        if subject == .ham3 {
+        if subject.isMultipleChoiceSubject {
             let ordered = results.sorted {
                 (vocabOrder[$0.id] ?? Int.max) < (vocabOrder[$1.id] ?? Int.max)
             }

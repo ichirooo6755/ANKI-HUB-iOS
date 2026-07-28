@@ -12,6 +12,7 @@ struct FocusedMemorizationView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @ObservedObject private var theme = ThemeManager.shared
+    @ObservedObject private var scanSessionManager = ScanSessionManager.shared
 
     private var subjectOptions: [Subject] {
         Subject.allStudySubjects.filter {
@@ -124,6 +125,10 @@ struct FocusedMemorizationView: View {
         max(1, Int(ceil(Double(inputModeVocab.count) / Double(blockSize))))
     }
 
+    private var scanSessionsForSubject: [ScanSessionItem] {
+        scanSessionManager.sessions(for: selectedSubject)
+    }
+
     init(subject: Subject = .kobun) {
         _selectedSubject = State(initialValue: subject)
     }
@@ -169,6 +174,7 @@ struct FocusedMemorizationView: View {
         .onAppear {
             migrateKobunInputModeSettingIfNeeded()
             migrateInputModeDay2SettingIfNeeded()
+            scanSessionManager.load()
         }
         .task(id: timerActive) {
             guard timerActive, totalTime > 0 else { return }
@@ -378,6 +384,45 @@ struct FocusedMemorizationView: View {
                 }
                 .padding(.horizontal)
 
+                if !scanSessionsForSubject.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("スキャン問題集")
+                            .font(.headline)
+                            .foregroundStyle(theme.primaryText)
+                            .padding(.horizontal)
+
+                        ForEach(scanSessionsForSubject) { session in
+                            Button {
+                                startScanSession(session)
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(session.title)
+                                            .font(.callout.weight(.semibold))
+                                            .foregroundStyle(theme.primaryText)
+                                        Text("\(session.vocabulary.count)問")
+                                            .font(.caption)
+                                            .foregroundStyle(theme.secondaryText)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "doc.viewfinder")
+                                        .foregroundStyle(theme.secondaryText)
+                                }
+                                .padding(14)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(
+                                    theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+                                        .opacity(theme.effectiveIsDark ? 0.55 : 0.7),
+                                    in: RoundedRectangle(cornerRadius: 12)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal)
+                        }
+                    }
+                    .padding(.top, 8)
+                }
+
                 Button("戻る") {
                     currentScreen = .daySelect
                 }
@@ -433,7 +478,7 @@ struct FocusedMemorizationView: View {
                         meaning: word.meaning,
                         isFlipped: $isFlipped,
                         showsHintWithAnswer: true,
-                        compactLongForm: selectedSubject == .ham3 || flashcardPrompt(for: word).count > 40
+                        compactLongForm: selectedSubject.isMultipleChoiceSubject || flashcardPrompt(for: word).count > 40
                     )
                     .frame(height: flashcardHeight(for: word))
 
@@ -818,6 +863,34 @@ struct FocusedMemorizationView: View {
         weakWords = []
         isFlipped = false
         
+        totalTime = getSecondsForDay(currentDay)
+        timeRemaining = totalTime
+        timerActive = totalTime > 0
+        currentScreen = .study
+    }
+
+    private func startScanSession(_ session: ScanSessionItem) {
+        let blockWords = session.vocabulary.map { entry in
+            Vocabulary(
+                id: "scan-\(session.id.uuidString)-\(entry.id.uuidString)",
+                term: entry.term,
+                meaning: entry.meaning
+            )
+        }
+        guard !blockWords.isEmpty else {
+            noWordsAlertMessage = "この問題集に単語がありません。"
+            showNoWordsAlert = true
+            return
+        }
+
+        currentBlockIndex = 0
+        words = blockWords
+        currentWordIndex = 0
+        knownCount = 0
+        unknownCount = 0
+        weakWords = []
+        isFlipped = false
+
         totalTime = getSecondsForDay(currentDay)
         timeRemaining = totalTime
         timerActive = totalTime > 0

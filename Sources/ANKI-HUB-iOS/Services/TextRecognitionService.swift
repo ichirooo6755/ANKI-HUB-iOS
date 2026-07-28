@@ -21,6 +21,28 @@ final class TextRecognitionService {
         return combined.joined(separator: "\n\n")
     }
 
+    /// 正規化矩形（0...1）で画像を切り出して OCR
+    func recognizeText(from image: UIImage, normalizedRect: CGRect) async throws -> String {
+        guard let cgImage = image.cgImage else { return "" }
+
+        let clamped = CGRect(
+            x: max(0, min(normalizedRect.origin.x, 1)),
+            y: max(0, min(normalizedRect.origin.y, 1)),
+            width: max(0.05, min(normalizedRect.width, 1)),
+            height: max(0.05, min(normalizedRect.height, 1))
+        )
+
+        let pixelRect = CGRect(
+            x: clamped.origin.x * CGFloat(cgImage.width),
+            y: clamped.origin.y * CGFloat(cgImage.height),
+            width: clamped.width * CGFloat(cgImage.width),
+            height: clamped.height * CGFloat(cgImage.height)
+        ).integral
+
+        guard let cropped = cgImage.cropping(to: pixelRect) else { return "" }
+        return try await recognizeText(from: UIImage(cgImage: cropped))
+    }
+
     func recognizeText(from image: UIImage) async throws -> String {
         guard let cgImage = image.cgImage else { return "" }
 

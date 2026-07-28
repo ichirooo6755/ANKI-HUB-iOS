@@ -40,6 +40,8 @@
 - 漢文句法・語彙
 - 政経用語（憲法・年号）
 - 3アマ（アマチュア無線3級・法規/工学4択問題）
+- アカウンティング（`accounting.json`・Manaba は Web と同じ選択肢数＝基本5択、`select[0]` が正解）
+- マネファイ（`manefi.json`・ローカル教材ベース・`select[0]`正解・出題時シャッフル）
 
 ## 技術スタック
 
@@ -101,6 +103,79 @@ open ANKI-HUB-iOS.xcodeproj
 **要件・実装条件の正本**: [requirements.md](requirements.md)（作業のたびに更新）
 
 **Supabase / Google ログイン**: [docs/supabase/README.md](docs/supabase/README.md)
+
+---
+
+## 現状（引き継ぎ）
+
+| 項目 | 状態 |
+|------|------|
+| 科目 `accounting` / `manefi` | `Subject`・`VocabularyData`・`DataParser`・`QuizView`・`ChapterSelectionView`・`RankUpManager` 配線済み（別科目） |
+| 問題データ | `accounting.json` **134問**（Manaba ソース50→展開90 + 非Manaba44） / `manefi.json` **175問**（ローカル教材のみ・Resources 登録済み） |
+| 出題 | MCQ は `QuizView` で `allAnswers`/`choices` をシャッフルし、正解は本文で `correctIndex` 再計算（`select[0]` 固定表示にしない） |
+| マネファイ優先 | **前半**=小テスト/練習問題、**後半**=「テスト/試験/確認」記載重点、`respon解答`は正解付き、スライド補強は薄いときのみ |
+| マネファイ制約 | **Manaba Web 禁止**（Playwright/ログイン/ドリル提出なし）。データ元は `Downloads/Manaba/マネー＆ファイナンス入門` 等のローカルのみ |
+| Manaba（会計） | **採点外ドリルのみ**（`course_6089558_drill_6812813`）。`select[0]` は選択肢**本文**。ソース50（基本5択維持）。再試験で結果画面から正解本文取得を確認済み |
+| Manaba 抽出 | 会計用: `scripts/manaba_extract/`（通常 Playwright + storageState）。マネファイ作業中は起動しない |
+
+### Manaba ドリル抽出（通常 Playwright・推奨）
+
+MCP の `browser_run_code_unsafe` はサンドボックスで `require` / `fs` が使えず、抽出 JSON を確実に書けない。そのため **リポジトリ内の Node + Playwright スクリプト** を使う。
+
+```bash
+# リポジトリルート
+npm i
+npx playwright install chromium
+
+# 初回: headed ブラウザが開く → 中央大学 SSO でログイン（パスワードはコードに書かない）
+npm run manaba:extract
+
+# 起動〜ログイン待ちだけ確認（提出しない）
+npm run manaba:extract:dry
+
+# pool → accounting.json 形式プレビュー
+npm run manaba:merge
+
+# accounting.json に反映
+node scripts/manaba_extract/merge_pool.cjs --write
+```
+
+| パス | 内容 |
+|------|------|
+| `scripts/manaba_extract/extract_drill.cjs` | 採点外ドリル抽出 |
+| `scripts/manaba_extract/merge_pool.cjs` | pool → Web同数選択肢（基本5択、`select[0]`=誤り1つ） |
+| `scripts/manaba_extract/out/pool.json` | 抽出結果 |
+| `scripts/manaba_extract/storage/storageState.json` | SSO セッション（gitignore・**コミット禁止**） |
+
+詳細: [scripts/manaba_extract/README.md](scripts/manaba_extract/README.md)
+
+### Playwright MCP（補助・任意）
+
+Cursor の MCP 設定に `@playwright/mcp` を追加できる（既存 `mcpServers` は残す）。
+
+1. グローバル: `~/.cursor/mcp.json` またはプロジェクト: `.cursor/mcp.json`
+2. 次を追記（他サーバがある場合は `playwright` キーだけマージ）:
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--allow-unrestricted-file-access"
+      ]
+    }
+  }
+}
+```
+
+3. Cursor を再起動し、Settings → MCP で有効を確認
+
+**注意**: `--allow-unrestricted-file-access` でも `browser_run_code_unsafe` 内の `require('fs')` は不可。Manaba 抽出・JSON 保存は上記の通常スクリプトを使う。
+
+Manaba へのログイン資格情報はリポジトリ・MCP 設定に書かない。
 
 ---
 
