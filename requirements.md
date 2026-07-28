@@ -160,6 +160,7 @@
 | 章名 | `C・計算公式集中暗記`（`C・` / `C` 始まりで識別。並びは A の次） |
 | 件数 | **44カード**。`manefi.json` **417→461**（章Aは未変更） |
 | データ | `word`=用途、`meaning`=計算式。互換で `text`/`select[0]`/`type:"flashcard"` 併記。パーサは `formula_memorization` / `flashcard` / category `C・` を認識 |
+| 式表記 | **日本語の具体語**（章Aと同系統）。例: `将来価値 = 現在価値 × (1+金利)^年数`、`価格 = 額面 ÷ (1+利回り)^年数`。`FV`/`PV`/`r`/`n`/`C`/`F` 等のアルファベット変数は使わない。PER/PBR/GDP/NPV など試験慣用の指標名のみ残す |
 | UI | 集中暗記でタップ反転。裏面は **monospaced + 横/縦スクロール + minimumScaleFactor**。英単語カードは従来どおり |
 | 章構成 | マネファイ／会計の集中暗記は **50語ブロックではなく** `getCategoryChapters`（クイズ・ChapterSelection と同じ並び） |
 | クイズ | 章Cカードは4択に出さない（集中暗記専用） |
@@ -261,6 +262,7 @@ node scripts/manaba_extract/merge_pool.cjs --write
 
 | 日付 | 内容 |
 |------|------|
+| 2026-07-28 | マネファイ章C: 裏面の計算式をアルファベット変数から日本語具体語へ置換（44カード）。章A穴埋め表記に揃える。PER/PBR/GDP/NPV 等の慣用指標名は維持 |
 | 2026-07-29 | マネファイ章C UI: 集中暗記をクイズと同じ category 章構成に。`flashcard`/`C・` 計算公式の式表示崩れ防止。commit/pushなし |
 | 2026-07-29 | マネファイ章C: 計算公式集中暗記44（期末_計算公式全集.md）。`word`/`meaning` フラッシュカード。manefi 461問。commit/pushなし |
 | 2026-07-29 | マネファイ章A: 公式穴埋め44（期末直前PDF）。`formulaParts` + 出題時ランダム空欄。manefi 417問。commit/pushなし |
