@@ -24,6 +24,8 @@ struct FocusedMemorizationView: View {
     @State private var currentScreen: ScreenState = .daySelect
     @State private var currentDay: Int = 1
     @State private var currentBlockIndex: Int = 0
+    /// manefi/accounting: quiz と同じ category 章名。その他科目は未使用。
+    @State private var currentChapterTitle: String = ""
     @State private var words: [Vocabulary] = []
     @State private var currentWordIndex: Int = 0
     @State private var knownCount: Int = 0
@@ -65,6 +67,15 @@ struct FocusedMemorizationView: View {
         case study
         case weakReprocess
         case result
+    }
+
+    /// マネファイ／会計はクイズと同じ category 章で範囲を切る（50語ブロックではない）
+    private var usesCategoryChapters: Bool {
+        selectedSubject == .manefi || selectedSubject == .accounting
+    }
+
+    private var categoryChapters: [String] {
+        VocabularyData.shared.getCategoryChapters(for: selectedSubject)
     }
 
     private func migrateKobunInputModeSettingIfNeeded() {
@@ -337,7 +348,7 @@ struct FocusedMemorizationView: View {
         }
     }
     
-    // MARK: - Block Select View
+    // MARK: - Block / Chapter Select View
     
     private var blockSelectView: some View {
         ScrollView {
@@ -345,48 +356,103 @@ struct FocusedMemorizationView: View {
                 Text(dayLabel(currentDay))
                     .font(.title2.weight(.bold))
 
-                Text("ブロックを選択（各50語）")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                if usesCategoryChapters {
+                    Text("チャプターを選択（クイズと同じ範囲）")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
 
-                // Block Grid
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
-                    ForEach(0..<totalBlocks, id: \.self) { index in
-                        let completionCount = getBlockCompletionCount(day: currentDay, block: index)
-                        let highlight = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
-                        Button {
-                            startBlock(index)
-                        } label: {
-                            VStack(spacing: 4) {
-                                Text("\(index + 1)")
-                                    .font(.callout.weight(.semibold))
-                                    .monospacedDigit()
-                                if completionCount > 0 {
-                                    Text("\(completionCount)回")
-                                        .font(.footnote.weight(.medium))
-                                        .monospacedDigit()
+                    let border = theme.currentPalette.color(.border, isDark: theme.effectiveIsDark)
+                    let highlight = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                    VStack(spacing: 0) {
+                        ForEach(categoryChapters, id: \.self) { chapter in
+                            let completionCount = getChapterCompletionCount(day: currentDay, chapter: chapter)
+                            let count = VocabularyData.shared.getVocabulary(
+                                for: selectedSubject, chapter: chapter
+                            ).count
+                            Button {
+                                startChapter(chapter)
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(chapter)
+                                            .font(.headline)
+                                            .foregroundStyle(theme.primaryText)
+                                            .multilineTextAlignment(.leading)
+                                        Text(chapterSelectSubtitle(for: chapter, count: count))
+                                            .font(.caption)
+                                            .foregroundStyle(theme.secondaryText)
+                                    }
+                                    Spacer()
+                                    if completionCount > 0 {
+                                        Text("\(completionCount)回")
+                                            .font(.footnote.weight(.medium))
+                                            .monospacedDigit()
+                                            .foregroundStyle(highlight)
+                                    }
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundStyle(theme.secondaryText)
+                                }
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 16)
+                                .overlay(alignment: .top) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
+                                }
+                                .overlay(alignment: .bottom) {
+                                    Rectangle()
+                                        .fill(border.opacity(0.45))
+                                        .frame(height: 1)
                                 }
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(
-                                theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
-                                    .opacity(theme.effectiveIsDark ? 0.55 : 0.7)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(completionCount > 0 ? highlight.opacity(0.18) : Color.clear)
-                            )
-                            .foregroundStyle(completionCount > 0 ? highlight : .primary)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(completionCount > 0 ? highlight : Color.clear, lineWidth: 2)
-                            )
+                            .buttonStyle(.plain)
                         }
                     }
+                    .padding(.horizontal)
+                } else {
+                    Text("ブロックを選択（各50語）")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 12) {
+                        ForEach(0..<totalBlocks, id: \.self) { index in
+                            let completionCount = getBlockCompletionCount(day: currentDay, block: index)
+                            let highlight = theme.currentPalette.color(.accent, isDark: theme.effectiveIsDark)
+                            Button {
+                                startBlock(index)
+                            } label: {
+                                VStack(spacing: 4) {
+                                    Text("\(index + 1)")
+                                        .font(.callout.weight(.semibold))
+                                        .monospacedDigit()
+                                    if completionCount > 0 {
+                                        Text("\(completionCount)回")
+                                            .font(.footnote.weight(.medium))
+                                            .monospacedDigit()
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    theme.currentPalette.color(.surface, isDark: theme.effectiveIsDark)
+                                        .opacity(theme.effectiveIsDark ? 0.55 : 0.7)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(completionCount > 0 ? highlight.opacity(0.18) : Color.clear)
+                                )
+                                .foregroundStyle(completionCount > 0 ? highlight : .primary)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(completionCount > 0 ? highlight : Color.clear, lineWidth: 2)
+                                )
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
 
                 if !scanSessionsForSubject.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
@@ -437,6 +503,16 @@ struct FocusedMemorizationView: View {
             .padding(.bottom, 16)
         }
     }
+
+    private func chapterSelectSubtitle(for chapter: String, count: Int) -> String {
+        if DataParser.isFormulaMemorizationCategory(chapter) {
+            return "計算公式 \(count)枚（タップで式）"
+        }
+        if chapter.hasPrefix("A・") || chapter == "A" {
+            return "公式穴埋め \(count)問"
+        }
+        return "\(count)問"
+    }
     
     // MARK: - Study View
     
@@ -455,10 +531,10 @@ struct FocusedMemorizationView: View {
                     .font(.callout)
                     .monospacedDigit()
                 Spacer()
-                Text("ブロック \(currentBlockIndex + 1)")
+                Text(studyRangeLabel)
                     .font(.callout)
-                    .monospacedDigit()
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
             .padding(.horizontal)
             
@@ -475,14 +551,17 @@ struct FocusedMemorizationView: View {
             // Flashcard
             if currentWordIndex < words.count {
                 let word = words[currentWordIndex]
+                let formulaMode = isFormulaMemorizationCard(word)
                 ZStack {
                     FlashcardInputView(
                         word: flashcardPrompt(for: word),
-                        hint: word.hint ?? "",
+                        hint: formulaMode ? "" : (word.hint ?? ""),
                         meaning: word.meaning,
                         isFlipped: $isFlipped,
-                        showsHintWithAnswer: true,
-                        compactLongForm: selectedSubject.isMultipleChoiceSubject || flashcardPrompt(for: word).count > 40
+                        showsHintWithAnswer: !formulaMode,
+                        compactLongForm: selectedSubject.isMultipleChoiceSubject
+                            || flashcardPrompt(for: word).count > 40,
+                        formulaAnswerMode: formulaMode
                     )
                     .frame(height: flashcardHeight(for: word))
 
@@ -526,7 +605,7 @@ struct FocusedMemorizationView: View {
                         }
                 )
                 
-                Text("← わからない ｜ わかる →")
+                Text(formulaMode ? "タップで計算式 ｜ ←わからない ｜ わかる→" : "← わからない ｜ わかる →")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -794,6 +873,13 @@ struct FocusedMemorizationView: View {
         }
     }
     
+    private var studyRangeLabel: String {
+        if usesCategoryChapters, !currentChapterTitle.isEmpty {
+            return currentChapterTitle
+        }
+        return "ブロック \(currentBlockIndex + 1)"
+    }
+
     private func dayLabel(_ day: Int) -> String {
         switch day {
         case 1: return "1日目（初接触）"
@@ -801,6 +887,12 @@ struct FocusedMemorizationView: View {
         case 3: return "3日目（音読固定）"
         default: return "学習"
         }
+    }
+
+    private func isFormulaMemorizationCard(_ word: Vocabulary) -> Bool {
+        if word.questionType == "formula_memorization" { return true }
+        if let cat = word.category, DataParser.isFormulaMemorizationCategory(cat) { return true }
+        return false
     }
 
     private func flashcardPrompt(for word: Vocabulary) -> String {
@@ -811,6 +903,10 @@ struct FocusedMemorizationView: View {
     }
 
     private func flashcardHeight(for word: Vocabulary) -> CGFloat {
+        if isFormulaMemorizationCard(word) {
+            let formulaLines = max(1, word.meaning.components(separatedBy: "\n").count)
+            return min(380, CGFloat(220 + formulaLines * 28))
+        }
         let prompt = flashcardPrompt(for: word)
         if prompt.count > 120 { return 320 }
         if prompt.count > 60 { return 260 }
@@ -826,51 +922,68 @@ struct FocusedMemorizationView: View {
         default: return 3.0
         }
     }
-    
-    private func startBlock(_ index: Int) {
-        currentBlockIndex = index
-        let allVocab = inputModeVocab
-        let startIdx = index * blockSize
-        let endIdx = min(startIdx + blockSize, allVocab.count)
-        
-        if startIdx < allVocab.count {
-            var blockWords = Array(allVocab[startIdx..<endIdx])
 
-            if currentDay == 1 {
-                // Reset Day1 unknown list for this block at the start of Day1
-                setDay1UnknownSet(subject: selectedSubject, block: index, ids: [])
-            }
+    private func beginStudy(with blockWords: [Vocabulary], blockIndex: Int, chapterTitle: String) {
+        var filtered = blockWords
 
-            if currentDay == 2, day2UnknownOnly {
-                let unknownIds = getDay1UnknownSet(subject: selectedSubject, block: index)
-                if unknownIds.isEmpty {
-                    noWordsAlertMessage = "このブロックの1日目『わからない』履歴がありません。先に1日目を実行してください。"
-                    showNoWordsAlert = true
-                    return
-                }
-                blockWords = blockWords.filter { unknownIds.contains($0.id) }
-                if blockWords.isEmpty {
-                    noWordsAlertMessage = "このブロックの1日目『わからない』が0語でした。"
-                    showNoWordsAlert = true
-                    return
-                }
-            }
-
-            words = blockWords
-        } else {
-            words = []
+        if currentDay == 1 {
+            setDay1UnknownSet(subject: selectedSubject, blockKey: persistenceBlockKey(block: blockIndex, chapter: chapterTitle), ids: [])
         }
-        
+
+        if currentDay == 2, day2UnknownOnly {
+            let unknownIds = getDay1UnknownSet(
+                subject: selectedSubject,
+                blockKey: persistenceBlockKey(block: blockIndex, chapter: chapterTitle)
+            )
+            if unknownIds.isEmpty {
+                noWordsAlertMessage = "この範囲の1日目『わからない』履歴がありません。先に1日目を実行してください。"
+                showNoWordsAlert = true
+                return
+            }
+            filtered = filtered.filter { unknownIds.contains($0.id) }
+            if filtered.isEmpty {
+                noWordsAlertMessage = "この範囲の1日目『わからない』が0語でした。"
+                showNoWordsAlert = true
+                return
+            }
+        }
+
+        guard !filtered.isEmpty else {
+            noWordsAlertMessage = "この範囲にカードがありません。"
+            showNoWordsAlert = true
+            return
+        }
+
+        currentBlockIndex = blockIndex
+        currentChapterTitle = chapterTitle
+        words = filtered
         currentWordIndex = 0
         knownCount = 0
         unknownCount = 0
         weakWords = []
         isFlipped = false
-        
+
         totalTime = getSecondsForDay(currentDay)
         timeRemaining = totalTime
         timerActive = totalTime > 0
         currentScreen = .study
+    }
+    
+    private func startBlock(_ index: Int) {
+        let allVocab = inputModeVocab
+        let startIdx = index * blockSize
+        let endIdx = min(startIdx + blockSize, allVocab.count)
+        guard startIdx < allVocab.count else {
+            noWordsAlertMessage = "このブロックにカードがありません。"
+            showNoWordsAlert = true
+            return
+        }
+        beginStudy(with: Array(allVocab[startIdx..<endIdx]), blockIndex: index, chapterTitle: "")
+    }
+
+    private func startChapter(_ chapter: String) {
+        let chapterWords = VocabularyData.shared.getVocabulary(for: selectedSubject, chapter: chapter)
+        beginStudy(with: chapterWords, blockIndex: 0, chapterTitle: chapter)
     }
 
     private func startScanSession(_ session: ScanSessionItem) {
@@ -881,24 +994,7 @@ struct FocusedMemorizationView: View {
                 meaning: entry.meaning
             )
         }
-        guard !blockWords.isEmpty else {
-            noWordsAlertMessage = "この問題集に単語がありません。"
-            showNoWordsAlert = true
-            return
-        }
-
-        currentBlockIndex = 0
-        words = blockWords
-        currentWordIndex = 0
-        knownCount = 0
-        unknownCount = 0
-        weakWords = []
-        isFlipped = false
-
-        totalTime = getSecondsForDay(currentDay)
-        timeRemaining = totalTime
-        timerActive = totalTime > 0
-        currentScreen = .study
+        beginStudy(with: blockWords, blockIndex: 0, chapterTitle: session.title)
     }
     
     private func recordAnswer(known: Bool) {
@@ -915,7 +1011,11 @@ struct FocusedMemorizationView: View {
             )
 
             if currentDay == 1, !known {
-                addDay1Unknown(subject: selectedSubject, block: currentBlockIndex, wordId: word.id)
+                addDay1Unknown(
+                    subject: selectedSubject,
+                    blockKey: persistenceBlockKey(block: currentBlockIndex, chapter: currentChapterTitle),
+                    wordId: word.id
+                )
             }
             
             if known {
@@ -933,8 +1033,7 @@ struct FocusedMemorizationView: View {
             timeRemaining = totalTime
             timerActive = totalTime > 0
         } else {
-            // Block complete
-            incrementBlockCompletion(day: currentDay, block: currentBlockIndex)
+            incrementRangeCompletion(day: currentDay)
             
             if currentDay == 2 && !weakWords.isEmpty {
                 currentScreen = .weakReprocess
@@ -964,49 +1063,64 @@ struct FocusedMemorizationView: View {
         day1UnknownIdsData = Data()
     }
 
-    private func day1UnknownKey(subject: Subject, block: Int) -> String {
-        "s\(subject.rawValue)_b\(block)"
+    private func persistenceBlockKey(block: Int, chapter: String) -> String {
+        if !chapter.isEmpty {
+            return "c\(chapter)"
+        }
+        return "b\(block)"
     }
 
-    private func getDay1UnknownSet(subject: Subject, block: Int) -> Set<String> {
+    private func day1UnknownKey(subject: Subject, blockKey: String) -> String {
+        "s\(subject.rawValue)_\(blockKey)"
+    }
+
+    private func getDay1UnknownSet(subject: Subject, blockKey: String) -> Set<String> {
         guard let dict = try? JSONDecoder().decode([String: [String]].self, from: day1UnknownIdsData) else {
             return []
         }
-        return Set(dict[day1UnknownKey(subject: subject, block: block)] ?? [])
+        return Set(dict[day1UnknownKey(subject: subject, blockKey: blockKey)] ?? [])
     }
 
-    private func setDay1UnknownSet(subject: Subject, block: Int, ids: Set<String>) {
+    private func setDay1UnknownSet(subject: Subject, blockKey: String, ids: Set<String>) {
         var dict = (try? JSONDecoder().decode([String: [String]].self, from: day1UnknownIdsData)) ?? [:]
-        dict[day1UnknownKey(subject: subject, block: block)] = Array(ids)
+        dict[day1UnknownKey(subject: subject, blockKey: blockKey)] = Array(ids)
         if let data = try? JSONEncoder().encode(dict) {
             day1UnknownIdsData = data
         }
     }
 
-    private func addDay1Unknown(subject: Subject, block: Int, wordId: String) {
-        var ids = getDay1UnknownSet(subject: subject, block: block)
+    private func addDay1Unknown(subject: Subject, blockKey: String, wordId: String) {
+        var ids = getDay1UnknownSet(subject: subject, blockKey: blockKey)
         ids.insert(wordId)
-        setDay1UnknownSet(subject: subject, block: block, ids: ids)
+        setDay1UnknownSet(subject: subject, blockKey: blockKey, ids: ids)
     }
     
     // MARK: - Persistence Helpers
     
     private func getBlockCompletionCount(day: Int, block: Int) -> Int {
         guard let dict = try? JSONDecoder().decode([String: Int].self, from: blockCompletionsData) else { return 0 }
-        return dict[completionKey(day: day, block: block)] ?? 0
+        return dict[completionKey(day: day, blockKey: "b\(block)")] ?? 0
+    }
+
+    private func getChapterCompletionCount(day: Int, chapter: String) -> Int {
+        guard let dict = try? JSONDecoder().decode([String: Int].self, from: blockCompletionsData) else { return 0 }
+        return dict[completionKey(day: day, blockKey: "c\(chapter)")] ?? 0
     }
     
-    private func incrementBlockCompletion(day: Int, block: Int) {
+    private func incrementRangeCompletion(day: Int) {
         var dict = (try? JSONDecoder().decode([String: Int].self, from: blockCompletionsData)) ?? [:]
-        let key = completionKey(day: day, block: block)
+        let key = completionKey(
+            day: day,
+            blockKey: persistenceBlockKey(block: currentBlockIndex, chapter: currentChapterTitle)
+        )
         dict[key] = (dict[key] ?? 0) + 1
         if let data = try? JSONEncoder().encode(dict) {
             blockCompletionsData = data
         }
     }
 
-    private func completionKey(day: Int, block: Int) -> String {
-        "s\(selectedSubject.rawValue)_d\(day)b\(block)"
+    private func completionKey(day: Int, blockKey: String) -> String {
+        "s\(selectedSubject.rawValue)_d\(day)_\(blockKey)"
     }
     
     private func getKnownTotal() -> Int {
@@ -1074,6 +1188,8 @@ struct FlashcardInputView: View {
     @Binding var isFlipped: Bool
     var showsHintWithAnswer: Bool = false
     var compactLongForm: Bool = false
+    /// 計算公式カード: 裏面を monospaced + 横スクロールで式の折り返し崩れを防ぐ
+    var formulaAnswerMode: Bool = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @ObservedObject private var theme = ThemeManager.shared
@@ -1092,6 +1208,9 @@ struct FlashcardInputView: View {
     }
 
     private var backFont: Font {
+        if formulaAnswerMode {
+            return .system(.body, design: .monospaced).weight(.semibold)
+        }
         if meaning.count > 80 {
             return .subheadline.weight(.semibold)
         }
@@ -1104,26 +1223,48 @@ struct FlashcardInputView: View {
         ZStack {
             // Back
             VStack(spacing: 12) {
-                if showsHintWithAnswer, !hint.isEmpty {
-                    Text(hint)
-                        .font(.headline)
-                        .foregroundStyle(theme.secondaryText)
-                }
-                
-                Text(meaning.components(separatedBy: CharacterSet(charactersIn: "　 、,")).first ?? meaning)
-                    .font(.footnote)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(okColor.opacity(0.2))
-                    .clipShape(Capsule())
-                    .foregroundStyle(okColor)
-                
-                ScrollView {
-                    Text(meaning)
-                        .font(backFont)
-                        .foregroundStyle(theme.primaryText)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
+                if formulaAnswerMode {
+                    Text("計算式")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(okColor)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(okColor.opacity(0.2))
+                        .clipShape(Capsule())
+
+                    ScrollView([.horizontal, .vertical], showsIndicators: true) {
+                        Text(meaning)
+                            .font(backFont)
+                            .foregroundStyle(theme.primaryText)
+                            .multilineTextAlignment(.leading)
+                            .lineSpacing(6)
+                            .minimumScaleFactor(0.55)
+                            .fixedSize(horizontal: true, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 4)
+                    }
+                } else {
+                    if showsHintWithAnswer, !hint.isEmpty {
+                        Text(hint)
+                            .font(.headline)
+                            .foregroundStyle(theme.secondaryText)
+                    }
+                    
+                    Text(meaning.components(separatedBy: CharacterSet(charactersIn: "　 、,")).first ?? meaning)
+                        .font(.footnote)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(okColor.opacity(0.2))
+                        .clipShape(Capsule())
+                        .foregroundStyle(okColor)
+                    
+                    ScrollView {
+                        Text(meaning)
+                            .font(backFont)
+                            .foregroundStyle(theme.primaryText)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1135,6 +1276,12 @@ struct FlashcardInputView: View {
             
             // Front
             VStack(spacing: 12) {
+                if formulaAnswerMode {
+                    Text("何をする式か")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(theme.secondaryText)
+                }
+
                 ScrollView {
                     Text(word)
                         .font(frontFont)
@@ -1146,6 +1293,12 @@ struct FlashcardInputView: View {
                 if !showsHintWithAnswer, !hint.isEmpty {
                     Text(hint)
                         .font(.footnote)
+                        .foregroundStyle(theme.secondaryText)
+                }
+
+                if formulaAnswerMode, !isFlipped {
+                    Text("タップで計算式を表示")
+                        .font(.caption)
                         .foregroundStyle(theme.secondaryText)
                 }
             }

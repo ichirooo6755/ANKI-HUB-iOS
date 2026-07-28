@@ -11,7 +11,7 @@ Cursor Playwright MCP の `browser_run_code_unsafe` は VM サンドボックス
 
 | 曜日 | ソース | 章名（accounting.json category） | 提出 |
 |------|--------|--------------------------------|------|
-| **木** | 採点外ドリル `course_6089558_drill_6812813` | `管理会計・経理実務（Manaba・木）` | 採点外のみ提出可（結果取得） |
+| **木** | 採点外ドリル `course_6089558_drill_6812813`（公式「25問」） | `管理会計・経理実務（Manaba・木・25）` | 採点外のみ提出可（結果取得） |
 | **月** | `(月)` 財務会計小テスト（`course_*_query_*`） | `管理会計・経理実務（Manaba・月）` | **提出しない**。受付終了後の「正解はこちら」のみ |
 
 Subject はどちらも `accounting`。ChapterSelection で章（月/木）を選ぶ。  

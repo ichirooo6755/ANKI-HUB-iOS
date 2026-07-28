@@ -180,9 +180,11 @@ class VocabularyData: ObservableObject {
 
     func getCategoryChapters(for subject: Subject) -> [String] {
         let unique = Set(getVocabulary(for: subject).compactMap { $0.category }.filter { !$0.isEmpty })
-        // マネファイ: 先生（教材・試験）→ AI（補強）の順。その他は辞書順。
+        // マネファイ: A（公式穴埋め）→ C（計算公式集中暗記）→ 先生（教材・試験）→ AI（補強）の順。その他は辞書順。
         return Array(unique).sorted { a, b in
             func rank(_ s: String) -> Int {
+                if s.hasPrefix("A・") || s == "A" { return -2 }
+                if DataParser.isFormulaMemorizationCategory(s) { return -1 }
                 if s.hasPrefix("先生") { return 0 }
                 if s.hasPrefix("AI") { return 1 }
                 return 2

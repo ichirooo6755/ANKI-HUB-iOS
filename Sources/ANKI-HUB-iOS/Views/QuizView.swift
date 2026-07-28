@@ -1092,13 +1092,17 @@ struct QuizView: View {
     private var fourChoiceView: some View {
         let question = questions[currentIndex]
         let isKanbunQuestion = subject == .kanbun
-        let cardSpacing: CGFloat = isKanbunQuestion ? 10 : 12
-        let cardPadding: CGFloat = isKanbunQuestion ? 18 : 24
-        let choiceSpacing: CGFloat = isKanbunQuestion ? 8 : 12
-        let choiceFont: Font = isKanbunQuestion ? .subheadline : .body
-        let choicePadding: CGFloat = isKanbunQuestion ? 12 : 16
+        // MCQ（会計・マネファイ・3アマ）は5〜6択でも一画面に収まりやすいようコンパクト化
+        let isCompactMCQ = subject.isMultipleChoiceSubject
+        let cardSpacing: CGFloat = isKanbunQuestion ? 10 : (isCompactMCQ ? 8 : 12)
+        let cardPadding: CGFloat = isKanbunQuestion ? 18 : (isCompactMCQ ? 14 : 24)
+        let choiceSpacing: CGFloat = isKanbunQuestion ? 8 : (isCompactMCQ ? 6 : 12)
+        let choiceFont: Font = isKanbunQuestion ? .subheadline : (isCompactMCQ ? .callout : .body)
+        let choicePadding: CGFloat = isKanbunQuestion ? 12 : (isCompactMCQ ? 10 : 16)
+        let sectionSpacing: CGFloat = isCompactMCQ ? 14 : 24
+        let actionPadding: CGFloat = isCompactMCQ ? 12 : 16
 
-        return VStack(spacing: 24) {
+        return VStack(spacing: sectionSpacing) {
             // Question Card
             VStack(spacing: cardSpacing) {
                 HStack {
@@ -1216,14 +1220,14 @@ struct QuizView: View {
                     Button {
                         selectAnswer(index, correctIndex: question.correctIndex)
                     } label: {
-                        HStack {
+                        HStack(alignment: .center, spacing: 8) {
                             Text(choice)
                                 .font(choiceFont)
                                 .multilineTextAlignment(.leading)
-                                .lineLimit(isKanbunQuestion ? 3 : nil)
-                                .minimumScaleFactor(isKanbunQuestion ? 0.75 : 1.0)
+                                .lineLimit(isKanbunQuestion ? 3 : (isCompactMCQ ? 4 : nil))
+                                .minimumScaleFactor(isKanbunQuestion || isCompactMCQ ? 0.85 : 1.0)
                                 .fixedSize(horizontal: false, vertical: true)
-                            Spacer()
+                            Spacer(minLength: 0)
 
                             if showResult {
                                 if index == question.correctIndex {
@@ -1239,11 +1243,13 @@ struct QuizView: View {
                                 }
                             }
                         }
-                        .padding(choicePadding)
+                        .padding(.horizontal, choicePadding)
+                        .padding(.vertical, choicePadding - (isCompactMCQ ? 2 : 0))
+                        .frame(maxWidth: .infinity, minHeight: isCompactMCQ ? 40 : nil, alignment: .leading)
                         .background(
                             choiceBackground(index: index, correctIndex: question.correctIndex)
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipShape(RoundedRectangle(cornerRadius: isCompactMCQ ? 10 : 12))
                     }
                     .disabled(showResult || isProcessingAnswer)
                     .foregroundStyle(.primary)
@@ -1256,12 +1262,12 @@ struct QuizView: View {
                     skipQuestion()
                 } label: {
                     Label("スキップ", systemImage: "forward.fill")
-                        .font(.headline)
+                        .font(isCompactMCQ ? .subheadline.weight(.semibold) : .headline)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, actionPadding)
                         .background(Color.gray.opacity(0.12))
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .clipShape(RoundedRectangle(cornerRadius: isCompactMCQ ? 12 : 14))
                 }
                 .disabled(isProcessingAnswer)
                 .padding(.horizontal)
@@ -1273,12 +1279,12 @@ struct QuizView: View {
                 } label: {
                     let bg = subject.color
                     Text("次へ")
-                        .font(.headline.weight(.semibold))
+                        .font(isCompactMCQ ? .subheadline.weight(.semibold) : .headline.weight(.semibold))
                         .foregroundStyle(theme.onColor(for: bg))
                         .frame(maxWidth: .infinity)
-                        .padding()
+                        .padding(.vertical, actionPadding)
                         .background(bg)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .clipShape(RoundedRectangle(cornerRadius: isCompactMCQ ? 12 : 14))
                 }
                 .padding(.horizontal)
             }
@@ -2272,6 +2278,85 @@ struct QuizView: View {
         return generateQuestionsFromVocab(picked, count: desiredCount)
     }
 
+    /// Build a formula fill-in question by blanking one random token from `parts`.
+    private func makeFormulaBlankQuestion(
+        from word: Vocabulary,
+        parts: [String],
+        pool: [Vocabulary]
+    ) -> Question? {
+        let structural: Set<String> = ["=", "→", ":", "。", "なら", "≒"]
+        let blankable = parts.indices.filter { !structural.contains(parts[$0]) }
+        let candidates = blankable.isEmpty ? Array(parts.indices) : blankable
+        guard let blankIndex = candidates.randomElement() else { return nil }
+
+        let correct = parts[blankIndex]
+        var displayParts = parts
+        displayParts[blankIndex] = "___"
+        let blankedFormula = displayParts.joined(separator: " ")
+
+        var distractorPool: [String] = []
+        if let answers = word.allAnswers {
+            distractorPool.append(contentsOf: answers.dropFirst())
+        }
+        distractorPool.append(contentsOf: parts.filter { $0 != correct })
+        for other in pool where other.id != word.id {
+            if let otherParts = other.formulaParts {
+                distractorPool.append(contentsOf: otherParts)
+            }
+            if let answers = other.allAnswers {
+                distractorPool.append(contentsOf: answers.dropFirst())
+            }
+        }
+
+        let uniqueDistractors = Array(
+            Set(
+                distractorPool
+                    .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                    .filter { !$0.isEmpty && $0 != correct && !structural.contains($0) }
+            )
+        ).shuffled()
+
+        let choiceCount = Int.random(in: 4...5)
+        var choices = [correct]
+        choices.append(contentsOf: uniqueDistractors.prefix(choiceCount - 1))
+        if choices.count < 4 {
+            let fallback = [
+                "株価", "額面", "クーポン", "利回り", "行使価格", "プレミアム", "PER", "NPV", "円/ドル",
+                "資本コスト",
+            ]
+            .filter { $0 != correct && !choices.contains($0) }
+            .shuffled()
+            choices.append(contentsOf: fallback.prefix(4 - choices.count))
+        }
+        choices = Array(Set(choices)).shuffled()
+        if !choices.contains(correct) {
+            choices.insert(correct, at: 0)
+            choices = Array(choices.prefix(choiceCount)).shuffled()
+        }
+        let correctIndex = choices.firstIndex(of: correct) ?? 0
+        let header = [word.category, word.term].compactMap { $0 }.joined(separator: " ")
+        let titleLine =
+            (word.fullText ?? "")
+            .components(separatedBy: "\n")
+            .first?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let prompt =
+            (titleLine?.isEmpty == false)
+            ? titleLine!
+            : "次の公式・判断ルールの空欄を埋めよ。"
+
+        return Question(
+            id: "\(word.id)-b\(blankIndex)",
+            questionText: header,
+            answerText: correct,
+            hint: nil,
+            example: nil,
+            choices: choices,
+            correctIndex: correctIndex,
+            fullText: "\(prompt)\n\(blankedFormula)"
+        )
+    }
+
     // Helper to filter vocabulary by chapter
     private func filterVocabByChapter(_ vocab: [Vocabulary], chapter: String) -> [Vocabulary] {
         let chunkSize = 50
@@ -2501,6 +2586,17 @@ struct QuizView: View {
                         fullText: word.fullText
                     )
                 )
+            } else if subject == .manefi, word.questionType == "formula_blank",
+                let parts = word.formulaParts, parts.count >= 2
+            {
+                if let question = makeFormulaBlankQuestion(from: word, parts: parts, pool: allVocabPool) {
+                    results.append(question)
+                }
+            } else if word.questionType == "formula_memorization"
+                || (word.category.map { DataParser.isFormulaMemorizationCategory($0) } ?? false)
+            {
+                // 集中暗記専用（表面＝用途 / 裏面＝式）。4択クイズには出さない。
+                continue
             } else if subject.isMultipleChoiceSubject,
                 word.questionType == subject.rawValue || word.questionType == "ham3"
             {

@@ -255,6 +255,9 @@ class DataParser {
     }
 
     /// Generic multiple-choice JSON: `{ id, category, text, select[] }` — `select[0]` is correct.
+    /// Optional `type: "formula_blank"` + `formulaParts` for randomized formula fill-in.
+    /// Optional `type: "formula_memorization"` (or category `C・…`) for focused-memorization cards:
+    /// front = `text`/`word`（何をする式か）, back = `select[0]`/`meaning`（計算式）.
     func parseMultipleChoiceData(
         _ jsonString: String,
         questionType: String,
@@ -264,8 +267,12 @@ class DataParser {
         struct MCItem: Codable {
             let id: String
             let category: String
-            let text: String
-            let select: [String]
+            let text: String?
+            let word: String?
+            let meaning: String?
+            let select: [String]?
+            let type: String?
+            let formulaParts: [String]?
             let imagePrefix: String?
             let images: [String]?
         }
@@ -273,12 +280,51 @@ class DataParser {
         guard let items = parseJSONData(jsonString, type: [MCItem].self) else { return [] }
 
         return items.compactMap { item in
-            let choices = item.select.map {
-                $0.trimmingCharacters(in: .whitespacesAndNewlines)
-            }.filter { !$0.isEmpty }
+            let choices = (item.select ?? [])
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+
+            let parts = (item.formulaParts ?? [])
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+            let isFormulaBlank = item.type == "formula_blank" && parts.count >= 2
+            let isFormulaMemorization = Self.isFormulaMemorizationCategory(item.category)
+                || item.type == "formula_memorization"
+                || (item.type == "flashcard" && choices.count <= 1)
+
+            if isFormulaMemorization {
+                let front = (item.text ?? item.word ?? "")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                let back = (choices.first ?? item.meaning ?? "")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !front.isEmpty, !back.isEmpty else { return nil }
+
+                var vocab = Vocabulary(
+                    id: item.id,
+                    term: "計算公式",
+                    meaning: back,
+                    explanation: sourceLabel
+                )
+                vocab.fullText = front
+                vocab.allAnswers = choices.isEmpty ? [back] : choices
+                vocab.questionType = "formula_memorization"
+                vocab.category = item.category
+                if includeImages {
+                    vocab.images = item.images
+                    vocab.imagePrefix = item.imagePrefix
+                }
+                return vocab
+            }
+
             guard let correct = choices.first else { return nil }
+            let questionText = (item.text ?? item.word ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !questionText.isEmpty else { return nil }
 
             let questionNo: String = {
+                if isFormulaBlank {
+                    return "公式穴埋め"
+                }
                 if let last = item.id.split(separator: "-").last, let n = Int(last) {
                     return "第\(n)問"
                 }
@@ -291,15 +337,24 @@ class DataParser {
                 meaning: correct,
                 explanation: sourceLabel
             )
-            vocab.fullText = item.text
+            vocab.fullText = questionText
             vocab.allAnswers = choices
-            vocab.questionType = questionType
+            vocab.questionType = isFormulaBlank ? "formula_blank" : questionType
             vocab.category = item.category
+            if isFormulaBlank {
+                vocab.formulaParts = parts
+            }
             if includeImages {
                 vocab.images = item.images
                 vocab.imagePrefix = item.imagePrefix
             }
             return vocab
         }
+    }
+
+    /// Chapter C（計算公式集中暗記）: `C・…` / exact `C` / `C` + 計算公式.
+    static func isFormulaMemorizationCategory(_ category: String) -> Bool {
+        if category.hasPrefix("C・") || category == "C" { return true }
+        return category.hasPrefix("C") && category.contains("計算公式")
     }
 }

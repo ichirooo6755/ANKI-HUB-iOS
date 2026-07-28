@@ -111,13 +111,14 @@ open ANKI-HUB-iOS.xcodeproj
 | 項目 | 状態 |
 |------|------|
 | 科目 `accounting` / `manefi` | `Subject`・`VocabularyData`・`DataParser`・`QuizView`・`ChapterSelectionView`・`RankUpManager` 配線済み（別科目） |
-| 問題データ | `accounting.json` **221問**（非Manaba44 + 木115 + 月62） / `manefi.json` **227問**（ローカル教材のみ・Resources 登録済み） |
-| 出題 | MCQ は `QuizView` で `allAnswers`/`choices` をシャッフルし、正解は本文で `correctIndex` 再計算（`select[0]` 固定表示にしない） |
+| 問題データ | `accounting.json` **221問**（非Manaba44 + 木115 + 月62） / `manefi.json` **461問**（ローカル教材のみ・章C計算公式44含む・Resources 登録済み） |
+| 出題 | MCQ は `QuizView` で `allAnswers`/`choices` をシャッフルし、正解は本文で `correctIndex` 再計算（`select[0]` 固定表示にしない）。公式穴埋めは `formulaParts` から毎回ランダム空欄 |
 | マネファイ優先 | **前半**=小テスト/練習問題、**後半**=「テスト/試験/確認」記載重点、`respon解答`は正解付き、スライド補強は薄いときのみ |
-| マネファイ章分け | **先生 189問**（respon/練習/授業内クイズ/試験OCR） / **AI 38問**（概念確認・補強）。category プレフィックス `先生・` / `AI・`。詳細は requirements.md |
+| マネファイ章分け | **A・公式穴埋め（期末直前）44**（先頭） / **C・計算公式集中暗記**（表面＝用途・裏面＝式・集中暗記専用） / **先生** / **AI**。category プレフィックス `A・` / `C・` / `先生・` / `AI・`。詳細は requirements.md |
+| マネファイ集中暗記 | 50語ブロックではなく **クイズと同じ category 章一覧**（`getCategoryChapters`）。計算公式は monospaced + 横スクロールで式崩れ防止 |
 | マネファイ制約 | **Manaba Web 禁止**（Playwright/ログイン/ドリル提出なし）。データ元は `Downloads/Manaba/マネー＆ファイナンス入門` 等のローカルのみ |
 | マネファイPDF再解析（2026-07-28） | 175→**227問**（+52）。`pdftotext` + Vision OCR。章を授業回付きに整理。新規主戦場=第16–19回授業内クイズ（解答付き）・respon取りこぼし・第22–26回補強・中間OCR補完 |
-| Manaba（会計・木） | 採点外ドリル `course_6089558_drill_6812813` → 章 `管理会計・経理実務（Manaba・木）`。choicesユニーク **60** → 展開 **115** |
+| Manaba（会計・木） | 採点外ドリル `course_6089558_drill_6812813`（公式「25問」）→ 章 `管理会計・経理実務（Manaba・木・25）`。choicesユニーク **60** → 展開 **115** |
 | Manaba（会計・月） | `(月)` 財務会計小テスト13本。**提出せず**受付終了後の「正解はこちら」のみ → 章 `管理会計・経理実務（Manaba・月）`。choicesユニーク **23** → 展開 **62** |
 | Manaba 抽出 | `scripts/manaba_extract/`（通常 Playwright + storageState）。木/月は別プール。同時に複数提出プロセスを動かさない |
 

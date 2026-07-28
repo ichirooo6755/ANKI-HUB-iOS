@@ -170,7 +170,11 @@ struct ChapterSelectionView: View {
                 if title.contains("Manaba・月") {
                     desc = "月曜・財務会計小テスト"
                 } else if title.contains("Manaba・木") {
-                    desc = "木曜・採点外ドリル"
+                    desc = "木曜・採点外ドリル（25問）"
+                } else if title.hasPrefix("A・") || title == "A" {
+                    desc = "期末直前・公式穴埋め（空欄位置ランダム）"
+                } else if DataParser.isFormulaMemorizationCategory(title) {
+                    desc = "計算公式・集中暗記（表面＝用途、裏面＝式）"
                 } else if title.hasPrefix("先生") {
                     desc = "教材・試験由来"
                 } else if title.hasPrefix("AI") {

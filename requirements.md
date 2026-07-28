@@ -1,6 +1,6 @@
 # ANKI-HUB-iOS 要件・実装条件
 
-> **更新日**: 2026-07-28  
+> **更新日**: 2026-07-29  
 > このファイルはユーザー要求と実装状態を毎回ここに集約する。作業前に必ず更新すること。
 
 ---
@@ -25,8 +25,10 @@
 | R14 | Manaba 採点外ドリル（木）取得→`accounting.json` マージ | P0 | ✅ 木: choicesユニーク60→展開115。`npm run manaba:extract` |
 | R15 | `manefi.json` 充実（40問以上）と Subject 配線 | P0 | ✅ 完了（227問・PDF再解析） |
 | R16 | Quiz 出題時に選択肢シャッフル（本文判定・correctIndex 再計算） | P0 | ✅ 済（`QuizView` MCQ / accounting / manefi） |
-| R17 | 月曜`(月)`小テスト抽出＋木/月を章分け（同一 Subject `accounting`） | P0 | ✅ 月: choicesユニーク23→展開62。章「Manaba・木」「Manaba・月」。提出せず正解公開のみ |
+| R17 | 月曜`(月)`小テスト抽出＋木/月を章分け（同一 Subject `accounting`） | P0 | ✅ 月: choicesユニーク23→展開62。章「Manaba・木・25」「Manaba・月」。提出せず正解公開のみ |
 | R18 | 学習タブ「教材」に試験解説（accounting/manefi）を内蔵 | P0 | ✅ `exam_guides.json` + ExamGuideViews。YouTubeリンク・Manaba/PDF解説 |
+| R19 | マネファイ・チャプターA（公式穴埋め・空欄位置ランダム） | P0 | ✅ `A・公式穴埋め（期末直前）` 44公式。`formulaParts` + QuizView 出題時ランダム空欄 |
+| R20 | マネファイ・チャプターC（計算公式集中暗記）+ 集中暗記をクイズと同じ章構成に | P0 | ✅ 44カード + UI（章構成揃え・式表示） |
 
 ---
 
@@ -121,9 +123,9 @@
 | 項目 | 内容 |
 |------|------|
 | 科目 | `Subject.accounting` / `Subject.manefi`（表示名: アカウンティング / マネファイ）。**完全に別科目** |
-| JSON | `Resources/accounting.json`（**221問**: 非Manaba44 + 木115 + 月62）、`Resources/manefi.json`（**297問**・ローカル教材・PDF再解析＋第16–20理解度チェック＋第22–26重点）。`select[0]` が正解（選択肢は**本文**、番号依存禁止） |
+| JSON | `Resources/accounting.json`（**221問**: 非Manaba44 + 木115 + 月62）、`Resources/manefi.json`（**461問**・ローカル教材・PDF再解析＋第16–20理解度チェック＋第22–26重点＋**章A公式穴埋め44**＋**章C計算公式集中暗記44**）。`select[0]` が正解（選択肢は**本文**、番号依存禁止） |
 | 配線 | `VocabularyData` / `DataParser.parseMultipleChoiceData` / `QuizView`（出題時シャッフル）/ `ChapterSelectionView`（カテゴリ章で月/木を選択）/ `RankUpManager` |
-| Manaba・木 | 採点外ドリル `course_6089558_drill_6812813` → 章 `管理会計・経理実務（Manaba・木）`。提出は採点外のみ |
+| Manaba・木 | 採点外ドリル `course_6089558_drill_6812813`（公式「25問」）→ 章 `管理会計・経理実務（Manaba・木・25）`。提出は採点外のみ |
 | Manaba・月 | `(月)` 財務会計小テスト（query）。章 `管理会計・経理実務（Manaba・月）`。**採点対象のため提出しない**。受付終了後の「正解はこちら」から取得 |
 | ユニーク（木） | choices セットユニーク **60**（pool ソース67）→ 展開 **115** |
 | ユニーク（月） | choices セットユニーク **23**（pool ソース56）→ 展開 **62**（correct_multi / fill_blank 分解） |
@@ -147,7 +149,34 @@
 `先生・後半・クイズ（第16–19回）` / `先生・後半・練習問題（第19-20回）` /
 `先生・理解度チェック（第16–20回）` / `先生・第22–26回重点` / `先生・第26回まとめ` /
 `先生・試験・中間` / `先生・試験・期末` / `先生・期末（マネファイ期末.pdf）` /
+`A・公式穴埋め（期末直前）` / `C・計算公式集中暗記` /
 `AI・前半・概念確認（第1-9回）` / `AI・補強・基礎概念`
+
+### マネファイ チャプターC・計算公式集中暗記（2026-07-29）
+
+| 項目 | 内容 |
+|------|------|
+| ソース | `Downloads/.../期末対策_完成版/02_公式/期末_計算公式全集.md`（公式1〜44） |
+| 章名 | `C・計算公式集中暗記`（`C・` / `C` 始まりで識別。並びは A の次） |
+| 件数 | **44カード**。`manefi.json` **417→461**（章Aは未変更） |
+| データ | `word`=用途、`meaning`=計算式。互換で `text`/`select[0]`/`type:"flashcard"` 併記。パーサは `formula_memorization` / `flashcard` / category `C・` を認識 |
+| UI | 集中暗記でタップ反転。裏面は **monospaced + 横/縦スクロール + minimumScaleFactor**。英単語カードは従来どおり |
+| 章構成 | マネファイ／会計の集中暗記は **50語ブロックではなく** `getCategoryChapters`（クイズ・ChapterSelection と同じ並び） |
+| クイズ | 章Cカードは4択に出さない（集中暗記専用） |
+| Manaba Web | **未使用** |
+
+### マネファイ チャプターA・公式穴埋め（2026-07-29）
+
+| 項目 | 内容 |
+|------|------|
+| ソース | `Downloads/.../期末直前_公式と判断ルール_印刷用.pdf`（`pdftotext`） |
+| 章名 | `A・公式穴埋め（期末直前）`（ChapterSelection 先頭・`A・` プレフィックス） |
+| 件数 | **公式44**（=カード44）。`manefi.json` **373→417** |
+| データ | `type: "formula_blank"` + `formulaParts: [String]`。`select[0]`=全文、`select[1…]`=ダミー候補 |
+| 出題 | `DataParser` が `formulaParts` を保持。`QuizView.makeFormulaBlankQuestion` が毎回ランダムに1トークンを `___` 化し、正解パーツ＋他公式パーツ等で4〜5択を生成・シャッフル |
+| 既存MCQ | `questionType == "manefi"` の通常枝は変更なし |
+| ビルド | 実機 `platform=iOS,name=iPhoneA13` **BUILD SUCCEEDED** + `devicectl` install 完了 |
+| Manaba Web | **未使用** |
 
 ### マネファイ 先生 / AI 分類ルール（2026-07-28）
 
@@ -232,6 +261,10 @@ node scripts/manaba_extract/merge_pool.cjs --write
 
 | 日付 | 内容 |
 |------|------|
+| 2026-07-29 | マネファイ章C UI: 集中暗記をクイズと同じ category 章構成に。`flashcard`/`C・` 計算公式の式表示崩れ防止。commit/pushなし |
+| 2026-07-29 | マネファイ章C: 計算公式集中暗記44（期末_計算公式全集.md）。`word`/`meaning` フラッシュカード。manefi 461問。commit/pushなし |
+| 2026-07-29 | マネファイ章A: 公式穴埋め44（期末直前PDF）。`formulaParts` + 出題時ランダム空欄。manefi 417問。commit/pushなし |
+| 2026-07-29 | 木章を `管理会計・経理実務（Manaba・木・25）` にリネーム（公式「25問」ドリル）。QuizView MCQ 選択肢をコンパクト化（5〜6択向け） |
 | 2026-07-28 | マネファイ: 理解度チェック（第16–20）+第22–26重点 +51問（297問計）。`merge_mf_check_16_26.py`。Manaba小テストはセッション失効で未取得。BUILD SUCCEEDED |
 | 2026-07-28 | R18: 学習タブ教材に試験解説（accounting/manefi）追加。`exam_guides.json`、YouTube・Manaba/PDF解説。Manaba Web未使用 |
 | 2026-07-28 | マネファイ期末.pdf: 新章 `先生・期末（マネファイ期末.pdf）` +19問（246問計）。Vision OCR。`先生・試験・期末` と別章。Manaba Web未使用 |

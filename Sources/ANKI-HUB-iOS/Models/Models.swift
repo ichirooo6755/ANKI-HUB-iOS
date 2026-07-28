@@ -194,6 +194,9 @@ struct Vocabulary: Identifiable, Codable {
     var images: [String]?
     var imagePrefix: String?
 
+    // Manefi formula fill-in (parts randomized to blank at quiz time)
+    var formulaParts: [String]?
+
     // Kobun specifics
     var type: String?  // "vocab" or "particle"
     var particleData: ParticleData?

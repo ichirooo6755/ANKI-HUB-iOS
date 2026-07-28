@@ -3,7 +3,7 @@
  * pool.json / pool_mon.json → accounting.json 形式へマージ
  *
  * 章分け:
- * - 木曜採点外ドリル → 「管理会計・経理実務（Manaba・木）」
+ * - 木曜採点外ドリル → 「管理会計・経理実務（Manaba・木・25）」（公式の「25問」ドリル）
  * - 月曜小テスト     → 「管理会計・経理実務（Manaba・月）」
  * - 旧カテゴリ「管理会計・経理実務（Manaba）」は木に移行
  *
@@ -33,7 +33,7 @@ const FALLBACK_SOURCES = path.join(ROOT, '.tmp-manaba/sources.json');
 const ACC_PATH = path.join(ROOT, 'Sources/ANKI-HUB-iOS/Resources/accounting.json');
 const MERGED_OUT = path.join(OUT_DIR, 'accounting_manaba_merged.json');
 
-const CAT_THU = '管理会計・経理実務（Manaba・木）';
+const CAT_THU = '管理会計・経理実務（Manaba・木・25）';
 const CAT_MON = '管理会計・経理実務（Manaba・月）';
 const CAT_LEGACY = '管理会計・経理実務（Manaba）';
 

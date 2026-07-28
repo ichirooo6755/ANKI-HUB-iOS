@@ -369,13 +369,13 @@
       {
         "id": "acc-manaba-thu",
         "title": "Manaba・木：練習問題解説",
-        "subtitle": "管理会計・経理実務（木曜）115問",
+        "subtitle": "管理会計・経理実務（木曜・25）115問",
         "youtubeLinks": null,
         "blocks": [
           {
             "id": "p1",
             "type": "paragraph",
-            "text": "章「管理会計・経理実務（Manaba・木）」。採点外ドリル115問。"
+            "text": "章「管理会計・経理実務（Manaba・木・25）」（公式「25問」ドリル）。採点外ドリル115問（展開後）。"
           },
           {
             "id": "pr1",
