@@ -1194,17 +1194,35 @@ struct FlashcardInputView: View {
 
     @ObservedObject private var theme = ThemeManager.shared
 
+    /// 表面（問題文）のベースサイズ。文字数に応じて段階調整し、はみ出しは minimumScaleFactor で収める。
+    /// 裏面の計算式（backFont / monospaced + 横スクロール）には影響しない。
     private var frontFont: Font {
-        if compactLongForm || word.count > 100 {
-            return .caption.weight(.medium)
+        let count = word.count
+        if count <= 20 {
+            return .system(size: 28, weight: .bold)
         }
-        if word.count > 60 {
-            return .footnote.weight(.semibold)
+        if count <= 40 {
+            return .system(size: 22, weight: .bold)
         }
-        if word.count > 30 {
-            return .body.weight(.bold)
+        if count <= 70 {
+            return .title3.weight(.bold)
         }
-        return .title.weight(.bold)
+        return .body.weight(.semibold)
+    }
+
+    private var frontLineLimit: Int {
+        let count = word.count
+        if count <= 20 { return 3 }
+        if count <= 40 { return 5 }
+        if count <= 70 { return 8 }
+        return 12
+    }
+
+    private var frontMinimumScale: CGFloat {
+        let count = word.count
+        if count <= 20 { return 0.7 }
+        if count <= 40 { return 0.6 }
+        return 0.5
     }
 
     private var backFont: Font {
@@ -1274,21 +1292,24 @@ struct FlashcardInputView: View {
             .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
             .opacity(isFlipped ? 1 : 0)
             
-            // Front
+            // Front — 問題文のみカード内に自動収まるようスケール（裏面式は触らない）
             VStack(spacing: 12) {
                 if formulaAnswerMode {
                     Text("何をする式か")
-                        .font(.footnote.weight(.semibold))
+                        .font(.callout.weight(.semibold))
                         .foregroundStyle(theme.secondaryText)
                 }
 
-                ScrollView {
+                GeometryReader { geo in
                     Text(word)
                         .font(frontFont)
                         .foregroundStyle(theme.primaryText)
                         .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
+                        .lineLimit(frontLineLimit)
+                        .minimumScaleFactor(frontMinimumScale)
+                        .frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 if !showsHintWithAnswer, !hint.isEmpty {
                     Text(hint)
